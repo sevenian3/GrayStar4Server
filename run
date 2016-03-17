@@ -1,0 +1,2 @@
+//java -cp ./graystar3server -jar GrayStar3Server.jar $teff $logg $logKappaScale $massStar $xiT $lineThresh $voigtThresh $lambdaStart $lambdaStop
+java -cp ./graystar3server -jar GrayStar3Server.jar   5780.0 4.4 0.0 1.0  1.0 3.0 15.0 588.0 592.0 "coarse" 0.5

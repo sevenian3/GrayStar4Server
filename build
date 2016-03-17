@@ -1,0 +1,8 @@
+
+cd graystar3server
+javac -cp  . -sourcepath . *.java
+
+cd ..
+cp  GrayStar3Server.jar GrayStar3Server.jar.bak
+jar cvmf mymanifest GrayStar3Server.jar graystar3server/*.class
+
