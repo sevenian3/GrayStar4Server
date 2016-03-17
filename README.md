@@ -1,4 +1,7 @@
 # GrayStar4Server
+
+To see Web app: http://www.ap.smu.ca/~ishort/OpenStars/GrayStarServer/grayStarServer.html
+
 Web-based pedagogical stellar astrophysics
 Stellar atmospheric modeling and atomic-line-list-driven spectrum synthesis on the server side in Java.
 Client-side JavaScript code produces synthetic observables and measurments, applies additional
