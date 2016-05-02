@@ -234,7 +234,7 @@ public class ScaleT10000{
             logPhxRefPe[i] = ToolBox.interpol(ScaleT10000.logPhxRefTau64(), logPhxRefPe64, tauRos[1][i]);
             thisGexp = gexpTop + gexpRange * (tauRos[1][i] - tauRos[1][0]) / tauLogRange;
             //scaling with g
-            scalePe[1][i] = thisGexp*logEg + logPhxRefPe[i] - thisGexp*ScaleT5000.phxRefLogEg;
+            scalePe[1][i] = thisGexp*logEg + logPhxRefPe[i] - thisGexp*ScaleT10000.phxRefLogEg;
             //scale with Teff:
             if (teff < 10000.0){
                if (tauRos[0][i] < 0.1){
@@ -246,7 +246,7 @@ public class ScaleT10000{
                if ( (tauRos[0][i] >= 0.1) && (tauRos[0][i] <= 10.0) ){
                    thisOmega = omegaTaum1 + omegaRange * (tauRos[1][i] - lonOfM1) / tauLogRange;
                }
-               scalePe[1][i] = thisOmega*teff + scalePe[1][i] - thisOmega*ScaleT5000.phxRefTeff;
+               scalePe[1][i] = thisOmega*teff + scalePe[1][i] - thisOmega*ScaleT10000.phxRefTeff;
             }
             //scaling with zscl:
             scalePe[1][i] = 0.5*logZScale + scalePe[1][i];
