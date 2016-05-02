@@ -215,8 +215,8 @@ public class LineProf {
 
 
     public static double[][] voigt(double[][] linePoints, double lam0In, double logAij, double logGammaCol,
-            int numDeps, double teff, double[][] tauRos, double[][] temp, double[][] press,
-            double[][] tempSun, double[][] pressSun) {
+            int numDeps, double teff, double[][] tauRos, double[][] temp, double[][] pGas,
+            double[][] tempSun, double[][] pGasSun) {
 
         double c = Useful.c;
         double logC = Useful.logC();
@@ -277,7 +277,7 @@ public class LineProf {
 
             //Formula from p. 56 of Radiative Transfer in Stellar Atmospheres (Rutten),
             // logarithmically with respect to solar value:
-            logGamma = press[1][id] - pressSun[1][tau1] + 0.7 * (tempSun[1][tau1] - temp[1][id]) + logGammaSun;
+            logGamma = pGas[1][id] - pGasSun[1][tau1] + 0.7 * (tempSun[1][tau1] - temp[1][id]) + logGammaSun;
             //logGamma = logGamma + logFudge + logGammaCol;
             logGamma = logGamma + logGammaCol;
    //Add radiation (natural) broadning:
@@ -357,8 +357,8 @@ public class LineProf {
     } //end method voigt()
 
     public static double[][] voigt2(double[][] linePoints, double lam0In, double logAij, double logGammaCol,
-            int numDeps, double teff, double[][] tauRos, double[][] temp, double[][] press,
-            double[][] tempSun, double[][] pressSun) {
+            int numDeps, double teff, double[][] tauRos, double[][] temp, double[][] pGas,
+            double[][] tempSun, double[][] pGasSun) {
 
         double c = Useful.c;
         double logC = Useful.logC();
@@ -418,7 +418,7 @@ public class LineProf {
 
         //Variables for managing honest Voigt profile convolution:
         //Find value of damping a parameter around tauRos=1.0 for guidance:
-        logGamma = press[1][tau1] - pressSun[1][tau1] + 0.7 * (tempSun[1][tau1] - temp[1][tau1]) + logGammaSun;
+        logGamma = pGas[1][tau1] - pGasSun[1][tau1] + 0.7 * (tempSun[1][tau1] - temp[1][tau1]) + logGammaSun;
         logGamma = logGamma + logGammaCol;
         double Aij = Math.pow(10.0, logAij);
    //Add radiation (natural) broadning:
@@ -446,7 +446,7 @@ public class LineProf {
 
             //Formula from p. 56 of Radiative Transfer in Stellar Atmospheres (Rutten),
             // logarithmically with respect to solar value:
-            logGamma = press[1][id] - pressSun[1][tau1] + 0.7 * (tempSun[1][tau1] - temp[1][id]) + logGammaSun;
+            logGamma = pGas[1][id] - pGasSun[1][tau1] + 0.7 * (tempSun[1][tau1] - temp[1][id]) + logGammaSun;
             //logGamma = logGamma + logFudge + logGammaCol;
             logGamma = logGamma + logGammaCol;
             //System.out.println("LineGrid: logGamma: " + id + " " + logE * logGamma);

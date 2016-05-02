@@ -317,7 +317,7 @@
                             <td>
                                 <span title="Surface temperature of spherical blackbody radiation emitter of equivalent bolometric surface flux, in Kelvins (K)"> 
                                     <a href="http://en.wikipedia.org/wiki/Effective_temperature" target="_blank">Effective temperature, <em>T</em><sub>eff</sub></a> <br />
-                                    <span style="color:red">(500-6000)</span> <span style="color:blue">(6000-50000</span> 
+                                    (500-50000)</span> 
                                     <a href="http://en.wikipedia.org/wiki/Kelvin" target="_blank">K</a>) <br />
                                     <!-- <input id="Teff" type="number" name="Teff" value=5800 size="5" min="3500" max="25000" step="25"/> -->
                                     <!-- <input id="Teff" type="range" name="Teff" value="5800" min="3500" max="25000" step="10" onchange="displayTeff()"/> -->
@@ -433,7 +433,7 @@
                             <td>
                                 <span title="Threshhold ratio of monochromatic line center to background continuous extinction for inclusion in spectrum"> 
                                     Minimum log<sub>10</sub><em>&#954</em><sub>l</sub>/<em>&#954</em><sub>c</sub> for inclusion (-4.0 - 6.0)<br />
-                                    <input id="lineThresh" type="number" name="lineThresh" value="3.0" min="-4.0" max="6.0" step="0.1" size="7"/>
+                                    <input id="lineThresh" type="number" name="lineThresh" value="-2.0" min="-4.0" max="6.0" step="0.1" size="7"/>
                                 </span>
                             </td>
                            <!-- <td>
@@ -445,7 +445,7 @@
                             <td>
                                 <span title="Enhances the amount of pressure (collisional) line broadening - affects the Lorentzian line wings">
                                     Log<sub>10</sub> Broadening enhancement, <em>&#947</em><sub>Extra</sub> (0.0 - 1.0) <br />
-                                    <input id="gammaCol" type="number" name="gammaCol" value=0.0 size="3"/>
+                                    <input id="gammaCol" type="number" name="gammaCol" value=1.0 size="3"/>
                                 </span>
                             </td>
                             <td>
@@ -667,13 +667,14 @@
                 </fieldset> 
             </div>
 
+<!--
             <div id="flipPerform"><h4>Show/Hide performance/realism</h4></div>
             <div id="performIn" style="display:none">
                 <fieldset>
                     <legend> 
                         Modeling realism <em>vs</em> performance
                     </legend> 
-                    <table>
+                     <table>
                         <tr>
                             <td>
                                 <span title="Fast mode - everything OFF">
@@ -690,31 +691,31 @@
                                     <input id="usermode" type="radio" name="switchPerf" value="User" />User selection:
                                 </span>
                             </td>
-                            <td>
+                             <td>
                                 <span title="Ten &#923 iterations with multi-gray opacity and scattering - best for cooler stars">
                                     <input id="tcorr" type="checkbox" name="tcorr" /><em>T</em> Corrections
                                 </span>
-                            </td>
-                            <td>
+                            </td> 
+                             <td>
                                 <span title="Photon scattering in line source function - epsilon=0.01">
                                     <input id="scatter" type="checkbox" name="scatter" />Line scattering
                                 </span>
-                            </td>                                                        
-                            <td>
+                            </td>                                                         
+                             <td>
                                 <span title="True Voigt profile for high resolution line (otherwise Gaussian + Lorentzian)">
                                     <input id="voigt" type="checkbox" name="voigt" />Voigt line profile
                                 </span>
-                            </td>
-                            <td>
+                            </td> 
+                             <td>
                                 <span title="Mixing-length superadiabitc convection: ONLY works well for solar-type stars">
                                     <input id="convec" type="checkbox" name="convec" />Convection (dangerous!)
                                 </span>
-                            </td>
+                            </td> 
                         </tr>
                     </table>
                 </fieldset> 
             </div>
-
+-->
 
         </form>
 

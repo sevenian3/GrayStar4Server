@@ -22,7 +22,7 @@ public class State {
      * @param press
      * @return
      */
-    public static double[][] massDensity(int numDeps, double[][] temp, double[][] press, double[] mmw, double kappaScale) {
+    public static double[][] massDensity(int numDeps, double[][] temp, double[][] press, double[] mmw, double zScale) {
 
         double logE = Math.log10(Math.E); // for debug output
 
@@ -63,7 +63,7 @@ public class State {
 
     }
 
-    public static double[] mmwFn(int numDeps, double[][] temp, double kappaScale) {
+    public static double[] mmwFn(int numDeps, double[][] temp, double zScale) {
 
         // mean molecular weight in amu 
         double[] mmw = new double[numDeps];
@@ -92,7 +92,7 @@ public class State {
         return mmw;
     }
 
-    public static double[][] NeFn(int numDeps, double[][] temp, double[][] NeDfg2, double kappaScale) {
+    public static double[][] NeFn(int numDeps, double[][] temp, double[][] NeDfg2, double zScale) {
 
         double[][] Ne = new double[2][numDeps];
 
@@ -102,10 +102,10 @@ public class State {
         // *** We need to do better than this...
         for (int id = 0; id < numDeps; id++) {
             if (temp[0][id] < 7300.0) {
-                Ne[0][id] = NeDfg2[0][id] * kappaScale;
+                Ne[0][id] = NeDfg2[0][id] * zScale;
                 Ne[1][id] = Math.log(Ne[0][id]);
             } else {
-                Ne[1][id] = -4.5 - Useful.logK() + 0.5 * temp[1][id] - 6.0 + Math.log(kappaScale); // last term converts m^-3 to cm^-3  
+                Ne[1][id] = -4.5 - Useful.logK() + 0.5 * temp[1][id] - 6.0 + Math.log(zScale); // last term converts m^-3 to cm^-3  
                 Ne[0][id] = Math.exp(Ne[1][id]);
                 //System.out.format("%12.8f   %12.8f   %12.8f%n", temp[0][id], logE * mmwNe[1][id], mmwNe[0][id]);
             }
@@ -116,6 +116,69 @@ public class State {
         return Ne;
 
     }
-    
+
+   public static double[][] getNz(int numDeps, double[][] temp, double[][] pGas, double[][] pe, 
+                                  double ATot, int nelemAbnd, double[] logAz){
+
+   double[][] logNz = new double[nelemAbnd][numDeps];
+   
+   double logATot = Math.log(ATot);
+
+   double help, logHelp, logNumerator;
+
+   for (int i = 0 ; i < numDeps; i++){
+
+ // Initial safety check to avoid negative logNz as Pg and Pe each converge:
+ // maximum physical Pe is about 0.5*PGas (complete ionization of pure H): 
+      if (pe[0][i] > 0.5 * pGas[0][i]){
+          pe[0][i] = 0.5 * pGas[0][i];
+          pe[1][i] = Math.log(pe[0][i]);
+      }
+ // H (Z=1) is a special case: N_H(tau) = (Pg(tau)-Pe(tau))/{kTk(tau)A_Tot}
+      logHelp = pe[1][i] - pGas[1][i];
+      help = 1.0 - Math.exp(logHelp);
+      logHelp = Math.log(help);
+      logNumerator = pGas[1][i] + logHelp; 
+      logNz[0][i] = logNumerator - Useful.logK() - temp[1][i] - logATot;
+
+// Remaining elements:
+      for (int j = 0; j < nelemAbnd; j++){
+         // N_z = A_z * N_H:
+         logNz[j][i] = logAz[j] + logNz[0][i];
+      } 
+ 
+    } 
+
+   return logNz; 
+
+  }
+
+   public static double[][] massDensity2(int numDeps, int nelemAbnd, double[][] logNz, String[] cname){
+   
+     double[][] rho = new double[2][numDeps];
+
+     double logAddend, addend;
+     double lAmu = Useful.logAmu();
+
+//Prepare log atomic masses once for each element:
+     double[] logAMass = new double[nelemAbnd];
+     for (int j = 0; j < nelemAbnd; j++){
+       logAMass[j] = Math.log(AtomicMass.getMass(cname[j]));
+       //System.out.println("j " + j + " logAMass " + logAMass[j]);
+     }
+     for (int i = 0; i < numDeps; i++){
+
+       rho[0][i] = 0.0;
+       for (int j = 0; j < nelemAbnd; j++){
+          logAddend = logNz[j][i] + lAmu + logAMass[j];
+          rho[0][i] = rho[0][i] + Math.exp(logAddend); 
+          rho[1][i] = Math.log(rho[0][i]);
+       }
+
+     }
+      return rho;  
+      
+   }
+ 
     
 }

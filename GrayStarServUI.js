@@ -34,6 +34,14 @@
  * for academic and othe non-profit uses, but are asked to leave this
  * header text in place (although they may add to the header text).
  *
+ * The MIT License (MIT) 
+* Copyright (c) 2016 C. Ian Short 
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 
@@ -1456,7 +1464,7 @@ var jsonObj;
         var numDeps = Number(jsonObj.numDeps);  //number of vertical atmospheric depths 
         var numMaster = Number(jsonObj.numMaster); //number of line blanketed SED lambda points
         var numThetas = Number(jsonObj.numThetas); //number of angles in specific intensity distribution
-        var numSpecSyn = Number(jsonObj.numSpecSyn); //number of angles in specific intensity distribution
+        //var numSpecSyn = Number(jsonObj.numSpecSyn); //number of angles in specific intensity distribution
         var numGaussLines = Number(jsonObj.numGaussLines); //number of angles in specific intensity distribution
         var numLams = Number(jsonObj.numLams); //number of continuum SED lambda points
         var numSpecies = Number(jsonObj.numSpecies); //number of chemical speecies (ionization stages) 
@@ -1505,6 +1513,8 @@ var jsonObj;
 
          var logTauRosAjax = gsAjaxParser(numDeps, jsonObj.logTau);
          var tauRos = gsDuplex(numDeps, logTauRosAjax);
+         var logZAjax = gsAjaxParser(numDeps, jsonObj.logZ);
+         var depths = gsDuplex(numDeps, logZAjax);
          var logTempAjax = gsAjaxParser(numDeps, jsonObj.logTemp);
          var temp = gsDuplex(numDeps, logTempAjax);
          var logPGasAjax = gsAjaxParser(numDeps, jsonObj.logPGas);
@@ -1614,17 +1624,17 @@ var jsonObj;
 
     //default initializations:
 
-    var specSynLams = [];
-    specSynLams.length = numSpecSyn;
-
-//Unpack the spectrum synthsis flux distributions 
-
-         var logSpecSynLamsAjax = gsAjaxParser(numSpecSyn, jsonObj.logWaveSS);
-         for (var i = 0; i < numSpecSyn; i++){
-          specSynLams[i] = Math.exp(logSpecSynLamsAjax[i]); 
-            }
-         var logSpecSynFluxAjax = gsAjaxParser(numSpecSyn, jsonObj.logFluxSS);
-         var specSynFlux = gsDuplex(numSpecSyn, logSpecSynFluxAjax);
+    //var specSynLams = [];
+    //specSynLams.length = numSpecSyn;
+//
+////Unpack the spectrum synthsis flux distributions 
+//
+ //        var logSpecSynLamsAjax = gsAjaxParser(numSpecSyn, jsonObj.logWaveSS);
+  //       for (var i = 0; i < numSpecSyn; i++){
+   //       specSynLams[i] = Math.exp(logSpecSynLamsAjax[i]); 
+    //        }
+     //    var logSpecSynFluxAjax = gsAjaxParser(numSpecSyn, jsonObj.logFluxSS);
+      //   var specSynFlux = gsDuplex(numSpecSyn, logSpecSynFluxAjax);
 
 
     //default initializations:
@@ -1691,7 +1701,7 @@ var jsonObj;
 //Find spectrum synthesis region in SED again:
    iStart = lamPoint(numBroad, masterFluxBroad[2], 1.0e-7*lambdaStart);
    iStop = lamPoint(numBroad, masterFluxBroad[2], 1.0e-7*lambdaStop);
-   numSpecSyn = iStop - iStart + 1;
+   var numSpecSyn = iStop - iStart + 1;
 //console.log("numMaster " + numMaster + " numBroad " + numBroad + " iStart " + iStart + " iStop " + iStop + " numSpecSyn " + numSpecSyn);
 
 //Interpolate continuum spectrum onto line-blanketed spectrum lambda grid:
@@ -1769,7 +1779,7 @@ var jsonObj;
 
 // Put number densities into form that Grotrian diagram plot expects
 //var ionEqElement = "Ca";  //test
-      var numStages = 4;  //number of ionization stages treated by GrayStarServer
+      var numStages = 5;  //number of ionization stages treated by GrayStarServer
       var logNums = [];
       logNums.length = numStages; 
       var ionE = [];
@@ -2818,8 +2828,8 @@ var jsonObj;
             lamLblStr = lamLblNum.toString(10);
             lamLbl = "<span style='font-size: xx-small'>" + lamLblStr + "</span>";
             //RGBHex = colHex(r255, g255, b255);
-            txtPrint(nameLbl, xPos + xAxisXCnvs, yPos, RGBHex, plotThirteenId);
-            txtPrint(lamLbl, xPos + xAxisXCnvs, yPos + 10, RGBHex, plotThirteenId);
+            txtPrint(nameLbl, xPos + xAxisXCnvs, (yPos - 10), RGBHex, plotThirteenId);
+            txtPrint(lamLbl, xPos + xAxisXCnvs, yPos, RGBHex, plotThirteenId);
             xShiftDum = YBar(listLams[i], minXData, maxXData, thisXAxisLength, barWidth, barHeight,
                     barFinesse, RGBHex, plotThirteenId, cnvsThirteenCtx);
         }
@@ -4789,13 +4799,14 @@ var jsonObj;
         var xTab = 190;
         txtPrint("i", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
         txtPrint("log<sub>10</sub> <em>&#964</em><sub>Rosseland</sub>", 10 + xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>T</em><sub>Kin</sub> (K)", 10 + 2 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>P</em><sub>Gas</sub> (dynes cm<sup>-2</sup>)", 10 + 3 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>P</em><sub>Rad</sub> (dynes cm<sup>-2</sup>)", 10 + 4 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>&#961</em> (g cm<sup>-3</sup>)", 10 + 5 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>N</em><sub>e</sub> (cm<sup>-3</sup>)", 10 + 6 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("<em>&#956</em> (a.m.u.)", 10 + 7 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>&#954</em> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 8 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> depth (cm)", 10 + 2 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>T</em><sub>Kin</sub> (K)", 10 + 3 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>P</em><sub>Gas</sub> (dynes cm<sup>-2</sup>)", 10 + 4 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>P</em><sub>Rad</sub> (dynes cm<sup>-2</sup>)", 10 + 5 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#961</em> (g cm<sup>-3</sup>)", 10 + 6 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>N</em><sub>e</sub> (cm<sup>-3</sup>)", 10 + 7 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("<em>&#956</em> (a.m.u.)", 10 + 8 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#954</em> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 9 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
 
         for (var i = 0; i < numDeps; i++) {
             yTab = yOffsetPrint + vOffset + i * lineHeight;
@@ -4803,27 +4814,30 @@ var jsonObj;
             value = logE * tauRos[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + xTab, yTab, txtColor, printModelId);
-            value = logE * temp[1][i];
+            value = logE * depths[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 2 * xTab, yTab, txtColor, printModelId);
-            value = logE * press[1][i];
+            value = logE * temp[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 3 * xTab, yTab, txtColor, printModelId);
-            value = logE * press[3][i];
+            value = logE * press[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 4 * xTab, yTab, txtColor, printModelId);
-            value = logE * rho[1][i];
+            value = logE * press[3][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 5 * xTab, yTab, txtColor, printModelId);
-            value = logE * Ne[1][i];
+            value = logE * rho[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 6 * xTab, yTab, txtColor, printModelId);
-            value = mmw[1][i];
+            value = logE * Ne[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 7 * xTab, yTab, txtColor, printModelId);
-            value = logE * kappa[1][i];
+            value = mmw[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 8 * xTab, yTab, txtColor, printModelId);
+            value = logE * kappa[1][i];
+            value = value.toPrecision(5);
+            numPrint(value, 10 + 9 * xTab, yTab, txtColor, printModelId);
 
         }
 
@@ -4885,7 +4899,7 @@ var jsonObj;
 
         var xTab = 190;
         txtPrint("<em>&#955</em> (nm)", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("<em>F</em><sub>&#955</sub> / <em>B</em><sub>&#955</sub>", 10 + xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("<em>F</em><sub>&#955</sub> / <em>F</em><sup>C</sup><sub>&#955</sub>", 10 + xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         for (var i = 0; i < numSpecSyn; i++) {
             yTab = yOffsetPrint + vOffset + i * lineHeight;
             value = 1.0e7 * specSynLams[i];

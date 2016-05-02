@@ -31,14 +31,14 @@ public class LineTau2 {
     /**
      *
      * @param numDeps
-     * @param linePoints
+     * @param lineMaster
      * @param logKappaL
      * @param kappa
      * @param tauRos
      * @return
      */
-    public static double[][] tauLambda(int numDeps, int numPoints, double[][] logKappaL,
-            double[][] kappa, double[][] tauRos) {
+    public static double[][] tauLambda(int numDeps, int numMaster, double[][] logKappaL,
+            double[][] kappa, double[][] tauRos, int numLams, double[] lambdaScale, double[] masterLams) {
 
         //No monochromatic optical depth can be less than the Rosseland optical depth,
         // so prevent zero tau_lambda values by setting each tau_lambda(lambda) at the 
@@ -50,12 +50,27 @@ public class LineTau2 {
 
         //int numPoints = linePoints[0].length;
         // returns numPoints+1 x numDeps array: the numPoints+1st row holds the line centre continuum tau scale
-        double[][] logTauL = new double[numPoints][numDeps];
+        double[][] logTauL = new double[numMaster][numDeps];
 
         double tau1, tau2, delta, tauL,
                 integ, logKapRat, logKappaC, lastLogKapRat;
 
-        for (int il = 0; il < numPoints; il++) {
+//Interpolate continuum opacity onto onto line-blanketed opacity lambda array:
+//
+        double[] kappaC = new double[numLams];
+        double[] kappaC2 = new double[numMaster];
+        double[][] kappa2 = new double[numMaster][numDeps];
+        for (int id = 1; id < numDeps; id++) {
+           for (int il = 0; il < numLams; il++) {
+              kappaC[il] = kappa[il][id];
+           }
+           kappaC2 = ToolBox.interpolV(kappaC, lambdaScale, masterLams); 
+           for (int il = 0; il < numMaster; il++){ 
+              kappa2[il][id] = kappaC2[il];
+           }
+        }
+
+        for (int il = 0; il < numMaster; il++) {
 
             tau1 = minTauL; //initialize accumulator
             logTauL[il][0] = minLogTauL; // Set upper boundary TauL           
@@ -65,11 +80,12 @@ public class LineTau2 {
             //total extinction co-efficient
             // Convert kappa_Ros to cm^-1 for consistency with kappaL:
             //logKappaC = kappa[1][0] + rhoSun[1][0]; // + logg;
-            logKappaC = kappa[1][0];
+            //WRONG!  kappa is now wavelength dependent!  
+            //logKappaC = kappa[1][0];
 
             //delta = tauRos[0][1] - tauRos[0][0];
             //logKapRat = logKappaL[il][0] - kappa[1][0];
-            lastLogKapRat = logKappaL[il][0] - logKappaC;
+            lastLogKapRat = logKappaL[il][0] - kappa2[il][0];
 
             //tau2 = tau1 + ((Math.exp(logKapRat) + 1.0) * delta);
             //opacity being handed in is now total oapcity: line plux continuum:
@@ -81,10 +97,11 @@ public class LineTau2 {
                 // To test: continue with Euler's method:
                 // Convert kappa_Ros to cm^-1 for consistency with kappaL:
                 //logKappaC = kappa[1][id] + rhoSun[1][id]; // - logg;
-                logKappaC = kappa[1][id];
+                //logKappaC = kappa[1][id];
                 delta = tauRos[0][id] - tauRos[0][id - 1];
                 //logKapRat = logKappaL[il][id] - kappa[1][id];
-                logKapRat = logKappaL[il][id] - logKappaC;
+                //logKapRat = logKappaL[il][id] - logKappaC;
+                logKapRat = logKappaL[il][id] - kappa2[il][id];
 
                 //tau2 = tau1 + ((Math.exp(logKapRat) + 1.0) * delta);
                 //opacity being handed in is now total oppcity: line plux continuum:

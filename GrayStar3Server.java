@@ -1,4 +1,13 @@
 /*
+ * The MIT License (MIT)
+ * Copyright (c) 2016 C. Ian Short 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -42,9 +51,9 @@ public class GrayStar3Server {
 
         //Argument 2: Linear sclae factor for solar Rosseland oapcity distribution
         // mimics "metallicity" parameter - ??  (unitless)
-        String logKappaStr = args[2];
+        String logZStr = args[2];
         //String logKappaStr = "0.0"; //test
-        double logKappaScale = (Double.valueOf(logKappaStr)).doubleValue();
+        double logZScale = (Double.valueOf(logZStr)).doubleValue();
 
         //Argument 3: Stellar mass, M, in solar masses
         String massStarStr = args[3];
@@ -90,13 +99,13 @@ public class GrayStar3Server {
             logg = 7.0;
             loggStr = "7.0";
         }
-        if (logKappaScale < -3.0) {
-            logKappaScale = -3.0;
-            logKappaStr = "-3.0";
+        if (logZScale < -3.0) {
+            logZScale = -3.0;
+            logZStr = "-3.0";
         }
-        if (logKappaScale > 1.0) {
-            logKappaScale = 1.0;
-            logKappaStr = "1.0";
+        if (logZScale > 1.0) {
+            logZScale = 1.0;
+            logZStr = "1.0";
         }
         if (massStar < 0.1) {
             massStar = 0.1;
@@ -108,7 +117,7 @@ public class GrayStar3Server {
         }
 
         double grav = Math.pow(10.0, logg);
-        double kappaScale = Math.pow(10.0, logKappaScale);
+        double zScale = Math.pow(10.0, logZScale);
 
         // Argument 5: microturbulence, xi_T, in km/s:
            String xitStr = args[4];
@@ -209,6 +218,8 @@ public class GrayStar3Server {
             logGammaColStr = "1.0";
         }
 
+        double logE = Math.log10(Math.E); // for debug output
+        double logE10 = Math.log(10.0); //natural log of 10
 
         //Gray structure and Voigt line code code begins here:
 // Initial set-up:
@@ -226,12 +237,16 @@ public class GrayStar3Server {
         //int numLams = (int) (( lamSetup[1] - lamSetup[0] ) / lamSetup[2]) + 1;  
         int numLams = (int) lamSetup[2];
 
+        //CONTINUUM lambda scale (nm)
+        double lambdaScale[] = LamGrid.lamgrid(numLams, lamSetup); //cm
+
 // Solar parameters:
         double teffSun = 5778.0;
         double loggSun = 4.44;
         double gravSun = Math.pow(10.0, loggSun);
-        double logKappaScaleSun = 0.0;
-        double kappaScaleSun = Math.exp(logKappaScaleSun);
+        double logZScaleSun = 0.0;
+        double zScaleSun = Math.exp(logZScaleSun);
+
 //Solar units:
         double massSun = 1.0;
         double radiusSun = 1.0;
@@ -247,243 +262,18 @@ public class GrayStar3Server {
         double massX = 0.70; //Hydrogen
         double massY = 0.28; //Helium
         double massZSun = 0.02; // "metals"
-        double massZ = massZSun * kappaScale; //approximation
+        double massZ = massZSun * zScale; //approximation
 
-        double logNH = 17.0;
+        //double logNH = 17.0;
 
-        //Vega parameters (of Phoenix model- Teff not quite right!)
-        double teffVega = 9950.0;
-        double loggVega = 3.95;
-        double gravVega = Math.pow(10.0, loggVega);
-        double kappaScaleVega = 0.333;
-
-        //double sedThresh = 4.0; //line to continuum extinction threshold for 
-                                 // inclusion as low resolution line in overall SED
-        ////Output files:
-        //String outfile = "gray_structure."
-        //        + teffStr + "-" + loggStr + "-" + logKappaStr + ".out";
-        //String specFile = "gray_spectrum."
-        //        + teffStr + "-" + loggStr + "-" + logKappaStr + ".out";
-        //String lineFile = "voigt_line."
-        //        + teffStr + "-" + loggStr + "-" + logKappaStr + "-" + xitStr + ".out";
-
-        double logE = Math.log10(Math.E); // for debug output
-        double logE10 = Math.log(10.0); //natural log of 10
-
-        //log_10 Rosseland optical depth scale  
-        double tauRos[][] = TauScale.tauScale(numDeps, log10MinDepth, log10MaxDepth);
-
-        //Now do the same for the Sun, for reference:
-        double[][] tempSun = ScaleSolar.phxSunTemp(teffSun, numDeps, tauRos);
-        //Now do the same for the Sun, for reference:
-        double[][] pGasSun = ScaleSolar.phxSunPGas(gravSun, numDeps, tauRos);
-        double[][] NeSun = ScaleSolar.phxSunNe(gravSun, numDeps, tauRos, tempSun, kappaScaleSun);
-        double[][] kappaSun = ScaleSolar.phxSunKappa(numDeps, tauRos, kappaScaleSun);
-        double[] mmwSun = State.mmwFn(numDeps, tempSun, kappaScaleSun);
-        double[][] rhoSun = State.massDensity(numDeps, tempSun, pGasSun, mmwSun, kappaScaleSun);
-        double pressSun[][] = Hydrostat.hydrostatic(numDeps, gravSun, tauRos, kappaSun, tempSun);
-        //Now do the same for Vega, for reference:
-        double[][] tempVega = ScaleVega.phxVegaTemp(teffVega, numDeps, tauRos);
-        //Now do the same for the Sun, for reference:
-        double[][] pGasVega = ScaleVega.phxVegaPGas(gravVega, numDeps, tauRos);
-        double[][] NeVega = ScaleVega.phxVegaNe(gravVega, numDeps, tauRos, tempVega, kappaScaleVega);
-        double[][] kappaVega = ScaleVega.phxVegaKappa(numDeps, tauRos, kappaScaleVega);
-        double[] mmwVega = State.mmwFn(numDeps, tempVega, kappaScaleVega);
-        double[][] rhoVega = State.massDensity(numDeps, tempVega, pGasVega, mmwVega, kappaScaleVega);
-        //Now do the same for the Sun, for reference:
-        double pressVega[][] = Hydrostat.hydrostatic(numDeps, gravVega, tauRos, kappaVega, tempVega);
-        //
-        // BEGIN Initial guess for Sun section:
-        //
-        //Rescaled  kinetic temeprature structure: 
-        double F0Vtemp = 7300.0;  // Teff of F0 V star (K)                           
-        double[][] temp = new double[2][numDeps];
-        if (teff < F0Vtemp) {
-            //We're a cool star! - rescale from Sun!
-            temp = ScaleSolar.phxSunTemp(teff, numDeps, tauRos);
-        } else if (teff >= F0Vtemp) {
-            //We're a HOT star! - rescale from Vega
-            temp = ScaleVega.phxVegaTemp(teff, numDeps, tauRos);
-        }
-        //Scaled from Phoenix solar model:
-        double[][] guessPGas = new double[2][numDeps];
-        double[][] Ne = new double[2][numDeps];
-        double[][] guessKappa = new double[2][numDeps];
-        if (teff < F0Vtemp) {
-            //We're a cool star - rescale from Sun!
-            guessPGas = ScaleSolar.phxSunPGas(grav, numDeps, tauRos);
-            Ne = ScaleSolar.phxSunNe(grav, numDeps, tauRos, temp, kappaScale);
-            guessKappa = ScaleSolar.phxSunKappa(numDeps, tauRos, kappaScale);
-        } else if (teff >= F0Vtemp) {
-            //We're a HOT star!! - rescale from Vega
-            guessPGas = ScaleVega.phxVegaPGas(grav, numDeps, tauRos);
-            Ne = ScaleVega.phxVegaNe(grav, numDeps, tauRos, temp, kappaScale);
-            guessKappa = ScaleVega.phxVegaKappa(numDeps, tauRos, kappaScale);
-        }
-        //
-
-        // END initial guess for Sun section
-        //
-        // *********************
-        //
-        // mean molecular weight and Ne for Star & Sun
-        double[] mmw = State.mmwFn(numDeps, temp, kappaScale);
-
-        double[][] guessRho = State.massDensity(numDeps, temp, guessPGas, mmw, kappaScale);
-
-        // Create kappa structure here: Initialize solar kappa_Ross structure and
-        // scale it by logg, radius, and kappaScale:
-
-        //Get H I n=2 & n=3 number densities for Balmer and Pashen continuum  for kappa calculation
-        // Paschen:
-        boolean ionizedHI = false;
-        double chiI1H = 13.6; //eV
-        double chiI2H = 1.0e6;  //eV //H has no third ionization stage!
-        double gw1H = 2.0;
-        double gw2H = 1.0;  // umm... doesn't exist - no "HIII"
-        // n=3 level - Paschen jump
-        double lamJump3 = 820.4 * 1.0e-7; //Paschen jump - cm
-        double chiLH3 = 12.1; //eV
-        double gwLH3 = 2 * 3 * 3; // 2n^2
-        double logNumsH3[][];
-        // n=2 level - Balmer jump
-        double lamJump2 = 364.0 * 1.0e-7; //Paschen jump - cm
-        double chiLH2 = 10.2; //eV
-        double gwLH2 = 2 * 2 * 2; // 2n^2   
-        double logNumsH2[][];
-        int mode;
-
-        mode = 1;  //call kappas with knowledge of rho
-
-        logNumsH3 = LevelPops.levelPops(lamJump3, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH3, gw1H, gw2H, gwLH3,
-                numDeps, kappaScale, tauRos, temp, guessRho);
-        logNumsH2 = LevelPops.levelPops(lamJump2, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH2, gw1H, gw2H, gwLH2,
-                numDeps, kappaScale, tauRos, temp, guessRho);
-        double[][] kappa = new double[2][numDeps];
-        if (teff < F0Vtemp) {
-            kappa = Kappas.kappas(mode, numDeps, guessRho, rhoSun, kappaSun, kappaScale, logg, loggSun,
-                    teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2);
-        } else if (teff >= F0Vtemp) {
-            //System.out.println("Call 1: Hot branch taken: ");
-            kappa = Kappas.kappas(mode, numDeps, guessRho, rhoVega, kappaVega, kappaScale, logg, loggSun,
-                    teff, teffSun, radius, massX, massZ, tauRos, temp, tempVega, logNumsH3, logNumsH2);
-        }
-
-        double press[][] = Hydrostat.hydrostatic(numDeps, grav, tauRos, kappa, temp);
-
-        // Then solve eos for the rho scale - need to pick a mean molecular weight, mu
-        double[][] rho = State.massDensity(numDeps, temp, press, mmw, kappaScale);
-
-
-        // Limb darkening:
-        // Establish wavelength grid:
-
-        //compute kappas again with in situ densities thsi time:
-        mode = 1;  //call kappas ** with ** knowledge of rho
-        logNumsH3 = LevelPops.levelPops(lamJump3, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH3, gw1H, gw2H, gwLH3,
-                 numDeps, kappaScale, tauRos, temp, rho);
-        logNumsH2 = LevelPops.levelPops(lamJump2, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH2, gw1H, gw2H, gwLH2,
-                numDeps, kappaScale, tauRos, temp, rho);
-        if (teff < F0Vtemp) {
-             kappa = Kappas.kappas(mode, numDeps, rho, rhoSun, kappaSun, kappaScale, logg, loggSun,
-                    teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2);
-         } else if (teff >= F0Vtemp) {
-            //System.out.println("Call 2: Hot branch taken: ");
-            kappa = Kappas.kappas(mode, numDeps, rho, rhoVega, kappaVega, kappaScale, logg, loggSun,
-                    teff, teffSun, radius, massX, massZ, tauRos, temp, tempVega, logNumsH3, logNumsH2);
-         }
-        // Then construct geometric depth scale from tau, kappa and rho
-        double depths[] = DepthScale.depthScale(numDeps, tauRos, kappa, rho);
-
-        double newTemp[][] = new double[2][numDeps];
-        //int numTCorr = 10;  //test
-        int numTCorr = 0;
-        for (int i = 0; i < numTCorr; i++) {
-            //newTemp = TCorr.tCorr(numDeps, tauRos, temp);
-            newTemp = MulGrayTCorr.mgTCorr(numDeps, teff, tauRos, temp, rho, kappa);
-            for (int iTau = 0; iTau < numDeps; iTau++) {
-                temp[1][iTau] = newTemp[1][iTau];
-                temp[0][iTau] = newTemp[0][iTau];
-            }
-        }
-
-        /*
-         //Convection:
-         // Teff below which stars are convective.  
-         //  - has to be finessed because Convec.convec() does not work well :-(
-         double convTeff = 6500.0;
-         double[][] convTemp = new double[2][numDeps];
-         if (teff < convTeff) {
-         convTemp = Convec.convec(numDeps, tauRos, depths, temp, press, rho, kappa, kappaSun, kappaScale, teff, logg);
-
-         for (int iTau = 0; iTau < numDeps; iTau++) {
-         temp[1][iTau] = convTemp[1][iTau];
-         temp[0][iTau] = convTemp[0][iTau];
-         }
-         }
-         */
-        boolean ifTcorr = false;
-        boolean ifConvec = false;
-        if ((ifTcorr == true) || (ifConvec == true)) {
-            //Recall hydrostat with updates temps            
-            //Recall state withupdated Press                    
-            //recall kappas withupdates rhos
-            //Recall depths with re-updated kappas
-            press = Hydrostat.hydrostatic(numDeps, grav, tauRos, kappa, temp);
-            rho = State.massDensity(numDeps, temp, press, mmw, kappaScale);
-            mode = 1;  //call kappas ** with ** knowledge of rho
-            logNumsH3 = LevelPops.levelPops(lamJump3, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH3, gw1H, gw2H, gwLH3,
-                    numDeps, kappaScale, tauRos, temp, rho);
-            logNumsH2 = LevelPops.levelPops(lamJump2, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH2, gw1H, gw2H, gwLH2,
-                    numDeps, kappaScale, tauRos, temp, rho);
-            if (teff < F0Vtemp) {
-                kappa = Kappas.kappas(mode, numDeps, rho, rhoSun, kappaSun, kappaScale, logg, loggSun,
-                        teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2);
-            } else if (teff >= F0Vtemp) {
-                kappa = Kappas.kappas(mode, numDeps, rho, rhoVega, kappaVega, kappaScale, logg, loggSun,
-                        teff, teffSun, radius, massX, massZ, tauRos, temp, tempVega, logNumsH3, logNumsH2);
-            }
-        }
-
-        depths = DepthScale.depthScale(numDeps, tauRos, kappa, rho);
-
-        //Okay - Now all the emergent radiation stuff:
-        // Set up theta grid
-        //  cosTheta is a 2xnumThetas array:
-        // row 0 is used for Gaussian quadrature weights
-        // row 1 is used for cos(theta) values
-        // Gaussian quadrature:
-        // Number of angles, numThetas, will have to be determined after the fact
-        double cosTheta[][] = Thetas.thetas();
-        int numThetas = cosTheta[0].length;
-
-        boolean lineMode;
-
-        //
-        // ************
-        //
-        //  Spectrum synthesis section:
-        // Set up multi-Gray continuum info:
-        double isCool = 7300.0;  //Class A0
-
-        //Set up multi-gray opacity:
-        // lambda break-points and gray levels:
-        // No. multi-gray bins = num lambda breakpoints +1
-        double minLambda = 30.0;  //nm
-        double maxLambda = 1.0e6;  //nm
-        int maxNumBins = 11;
-        double[][] grayLevelsEpsilons = MulGrayTCorr.grayLevEps(maxNumBins, minLambda, maxLambda, teff, isCool);
-        //Find actual number of multi-gray bins:
-        int numBins = 0; //initialization
-        for (int i = 0; i < maxNumBins; i++) {
-            if (grayLevelsEpsilons[0][i] < maxLambda) {
-                numBins++;
-            }
-        }
-
+       // //Vega parameters (of Phoenix model- Teff not quite right!)
+       // double teffVega = 9950.0;
+       // double loggVega = 3.95;
+       // double gravVega = Math.pow(10.0, loggVega);
+       // double kappaScaleVega = 0.333;
 //
 //
-//
+////Detailed checmical composition:
 //Abundance table adapted from PHOENIX V. 15 input bash file
 // Grevesse Asplund et al 2010
 //Solar abundances:
@@ -491,7 +281,9 @@ public class GrayStar3Server {
 
   int nelemAbnd = 40;
   int[] nome = new int[nelemAbnd];
-  double[] eheu = new double[nelemAbnd];
+  double[] eheu = new double[nelemAbnd]; //log_10 "A_12" values
+  double[] logAz = new double[nelemAbnd]; //N_z/H_H for element z
+  double[][] logNz = new double[nelemAbnd][numDeps]; //N_z for element z
   String[] cname = new String[nelemAbnd];
 //nome is the Kurucz code - in case it's ever useful
   nome[0]=   100; 
@@ -533,7 +325,8 @@ public class GrayStar3Server {
   nome[36]=  4100; 
   nome[37]=  5600; 
   nome[38]=  5700;
-  nome[39]=  5500; 
+  nome[39]=  5500;  
+//log_10 "A_12" values:
  eheu[0]= 12.00;  
  eheu[1]= 10.93; 
  eheu[2]=  1.05;
@@ -615,55 +408,252 @@ public class GrayStar3Server {
   cname[38]="La";
   cname[39]="Cs";
 
-//  int nelemAbnd = 1;
-//  int[] nome = new int[nelemAbnd];
-//  double[] eheu = new double[nelemAbnd];
-//  String[] cname = new String[nelemAbnd];
-//  nome[0] = 2000; 
-//  eheu[0] = 6.36;
-//  cname[0] = "Ca";
-// Populate the ionization stages of all the species:
-  int numStages = 4;
+  double ATot = 0.0;
+  double thisAz;
+  for (int i = 0; i < nelemAbnd; i++){
+     logAz[i] = logE10 * (eheu[i] - 12.0); //natural log
+     thisAz = Math.exp(logAz[i]);
+     ATot = ATot + thisAz;
+     //System.out.println("i " + i + " logAz " + logE*logAz[i]);
+  }
+  double logATot = Math.log(ATot); //natural log
+  //System.out.println("logATot " + logE*logATot);
+
+        //double sedThresh = 4.0; //line to continuum extinction threshold for 
+                                 // inclusion as low resolution line in overall SED
+        ////Output files:
+        //String outfile = "gray_structure."
+        //        + teffStr + "-" + loggStr + "-" + logKappaStr + ".out";
+        //String specFile = "gray_spectrum."
+        //        + teffStr + "-" + loggStr + "-" + logKappaStr + ".out";
+        //String lineFile = "voigt_line."
+        //        + teffStr + "-" + loggStr + "-" + logKappaStr + "-" + xitStr + ".out";
+
+        //log_10 Rosseland optical depth scale  
+        double tauRos[][] = TauScale.tauScale(numDeps, log10MinDepth, log10MaxDepth);
+
+
+
+   //Apr 2016: Replace the following initial guesses with the following PSEUDOCODE:
+   //
+   // PHOENIX models at Teff0=5000 K, log(g0)=4.5, M0=0.0 (linear "zscl" = 10.0^M)
+   //                   Teff0=10000 K, log(g0)=4.0, M0=0.0 (linear "zscl" = 10.0^M)
+   //                   --> Tk0(tau), Pe0(tau), Pg0(tau)
+   //
+   //From Gray 3rd Ed. Ch.9, esp p. 189, 196
+   // 1) Tk(tau)=Teff/Teff0*tk0(tau)
+   // 2) Pg(tau)=(g/g0)^exp * Pg0(tau); exp = 0.64(bottom) - 0.54(top) for "cool" models
+   //                                   exp = 0.85(bottom) - 0.53(top) for "hotter" models
+   //    Pg(tau)= zscl^-0.333*Pg0(tau) if metals neutral - cooler models  
+   //    Pg(tau)= zscl^-0.5*Pg0(tau) if metals ionized - hotter models
+   //    Pg(tau) = {(1+4A_He)/(1+4A_He0)}^2/3 * Pg0(tau)  
+
+   // 3) Pe(tau)=(g/g0)^exp * Pe0(tau); exp = 0.33(bottom) - 0.48(top) for "cool" models
+   //                                   exp = 0.82(bottom) - 0.53(top) for "hotter" models
+   //    Pe(tau)=exp(omega*Teff)/exp(omega*Teff0)* Pe0(tau), Teff < 10000 K
+   //             - omega = 0.0015@log(tau)=1.0 & 0.0012@log(tau)=-1 to -3   
+   //    Pe(tau)= zscl^+0.333*Pe0(tau) if metals neutral - cooler models  
+   //    Pe(tau)= zscl^+0.5*Pe0(tau) if metals ionized - hotter models  
+   //    Pe(tau) = {(1+4A_He)/(1+4A_He0)}^1/3 * Pe0(tau)  
+
+        //Now do the same for the Sun, for reference:
+        double[][] tempSun = ScaleSolar.phxSunTemp(teffSun, numDeps, tauRos);
+        //Now do the same for the Sun, for reference:
+        double[][] pGasSunGuess = ScaleSolar.phxSunPGas(gravSun, numDeps, tauRos);
+        double[][] NeSun = ScaleSolar.phxSunNe(gravSun, numDeps, tauRos, tempSun, zScaleSun);
+        double[][] kappaSun = ScaleSolar.phxSunKappa(numDeps, tauRos, zScaleSun);
+        double[] mmwSun = State.mmwFn(numDeps, tempSun, zScaleSun);
+        double[][] rhoSun = State.massDensity(numDeps, tempSun, pGasSunGuess, mmwSun, zScaleSun);
+        //double pressSun[][] = Hydrostat.hydrostatic(numDeps, gravSun, tauRos, kappaSun, tempSun);
+        double pGasSun[][] = Hydrostat.hydroFormalSoln(numDeps, gravSun, tauRos, kappaSun, tempSun, pGasSunGuess);
+    //System.out.println("Sun: ");
+    //for (int i=0; i<numDeps; i++){
+    //  System.out.println("i " + i + " tauRos[1][i] " + logE*tauRos[1][i] + " temp " + tempSun[0][i] + " pGasSun " + logE*pGasSun[1][i] + " NeSun " + logE*NeSun[1][i] + " rhoSun " + logE*rhoSun[1][i]);
+   // }
+/*        //Now do the same for Vega, for reference:
+        double[][] tempVega = ScaleVega.phxVegaTemp(teffVega, numDeps, tauRos);
+        //Now do the same for the Sun, for reference:
+        double[][] pGasVega = ScaleVega.phxVegaPGas(gravVega, numDeps, tauRos);
+        double[][] NeVega = ScaleVega.phxVegaNe(gravVega, numDeps, tauRos, tempVega, kappaScaleVega);
+        double[][] kappaVega = ScaleVega.phxVegaKappa(numDeps, tauRos, kappaScaleVega);
+        double[] mmwVega = State.mmwFn(numDeps, tempVega, kappaScaleVega);
+        double[][] rhoVega = State.massDensity(numDeps, tempVega, pGasVega, mmwVega, kappaScaleVega);
+        //Now do the same for the Sun, for reference:
+        double pressVega[][] = Hydrostat.hydrostatic(numDeps, gravVega, tauRos, kappaVega, tempVega);
+*/
+        //
+        // BEGIN Initial guess for Sun section:
+        //
+        //Rescaled  kinetic temeprature structure: 
+        double F0Vtemp = 7300.0;  // Teff of F0 V star (K)                           
+        double[][] temp = new double[2][numDeps];
+        if (teff < F0Vtemp) {
+            //We're a cool star! - rescale from Teff=5000 reference model!
+            temp = ScaleT5000.phxRefTemp(teff, numDeps, tauRos);
+        } else if (teff >= F0Vtemp) {
+            //We're a HOT star! - rescale from Teff=10000 reference model! 
+            temp = ScaleT10000.phxRefTemp(teff, numDeps, tauRos);
+        }
+
+        //Scaled from Phoenix solar model:
+        double[][] guessPGas = new double[2][numDeps];
+        double[][] guessPe = new double[2][numDeps];
+        double[][] guessNe = new double[2][numDeps];
+        //double[][] guessKappa = new double[2][numDeps];
+        if (teff < F0Vtemp) {
+            //We're a cool star - rescale from  Teff=5000 reference model!
+            // logAz[1] = log_e(N_He/N_H)
+            guessPGas = ScaleT5000.phxRefPGas(grav, zScale, logAz[1], numDeps, tauRos);
+            guessPe = ScaleT5000.phxRefPe(teff, grav, numDeps, tauRos, zScale, logAz[1]);
+            guessNe = ScaleT5000.phxRefNe(numDeps, temp, guessPe); 
+            //Ne = ScaleSolar.phxSunNe(grav, numDeps, tauRos, temp, kappaScale);
+            //guessKappa = ScaleSolar.phxSunKappa(numDeps, tauRos, kappaScale);
+        } else if (teff >= F0Vtemp) {
+            //We're a HOT star!! - rescale from Teff=10000 reference model 
+            // logAz[1] = log_e(N_He/N_H)
+            guessPGas = ScaleT10000.phxRefPGas(grav, zScale, logAz[1], numDeps, tauRos);
+            guessPe = ScaleT10000.phxRefPe(teff, grav, numDeps, tauRos, zScale, logAz[1]);
+            guessNe = ScaleT10000.phxRefNe(numDeps, temp, guessPe); 
+            //Ne = ScaleVega.phxVegaNe(grav, numDeps, tauRos, temp, kappaScale);
+            //guessKappa = ScaleVega.phxVegaKappa(numDeps, tauRos, kappaScale);
+        }
+        //
+
+        // END initial guess for Sun section
+        //
+        // *********************
+   //Apr 2016: Replace the following procedure for model building with the following PSEUDOCODE:
+   //
+   // 1st guess Tk(tau), Pe(tau), Pg(tau) from rescaling reference hot or cool model above
+   // 1) fI(tau), fII, fIII, fIV, fV(tau) from Saha(Tk(tau), Pe(tau))
+   //    - needed for spectrum synthesis anyway LevelPops.stagePops() 
+   // 2) A_Tot = Sigma_z(A_z) 
+   //    -> N_H(tau) = (Pg(tau)-Pe(tau))/{kTk(tau)A_Tot}
+   //    -> N_z(tau) = A_z * N_H(tau)
+   //    -> rho(tau) = Sigma_z(m_z*N_z(tau))
+   // 3) Ne(tau) from Sigma_z{fI(tau) .... 5*fV(tau) * N_z}
+   //    --> New Pe(tau) = Ne(tau)kTk(tau)
+   // 4) N(tau) = Sigma_z(N_z(tau)) + Ne(tau)
+   //    mu(tau) = rho(tau) / N(tau)
+   //
+   // 5) kappa(tau) from Gray Ch. 8 sources
+   // 6) P_Tot(tau) from HSE on tau scale with kappa from 5)
+   //    - PRad(tau) from Tk(tau)
+   //    - New Pg(tau) from P_Tot(tau)-PRad(tau)
+   // 7) Iterate with updated Pg(tau) & Pe(tau)??
+   // 8) Temp correction??   
+
+        //
+        // mean molecular weight and Ne for Star & Sun
+        //double[] mmw = State.mmwFn(numDeps, temp, kappaScale);
+//
+ //       double[][] guessRho = State.massDensity(numDeps, temp, guessPGas, mmw, kappaScale);
+
+
+  int numStages = 5;
+  String species = " "; //default initialization
+  double[] logNH = new double[numDeps];
+  double rho[][] = new double[2][numDeps];
   double[][][] masterStagePops = new double[nelemAbnd][numStages][numDeps];
-//stuff to save ion stage pops at tau=1:
   double[][] tauOneStagePops = new double[nelemAbnd][numStages];
   double unity = 1.0;
+  double zScaleList = 1.0; //initialization   
+  double[] thisUw1V = new double[2];
+  double[] thisUw2V = new double[2];
+  double[] thisUw3V = new double[2];
+  double[] thisUw4V = new double[2];
+ //Ground state ionization E - Stage I (eV) 
+  double thisChiI1;
+ //Ground state ionization E - Stage II (eV)
+  double thisChiI2;
+  double thisChiI3;
+  double thisChiI4;
+  double[][] newNe = new double[2][numDeps]; 
+  double[][] newPe = new double[2][numDeps]; 
+  double[][] logNums = new double[numStages][numDeps]; 
+  double[] Ng = new double[numDeps];
+  double[] mmw = new double[numDeps];
+  double logMmw;
+  double[][] logKappa = new double[numLams][numDeps];
+  double[][] kappaRos = new double[2][numDeps];
+  double pGas[][] = new double[2][numDeps]; 
+  double pRad[][] = new double[2][numDeps]; 
+  double depths[] = new double[numDeps];
+  double newTemp[][] = new double[2][numDeps];
+
+//
+//
+//
+//Begin Pgas/Pe iteration
+    for (int pIter = 0; pIter < 3; pIter++){
+//
+//
+//Get the number densities of the chemical elements at all depths  
+     logNz = State.getNz(numDeps, temp, guessPGas, guessPe, ATot, nelemAbnd, logAz);
+     for (int i = 0 ; i < numDeps; i++){ 
+        logNH[i] = logNz[0][i];
+        //System.out.println("i " + i + " logNH[i] " + logE*logNH[i]);
+     } 
+    
+//Get mass density from chemical composition: 
+     rho = State.massDensity2(numDeps, nelemAbnd, logNz, cname);
+     for (int i = 0 ; i < numDeps; i++){
+       //System.out.println("i " + i + " rho " + logE*rho[1][i]);
+     }
+
+
+//
+//  Compute ionization fractions for Ne calculation 
+//  AND
+// Populate the ionization stages of all the species for spectrum synthesis:
+//stuff to save ion stage pops at tau=1:
   int iTauOne = ToolBox.tauPoint(numDeps, tauRos, unity);
 //
-        double kappaScaleList = 1.0; //initialization   
-       double fakeGw1 = 1.0; //for now                
-       double fakeGw2 = 1.0; //for now                
-       double fakeGw3 = 1.0; //for now                
-       double fakeGw4 = 1.0; //for now                
-        //Ground state ionization E - Stage I (eV) 
-        double thisChiI1;
-        //Ground state ionization E - Stage II (eV)
-        double thisChiI2;
-        double thisChiI3;
-        double thisChiI4;
-        String species;
+//  Default inializations:
+       zScaleList = 1.0; //initialization   
+       //these 2-element temperature-dependent partition fns are logarithmic  
+       thisUw1V[0] = 0.0; 
+       thisUw1V[1] = 0.0; 
+       thisUw2V[0] = 0.0; 
+       thisUw2V[1] = 0.0; 
+       thisUw3V[0] = 0.0; 
+       thisUw3V[1] = 0.0; 
+       thisUw4V[0] = 0.0; 
+       thisUw4V[1] = 0.0; 
+
+// Iteration *within* the outer Pe-Pgas iteration:
+//Iterate the electron densities and ionization fractions:
+//
+ for (int neIter = 0; neIter < 3; neIter++){
+ 
    for (int iElem = 0; iElem < nelemAbnd; iElem++){
        species = cname[iElem] + "I";
-       thisChiI1 = IonizationEnergy.getIonE(species); 
+       thisChiI1 = IonizationEnergy.getIonE(species);
+    //THe following is a 2-element vector of temperature-dependent partitio fns, U, 
+    // that are base 10 log_10 U
+       thisUw1V = PartitionFn.getPartFn(species); //base 10 log_10 U
        species = cname[iElem] + "II";
        thisChiI2 = IonizationEnergy.getIonE(species);
+       thisUw2V = PartitionFn.getPartFn(species); //base 10 log_10 U
        species = cname[iElem] + "III";
        thisChiI3 = IonizationEnergy.getIonE(species);
+       thisUw3V = PartitionFn.getPartFn(species); //base 10 log_10 U
        species = cname[iElem] + "IV";
        thisChiI4 = IonizationEnergy.getIonE(species);
-       double logN = (eheu[iElem] - 12.0) + logNH;
+       thisUw4V = PartitionFn.getPartFn(species); //base 10 log_10 U
+       //double logN = (eheu[iElem] - 12.0) + logNH;
             //if H or He, make sure kappaScale is unity:
             if ((cname[iElem].equals("H"))
                     || (cname[iElem].equals("He"))) {
-                kappaScaleList = 1.0;
-                fakeGw1 = 2.0;  //fix for Balmer lines
+                zScaleList = 1.0;
+                //fakeGw1 = 2.0;  //fix for Balmer lines
             } else {
-                kappaScaleList = kappaScale;
-                fakeGw1 = 1.0;  //fix for Balmer lines
+                zScaleList = zScale;
+                //fakeGw1 = 1.0;  //fix for Balmer lines
             }
-       double[][] logNums = LevelPopsServer.stagePops(logN, Ne, thisChiI1,
-             thisChiI2, thisChiI3, thisChiI4, fakeGw1, fakeGw2, fakeGw3, fakeGw4, 
-             numDeps, kappaScaleList, tauRos, temp, rho);
+       logNums = LevelPopsServer.stagePops(logNz[iElem], guessNe, thisChiI1,
+             thisChiI2, thisChiI3, thisChiI4, thisUw1V, thisUw2V, thisUw3V, thisUw4V, 
+             numDeps, zScaleList, tauRos, temp, rho);
      for (int iStage = 0; iStage < numStages; iStage++){
           for (int iTau = 0; iTau < numDeps; iTau++){
             masterStagePops[iElem][iStage][iTau] = logNums[iStage][iTau];
@@ -679,6 +669,189 @@ public class GrayStar3Server {
             // }
   } //iElem loop
 
+//Compute updated Ne & Pe:
+     //initialize accumulation of electrons at all depths
+     for (int iTau = 0; iTau < numDeps; iTau++){
+       newNe[0][iTau] = 0.0; 
+     }
+     for (int iTau = 0; iTau < numDeps; iTau++){
+        for (int iElem = 0; iElem < nelemAbnd; iElem++){
+          newNe[0][iTau] = newNe[0][iTau] 
+                   + Math.exp(masterStagePops[iElem][1][iTau])   //1 e^- per ion
+                   + 2.0 * Math.exp(masterStagePops[iElem][2][iTau])   //2 e^- per ion
+                   + 3.0 * Math.exp(masterStagePops[iElem][3][iTau])   //3 e^- per ion
+                   + 4.0 * Math.exp(masterStagePops[iElem][4][iTau]);   //3 e^- per ion
+        }
+        newNe[1][iTau] = Math.log(newNe[0][iTau]);
+// Update guess for iteration:
+        guessNe[0][iTau] = newNe[0][iTau]; 
+        guessNe[1][iTau] = newNe[1][iTau]; 
+        newPe[1][iTau] = newNe[1][iTau] + Useful.logK() + temp[1][iTau];
+        newPe[0][iTau] = Math.exp(newPe[1][iTau]);
+       //System.out.println("iTau " + iTau + " newNe " + logE*newNe[1][iTau] + " newPe " + logE*newPe[1][iTau]);
+     }
+
+  } //end Ne - ionzation fraction iteration
+
+
+
+//Total number density of gas particles: nuclear species + free electrons:
+//AND
+ //Compute mean molecular weight, mmw ("mu"):
+    for (int i = 0; i < numDeps; i++){
+      Ng[i] =  newNe[0][i]; //initialize accumulation with Ne 
+    }
+    for (int i = 0; i < numDeps; i++){
+      for (int j = 0; j < nelemAbnd; j++){
+         Ng[i] =  Ng[i] + Math.exp(logNz[j][i]); //initialize accumulation 
+      }
+     logMmw = rho[1][i] - Math.log(Ng[i]);  // in g
+     mmw[i] = Math.exp(logMmw); 
+       //System.out.println("i " + i + " Ng " + Math.log10(Ng[i]) + " mmw " + (mmw[i]/Useful.amu));
+    }
+
+
+      logKappa = Kappas.kappas2(numDeps, newPe, zScale, temp, rho,
+                     numLams, lambdaScale, logAz[1],
+                     masterStagePops[0][0], masterStagePops[0][1], 
+                     masterStagePops[1][0], masterStagePops[1][1], newNe);
+
+      kappaRos = Kappas.kapRos(numDeps, numLams, lambdaScale, logKappa, temp); 
+
+      int t500 = ToolBox.lamPoint(numLams, lambdaScale, 500.0e-7);
+ 
+ 
+/*
+        // Create kappa structure here: Initialize solar kappa_Ross structure and
+        // scale it by logg, radius, and kappaScale:
+
+        //Get H I n=2 & n=3 number densities for Balmer and Pashen continuum  for kappa calculation
+        // Paschen:
+        boolean ionizedHI = false;
+        double chiI1H = 13.6; //eV
+        double chiI2H = 1.0e6;  //eV //H has no third ionization stage!
+        double gw1H = 2.0;
+        double gw2H = 1.0;  // umm... doesn't exist - no "HIII"
+        // n=3 level - Paschen jump
+        double lamJump3 = 820.4 * 1.0e-7; //Paschen jump - cm
+        double chiLH3 = 12.1; //eV
+        double gwLH3 = 2 * 3 * 3; // 2n^2
+        double logNumsH3[][];
+        // n=2 level - Balmer jump
+        double lamJump2 = 364.0 * 1.0e-7; //Paschen jump - cm
+        double chiLH2 = 10.2; //eV
+        double gwLH2 = 2 * 2 * 2; // 2n^2   
+        double logNumsH2[][];
+        int mode;
+
+        mode = 1;  //call kappas with knowledge of rho
+
+        logNumsH3 = LevelPops.levelPops(lamJump3, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH3, gw1H, gw2H, gwLH3,
+                numDeps, kappaScale, tauRos, temp, guessRho);
+        logNumsH2 = LevelPops.levelPops(lamJump2, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH2, gw1H, gw2H, gwLH2,
+                numDeps, kappaScale, tauRos, temp, guessRho);
+        double[][] kappa = new double[2][numDeps];
+        if (teff < F0Vtemp) {
+            kappa = Kappas.kappas(mode, numDeps, guessRho, rhoSun, kappaSun, kappaScale, logg, loggSun,
+                    teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2);
+        } else if (teff >= F0Vtemp) {
+            //System.out.println("Call 1: Hot branch taken: ");
+            kappa = Kappas.kappas(mode, numDeps, guessRho, rhoVega, kappaVega, kappaScale, logg, loggSun,
+                    teff, teffSun, radius, massX, massZ, tauRos, temp, tempVega, logNumsH3, logNumsH2);
+        }
+*/
+
+
+        //press = Hydrostat.hydrostatic(numDeps, grav, tauRos, kappaRos, temp);
+        pGas = Hydrostat.hydroFormalSoln(numDeps, grav, tauRos, kappaRos, temp, guessPGas);
+        pRad = Hydrostat.radPress(numDeps, temp);
+
+//Update Pgas and Pe guesses for iteration:
+        for (int iTau = 0; iTau < numDeps; iTau++){
+//CHEAT to accelrate self-consistency: Scale the new Pe's by pGas/guessPGas
+//  - also helps avoid negative Nz and NH values.
+            guessPe[1][iTau] = newPe[1][iTau] + pGas[1][iTau] - guessPGas[1][iTau]; //logarithmic
+            guessPe[0][iTau] = Math.exp(guessPe[1][iTau]);
+// Now we can update guessPGas:
+            guessPGas[0][iTau] = pGas[0][iTau];
+            guessPGas[1][iTau] = pGas[1][iTau];
+            //System.out.println("iTau " + iTau + " pGas[0][iTau] " + logE*pGas[1][iTau] + " newPe[0][iTau] " + logE*newPe[1][iTau]);
+        } 
+
+ } //end Pgas/Pe iteration
+
+        // Then construct geometric depth scale from tau, kappa and rho
+        depths = DepthScale.depthScale(numDeps, tauRos, kappaRos, rho);
+
+        //int numTCorr = 10;  //test
+        int numTCorr = 0;
+        for (int i = 0; i < numTCorr; i++) {
+            //newTemp = TCorr.tCorr(numDeps, tauRos, temp);
+            newTemp = MulGrayTCorr.mgTCorr(numDeps, teff, tauRos, temp, rho, kappaRos);
+            for (int iTau = 0; iTau < numDeps; iTau++) {
+                temp[1][iTau] = newTemp[1][iTau];
+                temp[0][iTau] = newTemp[0][iTau];
+            }
+        }
+
+        /*
+         //Convection:
+         // Teff below which stars are convective.  
+         //  - has to be finessed because Convec.convec() does not work well :-(
+         double convTeff = 6500.0;
+         double[][] convTemp = new double[2][numDeps];
+         if (teff < convTeff) {
+         convTemp = Convec.convec(numDeps, tauRos, depths, temp, press, rho, kappa, kappaSun, kappaScale, teff, logg);
+
+         for (int iTau = 0; iTau < numDeps; iTau++) {
+         temp[1][iTau] = convTemp[1][iTau];
+         temp[0][iTau] = convTemp[0][iTau];
+         }
+         }
+         */
+        boolean ifTcorr = false;
+        boolean ifConvec = false;
+        if ((ifTcorr == true) || (ifConvec == true)) {
+            //Recall hydrostat with updates temps            
+            //Recall state withupdated Press                    
+            //recall kappas withupdates rhos
+            //Recall depths with re-updated kappas
+        }
+
+
+        //Okay - Now all the emergent radiation stuff:
+        // Set up theta grid
+        //  cosTheta is a 2xnumThetas array:
+        // row 0 is used for Gaussian quadrature weights
+        // row 1 is used for cos(theta) values
+        // Gaussian quadrature:
+        // Number of angles, numThetas, will have to be determined after the fact
+        double cosTheta[][] = Thetas.thetas();
+        int numThetas = cosTheta[0].length;
+
+        boolean lineMode;
+
+        //
+        // ************
+        //
+        //  Spectrum synthesis section:
+        // Set up multi-Gray continuum info:
+        double isCool = 7300.0;  //Class A0
+
+        //Set up multi-gray opacity:
+        // lambda break-points and gray levels:
+        // No. multi-gray bins = num lambda breakpoints +1
+        double minLambda = 30.0;  //nm
+        double maxLambda = 1.0e6;  //nm
+        int maxNumBins = 11;
+        double[][] grayLevelsEpsilons = MulGrayTCorr.grayLevEps(maxNumBins, minLambda, maxLambda, teff, isCool);
+        //Find actual number of multi-gray bins:
+        int numBins = 0; //initialization
+        for (int i = 0; i < maxNumBins; i++) {
+            if (grayLevelsEpsilons[0][i] < maxLambda) {
+                numBins++;
+            }
+        }
 
 //
 //     FILE I/O Section
@@ -767,13 +940,14 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
         //Excitation E of lower E-level of b-b transition (eV)
         double[] list2ChiL = new double[numLineList];
         //Unitless statisital weight, Ground state - Stage I
-        double[] list2Gw1 = new double[numLineList];
+        //double[] list2Gw1 = new double[numLineList];
         //Unitless statisital weight, Ground state - Stage II
-        double[] list2Gw2 = new double[numLineList];
+        //double[] list2Gw2 = new double[numLineList];
         //Unitless statisital weight, Ground state - Stage III
-        double[] list2Gw3 = new double[numLineList];
+        //double[] list2Gw3 = new double[numLineList];
         //Unitless statisital weight, Ground state - Stage IV
-        double[] list2Gw4 = new double[numLineList];
+        //double[] list2Gw4 = new double[numLineList];
+        //double[] list2Gw4 = new double[numLineList];
         //Unitless statisital weight, lower E-level of b-b transition                 
         double[] list2GwL = new double[numLineList];
         //double[] list2GwU For now we'll just set GwU to 1.0
@@ -833,22 +1007,21 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
         
            //Get the chemical element symbol - we don't know if it's one or two characters
            //System.out.println("i " + i + " array_ptr " + array_ptr + " arrayLineString[array_ptr] " + arrayLineString[array_ptr]);
-            switch(list2StageRoman[list2_ptr]){
-                case "I": 
-                     list2Stage[list2_ptr] = 0;
-                     break;
-                case "II": 
-                     list2Stage[list2_ptr] = 1;
-                     break;
-                case "III": 
-                     list2Stage[list2_ptr] = 2;
-                     break;
-                case "IV": 
-                     list2Stage[list2_ptr] = 3;
-                     break;
-                default:
-                     list2Stage[list2_ptr] = 0;
-                 }
+            if (list2StageRoman[list2_ptr].equals("I")){
+              list2Stage[list2_ptr] = 0;
+             }
+            if (list2StageRoman[list2_ptr].equals("II")){
+              list2Stage[list2_ptr] = 1;
+             }
+            if (list2StageRoman[list2_ptr].equals("III")){
+              list2Stage[list2_ptr] = 2;
+             }
+            if (list2StageRoman[list2_ptr].equals("IV")){
+              list2Stage[list2_ptr] = 3;
+             }
+            if (list2StageRoman[list2_ptr].equals("V")){
+              list2Stage[list2_ptr] = 4;
+             }
             //System.out.println("list2Stage[list2_ptr] " + list2Stage[list2_ptr]);
            //wavelength in nm starts at position 23 and is in %8.3f format - we're not expecting anything greater than 9999.999 nm
 
@@ -864,10 +1037,10 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
            list2ChiI4[list2_ptr] = IonizationEnergy.getIonE(species);
 
      //We're going to have to fake the ground state statistical weight for now - sorry:
-           list2Gw1[list2_ptr] = 1.0;
-           list2Gw2[list2_ptr] = 1.0; 
-           list2Gw3[list2_ptr] = 1.0;
-           list2Gw4[list2_ptr] = 1.0; 
+           //list2Gw1[list2_ptr] = 1.0;
+           //list2Gw2[list2_ptr] = 1.0; 
+           //list2Gw3[list2_ptr] = 1.0;
+           //list2Gw4[list2_ptr] = 1.0; 
            list2LogGammaCol[list2_ptr] = logGammaCol; 
 
      // The base solar abundance for this species:
@@ -929,21 +1102,25 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
         //   + " lamUV " + lamUV + " lamIR " + lamIR + " lambdaStart " + lambdaStart + " lambdaStop " + lambdaStop);
         boolean isFirstLine = true; //initialization
         int firstLine = 0; //default initialization
+// This holds 2-element temperature-dependent base 10 logarithmic parition fn:
+        double[] thisUwV = new double[2];
+        thisUwV[0] = 0.0; //default initialization
+        thisUwV[1] = 0.0;
         for (int iLine = 0; iLine < numLines2; iLine++) {
 
             //No! ifThisLine[iLine] = false;
             //if H or He, make sure kappaScale is unity:
             if ((list2Element[iLine].equals("H"))
                     || (list2Element[iLine].equals("He"))) {
-                kappaScaleList = 1.0;
-                list2Gw1[iLine] = 2.0;  //fix for H lines
-                if (list2Lam0[iLine] <= 6570.0){
+                zScaleList = 1.0;
+                //list2Gw1[iLine] = 2.0;  //fix for H lines
+                if (list2Lam0[iLine] <= 657.0){
                 list2GwL[iLine] = 8.0;  //fix for Balmer lines
                     } else {
                 list2GwL[iLine] = 18.0;  //fix for Paschen lines
                     }
             } else {
-                kappaScaleList = kappaScale;
+                zScaleList = zScale;
             }
 
           list2Lam0[iLine] = list2Lam0[iLine] * 1.0e-7;  // nm to cm
@@ -952,8 +1129,24 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
           for (int jj = 0; jj < nelemAbnd; jj++){
              //System.out.println("jj " + jj + " cname[jj]" + cname[jj]+"!");
              if (list2Element[iLine].equals(cname[jj])){
+                if (list2Stage[iLine] == 0){
+                  species = cname[jj] + "I";
+                }
+                if (list2Stage[iLine] == 1){
+                  species = cname[jj] + "II";
+                }
+                if (list2Stage[iLine] == 2){
+                  species = cname[jj] + "III";
+                }
+                if (list2Stage[iLine] == 3){
+                  species = cname[jj] + "IV";
+                }
+                if (list2Stage[iLine] == 4){
+                  species = cname[jj] + "V";
+                }
+                thisUwV = PartitionFn.getPartFn(species); //base 10 log_10 U
                  break;   //we found it
-                 }
+             }
              iAbnd++;
           } //jj loop
           //System.out.println("iAbnd " + iAbnd); // + " cname[iAbnd] " + cname[iAbnd]);
@@ -966,7 +1159,7 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
                list2LogNums[4][iTau] = masterStagePops[iAbnd][2][iTau];
                list2LogNums[5][iTau] = masterStagePops[iAbnd][3][iTau];
             }
-            double[] numHelp = LevelPopsServer.levelPops(list2Lam0[iLine], list2LogNums[list2Stage[iLine]], list2ChiL[iLine], list2Gw1[iLine],
+            double[] numHelp = LevelPopsServer.levelPops(list2Lam0[iLine], list2LogNums[list2Stage[iLine]], list2ChiL[iLine], thisUwV, 
                     list2GwL[iLine], numDeps, tauRos, temp);
             for (int iTau = 0; iTau < numDeps; iTau++){
                list2LogNums[2][iTau] = numHelp[iTau];
@@ -981,7 +1174,7 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
            double[][] listLinePointsDelta = LineGrid.lineGridDelta(list2Lam0[iLine], list2Mass[iLine], xiT, numDeps, teff);
            double[][] listLineProfDelta = LineProf.delta(listLinePointsDelta, list2Lam0[iLine], numDeps, tauRos, list2Mass[iLine], xiT, teff); 
            double[][] listLogKappaLDelta = LineKappa.lineKap(list2Lam0[iLine], list2LogNums, list2Logf[iLine], listLinePointsDelta, listLineProfDelta,
-                    numDeps, kappaScaleList, tauRos, temp, rhoSun);
+                    numDeps, zScaleList, tauRos, temp, rho);
    /* Let's not do this - too slow:
             // Low resolution SED lines and high res spectrum synthesis region lines are mutually
             // exclusive sets in wavelength space:
@@ -1008,9 +1201,11 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
   */
             //Does line qualify for inclusion in high res spectrum synthesis region??
             // Check ratio of line centre opacity to continuum at log(TauRos) = -5, -3, -1
-            if ( (logE*(listLogKappaLDelta[0][6] - kappa[1][6]) > lineThresh)  
-              || (logE*(listLogKappaLDelta[0][18] - kappa[1][18]) > lineThresh)  
-		      || (logE*(listLogKappaLDelta[0][30] - kappa[1][30]) > lineThresh) ){ 
+           //Find local value of lambda-dependent continuum kappa - list2Lam0 & lambdaScale both in cm here: 
+            int thisLambdaPtr = ToolBox.lamPoint(numLams, lambdaScale, list2Lam0[iLine]);
+            if ( (logE*(listLogKappaLDelta[0][6] - logKappa[thisLambdaPtr][6]) > lineThresh)  
+              || (logE*(listLogKappaLDelta[0][18] - logKappa[thisLambdaPtr][18]) > lineThresh)  
+		      || (logE*(listLogKappaLDelta[0][30] - logKappa[thisLambdaPtr][30]) > lineThresh) ){ 
 			   if ( ( list2Stage[iLine] == 0) || (list2Stage[iLine] == 1) 
 			    ||  ( list2Stage[iLine] == 2) || (list2Stage[iLine] == 3) ){
 				if ( (list2Lam0[iLine] > lambdaStart) && (list2Lam0[iLine] < lambdaStop) ){ 
@@ -1057,8 +1252,6 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
         //if Hydrogen or Helium, kappaScale should be unity for these purposes:
         //double kappaScaleList = 1.0; //initialization                   
         //
-        //CONTINUUM lambda scale (nm)
-        double lambdaScale[] = LamGrid.lamgrid(numLams, lamSetup); //cm
 
         int listNumCore = 3;  //half-core //default initialization
         //int sedNumCore = 3;  //half-core //default initialization
@@ -1087,12 +1280,9 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
 //Line blanketed opacity array:
         double[][] logMasterKaps = new double[numMaster][numDeps];
 // Construct a continuum opacity array with same structure as logMasterKaps
-        double[][] logContKaps = new double[numLams][numDeps];  
-        //seed masterLams and logMasterKaps with continuum SED lambdas and kapaps:
+        //double[][] logContKaps = new double[numLams][numDeps];  
+        //seed masterLams and logMasterKaps with continuum SED lambdas and kappas:
         //This just initializes the first numLams of the numMaster elements
-        //Also - put in multi-Gray opacities here:
-        //Find which gray level bin the spectrum synthesis region starts in - assume that the first gray-level bin
-        // is always at a shorter wavelength than the start of the synthesis region:
         int whichBin = 0;  //initialization
         for (int iB = 0; iB < numBins; iB++) {
             if (grayLevelsEpsilons[0][iB] >= lambdaScale[0]) {
@@ -1102,31 +1292,25 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
             }
         }
 
-//Initialize monochromatic line blanketed opacity array
-        //First wavelength definitely falls in first found bin:
-        masterLams[0] = lambdaScale[0];
-        for (int iD = 0; iD < numDeps; iD++) {
-            logMasterKaps[0][iD] = kappa[1][iD]; // + Math.log(grayLevelsEpsilons[1][0]);
-        }
-        for (int iL = 1; iL < numLams; iL++) {
+//Initialize monochromatic line blanketed opacity array:
+// Seed first numLams wavelengths with continuum wavelength and kappa values 
+        for (int iL = 0; iL < numLams; iL++) {
             masterLams[iL] = lambdaScale[iL];
-            if ((lambdaScale[iL] >= grayLevelsEpsilons[0][whichBin + 1])
-                    && (lambdaScale[iL - 1] < grayLevelsEpsilons[0][whichBin + 1])
-                    && (whichBin < numBins - 1)) {
-                whichBin++;
-            }
             for (int iD = 0; iD < numDeps; iD++) {
-                logMasterKaps[iL][iD] = kappa[1][iD]; // + Math.log(grayLevelsEpsilons[1][whichBin]);
+                logMasterKaps[iL][iD] = logKappa[iL][iD]; // + Math.log(grayLevelsEpsilons[1][whichBin]);
             }
         }
-        //initialize the rest with dummy values
+        //initialize the remainder with dummy values - these values will be clobbered as line wavelengths are inserted, 
+        // and don't matter
         for (int iL = numLams; iL < numMaster; iL++) {
             masterLams[iL] = lambdaScale[numLams - 1];
             for (int iD = 0; iD < numDeps; iD++) {
-                logMasterKaps[iL][iD] = kappa[1][iD];
+                logMasterKaps[iL][iD] = logKappa[numLams-1][iD];
             }
         }
 
+/*
+WRONG!!  kappa is now wavelength dependent and IS the continuum opacity array!
 //Initialize monochromatic continuum opacity array:
 //This is a fake for now - it's just th gray opacity at every wavelength
         for (int iL = 0; iL < numLams; iL++) {
@@ -1134,10 +1318,13 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
                 logContKaps[iL][iD] = kappa[1][iD]; // + Math.log(grayLevelsEpsilons[1][whichBin]);
             }
         }
-
+*/
         //Stuff for the the Teff recovery test:
         double lambda1, lambda2, fluxSurfBol, logFluxSurfBol;
         fluxSurfBol = 0;
+// This holds 2-element temperature-dependent base 10 logarithmic parition fn:
+        thisUwV[0] = 0.0; //default initialization
+        thisUwV[1] = 0.0;
 
 // Put in high res spectrum synthesis lines:
         for (int iLine = 0; iLine < numGaussLines; iLine++) {
@@ -1145,15 +1332,15 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
             //if H or He, make sure kappaScale is unity:
             if ((list2Element[gaussLine_ptr[iLine]].equals("H"))
                     || (list2Element[gaussLine_ptr[iLine]].equals("He"))) {
-                kappaScaleList = 1.0;
-                list2Gw1[gaussLine_ptr[iLine]] = 2.0;  //fix for H lines
-                if (list2Lam0[gaussLine_ptr[iLine]] <= 6570.0){
+                zScaleList = 1.0;
+                //list2Gw1[gaussLine_ptr[iLine]] = 2.0;  //fix for H lines
+                if (list2Lam0[gaussLine_ptr[iLine]] <= 657.0e-7){
                     list2GwL[gaussLine_ptr[iLine]] = 8.0;  //fix for Balmer lines
                 } else {
                     list2GwL[gaussLine_ptr[iLine]] = 18.0;  //fix for Paschen lines
                 } 
             } else {
-                kappaScaleList = kappaScale;
+                zScaleList = zScale;
             }
 
 
@@ -1161,6 +1348,22 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
           int iAbnd = 0; //initialization
           for (int jj = 0; jj < nelemAbnd; jj++){
              if (list2Element[gaussLine_ptr[iLine]].equals(cname[jj])){
+                if (list2Stage[gaussLine_ptr[iLine]] == 0){
+                  species = cname[jj] + "I";
+                }
+                if (list2Stage[gaussLine_ptr[iLine]] == 1){
+                  species = cname[jj] + "II";
+                }
+                if (list2Stage[gaussLine_ptr[iLine]] == 2){
+                  species = cname[jj] + "III";
+                }
+                if (list2Stage[gaussLine_ptr[iLine]] == 3){
+                  species = cname[jj] + "IV";
+                }
+                if (list2Stage[gaussLine_ptr[iLine]] == 4){
+                  species = cname[jj] + "V";
+                }
+                thisUwV = PartitionFn.getPartFn(species); //base 10 log_10 U
                  break;   //we found it
                  }
              iAbnd++;
@@ -1171,7 +1374,9 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
                list2LogNums[1][iTau] = masterStagePops[iAbnd][1][iTau];
                list2LogNums[4][iTau] = masterStagePops[iAbnd][2][iTau];
             }
-            double[] numHelp = LevelPopsServer.levelPops(list2Lam0[gaussLine_ptr[iLine]], list2LogNums[list2Stage[gaussLine_ptr[iLine]]], list2ChiL[gaussLine_ptr[iLine]], list2Gw1[gaussLine_ptr[iLine]],
+            //double[] numHelp = LevelPopsServer.levelPops(list2Lam0[gaussLine_ptr[iLine]], list2LogNums[list2Stage[gaussLine_ptr[iLine]]], list2ChiL[gaussLine_ptr[iLine]], list2Uw[gaussLine_ptr[iLine]],
+             //       list2GwL[gaussLine_ptr[iLine]], numDeps, tauRos, temp);
+            double[] numHelp = LevelPopsServer.levelPops(list2Lam0[gaussLine_ptr[iLine]], list2LogNums[list2Stage[gaussLine_ptr[iLine]]], list2ChiL[gaussLine_ptr[iLine]], thisUwV,
                     list2GwL[gaussLine_ptr[iLine]], numDeps, tauRos, temp);
             for (int iTau = 0; iTau < numDeps; iTau++){
                list2LogNums[2][iTau] = numHelp[iTau];
@@ -1191,9 +1396,9 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
             double[][] listLinePoints = LineGrid.lineGridVoigt(list2Lam0[gaussLine_ptr[iLine]], list2Mass[gaussLine_ptr[iLine]], xiT, numDeps, teff, listNumCore, listNumWing);
             double[][] listLineProf = LineProf.voigt(listLinePoints, list2Lam0[gaussLine_ptr[iLine]], list2LogAij[gaussLine_ptr[iLine]],
                     list2LogGammaCol[gaussLine_ptr[iLine]],
-                    numDeps, teff, tauRos, temp, press, tempSun, pressSun);
+                    numDeps, teff, tauRos, temp, pGas, tempSun, pGasSun);
             double[][] listLogKappaL = LineKappa.lineKap(list2Lam0[gaussLine_ptr[iLine]], list2LogNums, list2Logf[gaussLine_ptr[iLine]], listLinePoints, listLineProf,
-                    numDeps, kappaScaleList, tauRos, temp, rhoSun);
+                    numDeps, zScaleList, tauRos, temp, rho);
             double[] listLineLambdas = new double[listNumPoints];
             for (int il = 0; il < listNumPoints; il++) {
                 // // lineProf[gaussLine_ptr[iLine]][*] is DeltaLambda from line centre in cm
@@ -1220,7 +1425,7 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
 
 //Line blanketed monochromatic optical depth array:
         double logTauMaster[][] = LineTau2.tauLambda(numDeps, numMaster, logMasterKaps,
-                kappa, tauRos);
+                logKappa, tauRos, numLams, lambdaScale, masterLams);
 
 //Lin blanketed formal Rad Trans solution:
         //Evaluate formal solution of rad trans eq at each lambda throughout line profile
@@ -1271,8 +1476,8 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
 //
 ////
 //Continuum monochromatic optical depth array:
-        double logTauCont[][] = LineTau2.tauLambda(numDeps, numLams, logContKaps,
-                kappa, tauRos);
+        double logTauCont[][] = LineTau2.tauLambda(numDeps, numLams, logKappa,
+                logKappa, tauRos, numLams, lambdaScale, masterLams);
 
         //Evaluate formal solution of rad trans eq at each lambda 
         // Initial set to put lambda and tau arrays into form that formalsoln expects
@@ -1351,20 +1556,23 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
   int numSpecies = nelemAbnd * numStages; 
      //Block 1: Array dimensions
      //keys:
-        System.out.println("numDeps,numMaster,numThetas,numSpecSyn,numGaussLines,numLams,nelemAbnd,numSpecies"); 
+        //System.out.println("numDeps,numMaster,numThetas,numSpecSyn,numGaussLines,numLams,nelemAbnd,numSpecies"); 
+        System.out.println("numDeps,numMaster,numThetas,numGaussLines,numLams,nelemAbnd,numSpecies"); 
      //values:
-        System.out.format("%03d,%07d,%03d,%07d,%06d,%07d,%05d,%04d%n", 
-            numDeps, numMaster, numThetas, numSpecSyn, numGaussLines, numLams, nelemAbnd, numSpecies);
+        //System.out.format("%03d,%07d,%03d,%07d,%06d,%07d,%05d,%04d%n", 
+         //   numDeps, numMaster, numThetas, numSpecSyn, numGaussLines, numLams, nelemAbnd, numSpecies);
+        System.out.format("%03d,%07d,%03d,%06d,%07d,%05d,%04d%n", 
+            numDeps, numMaster, numThetas, numGaussLines, numLams, nelemAbnd, numSpecies);
 
     //Block 2: Atmosphere
      //keys:
-        System.out.println("logTau,logTemp,logPGas,logPRad,logRho,logNe,logMmw,logKappa");
+        System.out.println("logTau,logZ,logTemp,logPGas,logPRad,logRho,logNe,logMmw,logKappa");
      //values:
         //Print out *NATURAL* logs - this is for communication between server & client: 
         for (int i = 0; i < numDeps; i++) {
-            System.out.format("%13.8f,%13.8f,%13.8f,%13.8f,%13.8f,%13.8f,%13.8f,%13.8f%n", 
-                    tauRos[1][i], temp[1][i], press[1][i], press[3][i], 
-                    rho[1][i], Ne[1][i], Math.log(mmw[i]), kappa[1][i] );
+            System.out.format("%13.8f,%13.8f,%13.8f,%13.8f,%13.8f,%13.8f,%13.8f,%13.8f,%13.8f%n", 
+                    tauRos[1][i], Math.log(depths[i]), temp[1][i], pGas[1][i], pRad[1][i], 
+                    rho[1][i], newNe[1][i], Math.log(mmw[i]), kappaRos[1][i] );
                }
 
    //Block 3: line blanketed flux spectrum (SED)
@@ -1398,29 +1606,29 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
             }
          }
 
+////
+//   //Block 5: approximately rectified flux spectrum in spectrum synthesis region: 
+//   //keys:
+//        System.out.println("logWaveSS,logFluxSS");
+//        double[] specSynLams = new double[numSpecSyn];
+//        double[][] specSynFlux = new double[2][numSpecSyn];
+//   //values:
+//        int iCount = 0; 
+//        for (int i = iStart; i < iStop; i++){
 //
-   //Block 5: approximately rectified flux spectrum in spectrum synthesis region: 
-   //keys:
-        System.out.println("logWaveSS,logFluxSS");
-        double[] specSynLams = new double[numSpecSyn];
-        double[][] specSynFlux = new double[2][numSpecSyn];
-   //values:
-        int iCount = 0; 
-        for (int i = iStart; i < iStop; i++){
-
-   //This doesn't seem very useful (yet), but let's do it anyway for clarity:
-           specSynLams[iCount] = masterLams[i]; 
- //Do quality control here:
-           if ( (masterFlux[1][i] < logTiny) || (masterFlux[0][i] < tiny) ){
-              masterFlux[1][i] = logTiny;
-              masterFlux[0][i] = tiny;
-               }
-           //approximate rectification:
-           specSynFlux[1][iCount] = masterFlux[1][i] - Planck.planck(teff, masterLams[i]);
-           specSynFlux[0][iCount] = Math.exp(specSynFlux[1][iCount]);
-           System.out.format("%13.8f,%13.8f%n", Math.log(specSynLams[iCount]), specSynFlux[1][iCount]); 
-           iCount++;
-         }
+//   //This doesn't seem very useful (yet), but let's do it anyway for clarity:
+//           specSynLams[iCount] = masterLams[i]; 
+// //Do quality control here:
+//           if ( (masterFlux[1][i] < logTiny) || (masterFlux[0][i] < tiny) ){
+//              masterFlux[1][i] = logTiny;
+//              masterFlux[0][i] = tiny;
+//               }
+//           //approximate rectification:
+//           specSynFlux[1][iCount] = masterFlux[1][i] - Planck.planck(teff, masterLams[i]);
+//           specSynFlux[0][iCount] = Math.exp(specSynFlux[1][iCount]);
+//           System.out.format("%13.8f,%13.8f%n", Math.log(specSynLams[iCount]), specSynFlux[1][iCount]); 
+//           iCount++;
+ //        }
 
 //Block 6: line ID tags for lines included in spectrum:
         System.out.println("listElement,listStage,listLam0");
@@ -1478,6 +1686,8 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
           case 2: species = cname[iElem] + "III";
           break;
           case 3: species = cname[iElem] + "IV";
+          break;
+          case 4: species = cname[iElem] + "V";
           break;
        }
        double thisChiI = IonizationEnergy.getIonE(species);  //ev

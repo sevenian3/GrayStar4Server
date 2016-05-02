@@ -1,5 +1,6 @@
 <?php
 
+
 //initialize to blank string as part of validation and sanitization:
 $teff = "";
 $logg = "";
@@ -61,12 +62,12 @@ $logg = "4.44";
 $logKappaScale = "0.0";
 $massStar = "1.0";
 $xiT = "1.0";
-$lineThresh = "4.0";
+$lineThresh = "3.0";
 $voigtThresh = "15.0";
-$lambdaStart = "550.0";
-$lambdaStop = "600.0";
-$sampling = "coarse";
-$logGammaCol = "0.5";
+$lambdaStart = "587.0";
+$lambdaStop = "592.0";
+$sampling = "fine";
+$logGammaCol = "0.0";
 */
 
 //echo $teff . ' ' . $logg . ' ' . $logKappaScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh  . ' ' . $lambdaStart  . ' ' . $lambdaStop;
@@ -107,9 +108,9 @@ $rowPntr = 0;
        if ($keyArr[$j] == "numThetas"){
           $numThetas = $rowArr[$j];
            }
-       if ($keyArr[$j] == "numSpecSyn"){
-          $numSpecSyn = $rowArr[$j];
-           }
+//       if ($keyArr[$j] == "numSpecSyn"){
+//          $numSpecSyn = $rowArr[$j];
+//           }
        if ($keyArr[$j] == "numGaussLines"){
           $numGaussLines = $rowArr[$j];
            }
@@ -133,9 +134,9 @@ $rowPntr = 0;
        if ($keyArr[$numKeys-1] == "numThetas"){
           $numThetas = $rowArr[$numKeys-1];
            }
-       if ($keyArr[$numKeys-1] == "numSpecSyn"){
-          $numSpecSyn = $rowArr[$numKeys-1];
-           }
+//       if ($keyArr[$numKeys-1] == "numSpecSyn"){
+//          $numSpecSyn = $rowArr[$numKeys-1];
+//           }
        if ($keyArr[$numKeys-1] == "numGaussLines"){
           $numGaussLines = $rowArr[$numKeys-1];
            }
@@ -260,42 +261,42 @@ for ($j = 0; $j < $numKeys; $j++){
   } //theta loop $i
 
 
+////
+////    BLOCK FIVE 
+////
+////   Flux spectrum (spectrum synthesis)
+////
+////
+//$keyArr = explode(",", $outArray[$rowPntr]);
+//$rowPntr++;
+//$numKeys = count($keyArr);
+////initialize array of strings to be accumulated:
+//for ($j = 0; $j < $numKeys; $j++){
+//    $valArr[$j] = "";
+//} 
 //
-//    BLOCK FIVE 
+////First numSpecSyn-1 values:
+//for ($i = 0; $i < $numSpecSyn-1; $i++){
+//    $rowArr = explode(",", $outArray[$rowPntr]); 
+//    $rowPntr++;
+//    for ($j = 0; $j < $numKeys; $j++){
+//       $valArr[$j] = $valArr[$j] . $rowArr[$j] . ",";
+//    } // $j - loop over columns 
+//} // $i - loop over rows
 //
-//   Flux spectrum (spectrum synthesis)
+////last entry:
+//$rowArr = explode(",", $outArray[$rowPntr]);
+//$rowPntr++;
+//for ($j = 0; $j < $numKeys; $j++){
+//    $valArr[$j] = $valArr[$j] . $rowArr[$j];
+//} 
 //
-//
-$keyArr = explode(",", $outArray[$rowPntr]);
-$rowPntr++;
-$numKeys = count($keyArr);
-//initialize array of strings to be accumulated:
-for ($j = 0; $j < $numKeys; $j++){
-    $valArr[$j] = "";
-} 
-
-//First numSpecSyn-1 values:
-for ($i = 0; $i < $numSpecSyn-1; $i++){
-    $rowArr = explode(",", $outArray[$rowPntr]); 
-    $rowPntr++;
-    for ($j = 0; $j < $numKeys; $j++){
-       $valArr[$j] = $valArr[$j] . $rowArr[$j] . ",";
-    } // $j - loop over columns 
-} // $i - loop over rows
-
-//last entry:
-$rowArr = explode(",", $outArray[$rowPntr]);
-$rowPntr++;
-for ($j = 0; $j < $numKeys; $j++){
-    $valArr[$j] = $valArr[$j] . $rowArr[$j];
-} 
-
-//   $inputArr = array($key => $value);
-// package up the associative array:
-// one key and string value per column variable: 
-for ($j = 0; $j < $numKeys; $j++){
-   $inputArr[$keyArr[$j]] = $valArr[$j];
-}
+////   $inputArr = array($key => $value);
+//// package up the associative array:
+//// one key and string value per column variable: 
+//for ($j = 0; $j < $numKeys; $j++){
+//   $inputArr[$keyArr[$j]] = $valArr[$j];
+//}
 
 
 //

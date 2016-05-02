@@ -36,8 +36,8 @@ public class DepthScale {
         //double logZ1 = -10.0;  // log(cm)
         //depths[0] = Math.pow(10.0, logZ1);  //cm
         //Start at this depth index - the topmost layers have such low rhos that they correspond to HUUUGE geometric depths!
-        int iStart = 10;
-        double z1 = 0;   //cm
+        int iStart = 1;
+        double z1 = 1.0e-19;   //cm
         //double z1 = -500.0 * 1.0e5; // FOr comparison to O&ASP 3rd Ed. (D.F. Gray), Table 9.2
         for (int i = 0; i <= iStart; i++) {
             depths[i] = z1;

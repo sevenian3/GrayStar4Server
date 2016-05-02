@@ -1141,113 +1141,45 @@ if (surfEquRotV > 1.0){
 var eqWidthSynth = function(flux, linePoints) { //, fluxCont) {
 
     var logE = logTen(Math.E); // for debug output
-
     var Wlambda = 0.0; // Equivalent width in pm - picometers
-
     var numPoints = linePoints.length;
     //console.log("numPoints " + numPoints);
-    var delta, logDelta, term, normFlux, logNormFlux, integ, integ2, logInteg, lastInteg, lastTerm, term2;
+    var delta, logDelta, term, integ, integ2, logInteg, lastInteg, lastTerm, term2;
 
-// Spectrum not normalized - try this instead (redefines input parameter fluxCont):
-    var logFluxCont = Math.log((flux[0][0] + flux[0][numPoints - 1]) / 2.0);
-    //console.log("logFluxCont " + logE * logFluxCont);
-
-    var iCount = Math.floor(numPoints / 2) - 1; //initialize
-    //console.log("numPoints " + numPoints + " iCount " + iCount);
-    for (var il = Math.floor(numPoints / 2); il < numPoints; il++) {
-        //console.log("il " + il + " flux[0][il]/flux[0][numPoints - 1] " + flux[0][il]/flux[0][numPoints - 1]);
-        if (flux[0][il] < 0.99 * flux[0][numPoints - 1]) {
-            //console.log("Condition triggered");
-            iCount++;
-            //console.log("iCount " + iCount);
-        }
-    }
-    //console.log("iCount " + iCount);
-    //One more or two more if we can accomodate them:
-    if (iCount < numPoints - 1) {
-        iCount++;
-    }
-    if (iCount < numPoints - 1) {
-        iCount++;
-    }
-    var iStart = numPoints - iCount;
-    var iStop = iCount;
-    //console.log("iStart, iStop, iCount " + iStart + " " + iStop  + " " + iCount);
-    //console.log("eqwidth: numPoints " + numPoints + " iStart " + iStart + " iStop " + iStop);
+//Spectrum now continuum rectified before eqWidth called
 
     //Trapezoid rule:
     // First integrand:
 
-    // Single-point normalization to line-centre flux suitable for narrow lines:
-    //normFlux = flux[0][il] / flux[0][numPoints];
-    logNormFlux = flux[1][iStart] - logFluxCont;
-    //logNormFlux = flux[1][0] - fluxCont[1];
-    //normFlux = flux[0][il] / fluxCont[0];
-    //System.out.println("flux[0][iStart] " + flux[0][iStart] + " fluxCont " + fluxCont);
-    // flux should be less than 0.99 of continuum flux:
-    if (logNormFlux >= -0.01) {
-        lastInteg = 1.0e-99;
-    } else {
-        lastInteg = 1.0 - Math.exp(logNormFlux);
-    }
+    lastInteg = 1.0 - flux[0][0];
+    
     lastTerm = lastInteg; //initialization
 
-    for (var il = iStart + 1; il < iStop; il++) {
-
+    for (var il = 1; il < numPoints-1; il++) {
 
         delta = linePoints[il] - linePoints[il - 1];
         delta = delta * 1.0E+7;  // cm to nm - W_lambda in pm
         logDelta = Math.log(delta);
 
-        // Single-point normalization to line-centre flux suitable for narrow lines:
-        //normFlux = flux[0][il] / fluxCont[0];
-        logNormFlux = flux[1][il] - logFluxCont;
-        //console.log("il " + il + " flux[1][il] " + logE * flux[1][il]);
-        //console.log("il " + il + " normFlux " + Math.exp(logNormFlux));
-        //logNormFlux = flux[1][il] - fluxCont[1];
+        integ = 1.0 - flux[0][il];
 
-
-        //term = 1.0 - normFlux;
-
-// flux should be less than 0.99 of continuum flux:
-        if (logNormFlux >= -0.01) {
-            //console.log("logNormFlux condition FAILED, il: " + il);
-            integ = 1.0e-99;
-        } else {
-            integ = 1.0 - Math.exp(logNormFlux);
-        }
-
-
-        //Trapezoid rule:
+        //Extended trapezoid rule:
         integ2 = 0.5 * (lastInteg + integ);
-        logInteg = Math.log(integ2);
-        term = Math.exp(logInteg + logDelta);
-
-        //Make sure weird features near the red edge don't pollute our Wlambda:
-        // for lambda > line centre, area sould be monotically *decreasing*
-        //console.log("il " + il + " linePoints[0][il] " + linePoints[0][il] + " lam0 " + lam0 + " integ " + integ + " lastInteg " + lastInteg);
-        if ((linePoints[il] > 0.0) && (term > lastTerm)) {
-            //console.log("term condition FAILED, il: " + il);
-            //term2 = lastTerm / 2.0;
-            term2 = term; //the above condition giving too small EWs
-        } else {
-            term2 = term;
-        }
-
-
-        //console.log("il " + il + " logNormFlux " + logE * logNormFlux + " integ " + integ + " term " + term);
+        //logInteg = Math.log(integ2);
+        //term = Math.exp(logInteg + logDelta);
+        term = integ2 * delta;
+        //console.log("linePoints[il] " + linePoints[il] + " flux[0][il] " + flux[0][il]
+//  + " integ " + integ + " term " + term);
 
         //Wlambda = Wlambda + (term * delta);
-        Wlambda = Wlambda + term2;
+        Wlambda = Wlambda + term;
 
-        lastTerm = term; //For catching problems
         lastInteg = integ;
 
-        //System.out.println("EqWidth: il " + il + " delta " + delta + " term " + term + " normFlux " + normFlux );
         //System.out.println("EqWidth: Wlambda: " + Wlambda);
     }
 
-    // Double to pick up blue half and Convert area in nm to pm - picometers
+    // Convert area in nm to pm - picometers
     Wlambda = Wlambda * 1.0E3;
 
     return Wlambda;

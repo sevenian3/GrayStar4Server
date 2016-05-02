@@ -93,7 +93,7 @@ public class SpecSyn {
 
             //Extract 1D *linear* opacity vectors for interpol()
             for (int k = 0; k < numNow; k++) {
-                kappa1D[k] = Math.exp(logMasterKaps[k][iD]); //actually wavelength independent - for now
+                kappa1D[k] = Math.exp(logMasterKaps[k][iD]); //now wavelength dependent 
             }
 
             for (int k = 0; k < numPoints; k++) {

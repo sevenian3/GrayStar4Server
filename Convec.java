@@ -13,7 +13,7 @@ package graystar3server;
 public class Convec {
     
     public static double[][] convec(int numDeps, double[][] tauRos, double[] depths, double[][] temp, double[][] press, double[][] rho, double[][] kappa, double[][] kappaSun,
-            double kappaScale, double teff, double logg) {
+            double zScale, double teff, double logg, double[] mmw) {
 
         double logE = Math.log10(Math.E); // for debug output
         double ln10 = Math.log(10.0); //needed to convert logg from base 10 to base e
@@ -49,7 +49,7 @@ public class Convec {
 
         //System.out.println("Hp/HpSun " + Hp/HpSun);
         
-        double[] mmw = State.mmwFn(numDeps, temp, kappaScale);
+        //double[] mmw = State.mmwFn(numDeps, temp, zScale);
 
         //Search outward for top of convection zone
         boolean isStable = false;
