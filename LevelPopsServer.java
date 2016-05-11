@@ -18,7 +18,6 @@ package graystar3server;
 // numDeps
 // tauRos structure
 // temp structure 
-// rho structure
 public class LevelPopsServer{
 
     public static double[] levelPops(double lam0In, double[] logNStage, double chiL, double[] log10UwStage, 
@@ -135,11 +134,10 @@ public class LevelPopsServer{
 // numDeps
 // tauRos structure
 // temp structure 
-// rho structure
 
     public static double[][] stagePops(double[] logNum, double[][] Ne, double chiI1, double chiI2, double chiI3, double chiI4,
             double[] log10Uw1, double[] log10Uw2, double[] log10Uw3, double[] log10Uw4, 
-            int numDeps, double zScale, double[][] tauRos, double[][] temp, double[][] rho) {
+            int numDeps, double zScale, double[][] tauRos, double[][] temp) {
 
         double c = Useful.c;
         double logC = Useful.logC();
@@ -204,9 +202,6 @@ public class LevelPopsServer{
 
         double logSahaFac = log2 + (3.0 / 2.0) * (log2pi + logMe + logK - 2.0 * logH);
 
-        int refRhoIndx = ToolBox.tauPoint(numDeps, tauRos, 1.0);
-        double refLogRho = rho[1][refRhoIndx];
-        //System.out.println("LINEKAPPA: refRhoIndx, refRho " + refRhoIndx + " " + logE*refRho);
 
         // return a 2D 5 x numDeps array of logarithmic number densities
         // Row 0: neutral stage ground state population
@@ -226,7 +221,6 @@ public class LevelPopsServer{
             //logNum = logNl + logKScale;
 //
  //           // scale numer density by relative depth variation of mass density
-  //          logNum = logNum + rho[1][id] - refLogRho;
 
             //Row 1 of Ne is log_e Ne in cm^-3
             logNe = Ne[1][id];
@@ -256,7 +250,7 @@ public class LevelPopsServer{
            thisLogUw4 = 0.5 * (Ttheta - 0.5) * logUw4[1]
                + 0.5 * (1.0 - Ttheta) * logUw4[0];
        }
-
+       //System.out.println("thisLogUw1, ... thisLogUw4 " + logE*thisLogUw1 + " " + logE*thisLogUw2 + " " + logE*thisLogUw3 + " " + logE*thisLogUw4);
        double thisLogUw5 = 0.0; //ionization stage V partition fn, U = 1.0
 
             //

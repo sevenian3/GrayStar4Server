@@ -60,7 +60,7 @@ public class LineTau2 {
         double[] kappaC = new double[numLams];
         double[] kappaC2 = new double[numMaster];
         double[][] kappa2 = new double[numMaster][numDeps];
-        for (int id = 1; id < numDeps; id++) {
+        for (int id = 0; id < numDeps; id++) {
            for (int il = 0; il < numLams; il++) {
               kappaC[il] = kappa[il][id];
            }
@@ -103,6 +103,7 @@ public class LineTau2 {
                 //logKapRat = logKappaL[il][id] - logKappaC;
                 logKapRat = logKappaL[il][id] - kappa2[il][id];
 
+
                 //tau2 = tau1 + ((Math.exp(logKapRat) + 1.0) * delta);
                 //opacity being handed in is now total oppcity: line plux continuum:
                 //trapezoid rule:
@@ -112,6 +113,12 @@ public class LineTau2 {
                 logTauL[il][id] = Math.log(tau2);
                 tau1 = tau2;
                 lastLogKapRat = logKapRat;
+
+            //if (id == 12) {
+            // System.out.println("il " + il + " id " + id + " logTauL[il][id] " + logE * logTauL[il][id]);
+            // System.out.println("tauLambda: il, id, masterLams, logKappaL, logKappa2, logKapRat, logTauL : "
+            //     + il + " " + id + " " + masterLams[il] + " " + logE*logKappaL[il][id] + " " + logE*kappa2[il][id] + " " + logE*logKapRat + " " + logE*logTauL[il][id] );
+            //}
 
             } //id loop
 

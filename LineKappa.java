@@ -34,7 +34,7 @@ public class LineKappa {
 //            int numDeps, double kappaScale, double[][] tauRos, double[][] temp, double[][] rho) {
 // Level population now computed in LevelPops.levelPops()
     public static double[][] lineKap(double lam0In, double[][] logNums, double logFluIn, double[][] linePoints, double[][] lineProf,
-            int numDeps, double kappaScale, double[][] tauRos, double[][] temp, double[][] rho) {
+            int numDeps, double zScale, double[][] tauRos, double[][] temp, double[][] rho) {
 
         double c = Useful.c;
         double logC = Useful.logC();
@@ -53,7 +53,7 @@ public class LineKappa {
         double logLam0 = Math.log(lam0);
         //double logNl = logNlIn * ln10;  // Convert to base e
         double logFlu = logFluIn * ln10; // Convert to base e
-        double logKScale = Math.log10(kappaScale);
+        double logKScale = Math.log10(zScale);
 
         //chiI = chiI * Useful.eV;  // Convert lower E-level from eV to ergs
         //double boltzFacI = chiI / k; // Pre-factor for exponent of excitation Boltzmann factor
@@ -115,10 +115,10 @@ public class LineKappa {
                 // This direct approach won't work - is not consistent with fake Kramer's law scaling of Kapp_Ros with g instead of rho
                 logKappaL[il][id] = logKappaL[il][id] - rho[1][id];
 
-                // if (id == 12) {
-                //   System.out.println("LINEKAPPA: id, il " + id + " " + il + " logKappaL " + logE * logKappaL[il][id]
-                //    + " logPreFac " + logE*logPreFac + " logStimEm " + logE*logStimEm + " logNum " + logE*logNum 
-                //   + " log(lineProf[1]) " + logE*Math.log(lineProf[1][il]) + " rho[1][id] " + logE * rho[1][id]);
+                 //if (id == 12) {
+                 //  System.out.println("LINEKAPPA: id, il " + id + " " + il + " logKappaL " + logE * logKappaL[il][id]
+                 //   + " logPreFac " + logE*logPreFac + " logStimEm " + logE*logStimEm + " logNum " + logE*logNum 
+                 //  + " log(lineProf[il]) " + logE*Math.log(lineProf[il][id]) + " rho[1][id] " + logE * rho[1][id]);
                 // }
                 //if (id == refRhoIndx-45) {
                 //    System.out.println("LINEKAPPA: id, il " + id + " " + il + " logKappaL " + logE*logKappaL[il][id]
@@ -135,7 +135,7 @@ public class LineKappa {
 
     //Create total extinction throughout line profile:
     public static double[][] lineTotalKap(double[][] linePoints, double[][] logKappaL,
-            int numDeps, double teff, double lam0, double kappaScale, double[][] kappa) {
+            int numDeps, double[][] kappa, int numLams, double[] lambdaScale) {
 
         double logE = Math.log10(Math.E); // for debug output
         int numPoints = linePoints[0].length;
@@ -145,39 +145,27 @@ public class LineKappa {
 
         double kappaL, logKappaC;
 
-        // Set up multi-Gray continuum info:
-        double isCool = 7300.0;  //Class A0
-
-        //Set up multi-gray opacity:
-        // lambda break-points and gray levels:
-        // No. multi-gray bins = num lambda breakpoints +1
-        double minLambda = 30.0;  //nm
-        double maxLambda = 1.0e6;  //nm
-        int maxNumBins = 11;
-        double[][] grayLevelsEpsilons = MulGrayTCorr.grayLevEps(maxNumBins, minLambda, maxLambda, teff, isCool);
-        //Find actual number of multi-gray bins:
-        int numBins = 0; //initialization
-        for (int i = 0; i < maxNumBins; i++) {
-            if (grayLevelsEpsilons[0][i] < maxLambda) {
-                numBins++;
-            }
-        }
-        //put in multi-Gray opacities here:
-        //Find which gray level bin the line falls in - assume that the first gray-level bin
-        // is always at a shorter wavelength than the line!:
-        int whichBin = 0;  //initialization
-        for (int iB = 0; iB < numBins; iB++) {
-            if (grayLevelsEpsilons[0][iB] >= lam0) {
-                whichBin = iB;  //found it!
-                break;
-            }
+//Interpolate continuum opacity onto onto line-blanketed opacity lambda array:
+//
+        double[] kappaC = new double[numLams];
+        double[] kappaC2 = new double[numPoints];
+        double[][] kappa2 = new double[numPoints][numDeps];
+        for (int id = 1; id < numDeps; id++) {
+           for (int il = 0; il < numLams; il++) {
+              kappaC[il] = kappa[il][id];
+           }
+           kappaC2 = ToolBox.interpolV(kappaC, lambdaScale, linePoints[0]);
+           for (int il = 0; il < numPoints; il++){
+              kappa2[il][id] = kappaC2[il];
+           }
         }
 
         for (int id = 0; id < numDeps; id++) {
             for (int il = 0; il < numPoints; il++) {
                 //Both kappaL and kappa (continuum) are *mass* extinction (cm^2/g) at thsi point: 
-                logKappaC = kappa[1][id]; // + Math.log(grayLevelsEpsilons[1][whichBin]); //kappaL = Math.exp(logKappaL[il][id]) + kappa[0][id];
-                kappaL = Math.exp(logKappaL[il][id]) + Math.exp(logKappaC);
+                //logKappaC = kappa[1][id];
+                //kappaL = Math.exp(logKappaL[il][id]) + Math.exp(logKappaC);
+                kappaL = Math.exp(logKappaL[il][id]) + Math.exp(kappa2[il][id]);
                 logTotKappa[il][id] = Math.log(kappaL);
                 //logTotKappa[il][id] = kappa[1][id];   //test - no line opacity
                 //if (id == 12) {

@@ -3,6 +3,7 @@ cd graystar3server
 javac -cp  . -sourcepath . *.java
 
 cd ..
-cp  GrayStar3Server.jar GrayStar3Server.jar.bak
-jar cvmf mymanifest GrayStar3Server.jar graystar3server/*.class
+////cp  GrayStar3Server.jar GrayStar3Server.jar.bak
+////jar cvmf mymanifest GrayStar3Server.jar graystar3server/*.class
+jar cvmf mymanifest test.jar graystar3server/*.class
 

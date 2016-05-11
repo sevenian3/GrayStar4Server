@@ -172,7 +172,7 @@ var gsDuplex = function(num, logVector){
 
 //JQuery:  Independent of order of switches in HTML file?
 // Stellar atmospheric parameters
-    var numInputs = 17;
+    var numInputs = 18;
 //Make settingsId object array by hand:
 // setId() is an object constructor
     function setId(nameIn, valueIn) {
@@ -190,8 +190,8 @@ var gsDuplex = function(num, logVector){
     var teff = 1.0 * teffObj.getValue();
     var loggObj = $("#logg").data("roundSlider");
     var logg = 1.0 * loggObj.getValue();
-    var kappaScaleObj = $("#kappaScale").data("roundSlider");
-    var logKappaScale = 1.0 * kappaScaleObj.getValue();
+    var zScaleObj = $("#zScale").data("roundSlider");
+    var logZScale = 1.0 * zScaleObj.getValue();
     var massStarObj = $("#starMass").data("roundSlider");
     var massStar = 1.0 * massStarObj.getValue();
     var xiTObj = $("#xiT").data("roundSlider");
@@ -216,11 +216,12 @@ var gsDuplex = function(num, logVector){
     //console.log("lineThresh " + lineThresh);
     var diskLambda = 1.0 * $("#diskLam").val(); //nm
     var diskSigma = 1.0 * $("#diskSigma").val(); //nm
+    var logKapFudge = 1.0 * $("#logKapFudge").val(); //log_10 cm^2/g mass extinction fudge
 
 //    
     settingsId[0] = new setId("<em>T</em><sub>eff</sub>", teff);
     settingsId[1] = new setId("log <em>g</em>", logg);
-    settingsId[2] = new setId("<em>&#954</em>", logKappaScale);
+    settingsId[2] = new setId("<em>&#954</em>", logZScale);
     settingsId[3] = new setId("<em>M</em>", massStar);
 
     settingsId[4] = new setId("<span style='color:green'>GHEff</span>", greenHouse);
@@ -237,6 +238,7 @@ var gsDuplex = function(num, logVector){
     settingsId[14] = new setId("<em>v</em><sub>Rot</sub>", rotV);
     settingsId[15] = new setId("<em>i</em><sub>Rot</sub>", rotI);
     settingsId[16] = new setId("&#963<sub>Filter</sub>", diskSigma);
+    settingsId[17] = new setId("&#954<sub>Fudge</sub>", logKapFudge);
 
     //
     var numPerfModes = 8;
@@ -276,6 +278,7 @@ var gsDuplex = function(num, logVector){
     var ifPrintLDC = false;
     var ifPrintAbnd = false;
     var ifPrintLogNums = false;
+    var ifPrintJSON = false;
     //
     //
 
@@ -366,6 +369,9 @@ var gsDuplex = function(num, logVector){
     if ($("#printLogNums").is(":checked")) {
         ifPrintLogNums = true; // checkbox
     }
+    if ($("#printJSON").is(":checked")) {
+        ifPrintJSON = true; // checkbox
+    }
 
   //Spectrum synthesis line sampling options:
     var switchSampl = "fine"; //default initialization
@@ -435,10 +441,10 @@ var gsDuplex = function(num, logVector){
         settingsId[1].value = 4.4;
         //$("#logg").val(4.4);
         $("#logg").roundSlider("setValue", "4.4");
-        var logKappaScale = 0.0;
+        var logZScale = 0.0;
         settingsId[2].value = 0.0;
-        //$("#kappaScale").val(0.0);
-        $("#kappaScale").roundSlider("setValue", "0.0");
+        //$("#zScale").val(0.0);
+        $("#zScale").roundSlider("setValue", "0.0");
         var massStar = 1.0;
         settingsId[3].value = 1.0;
         //$("#starMass").val(1.0);
@@ -473,10 +479,10 @@ var gsDuplex = function(num, logVector){
         settingsId[1].value = 2.0;
         //$("#logg").val(2.0);
         $("#logg").roundSlider("setValue", "2.0");
-        var logKappaScale = -0.5;
+        var logZScale = -0.5;
         settingsId[2].value = -0.5;
-        //$("#kappaScale").val(-0.5);
-        $("#kappaScale").roundSlider("setValue", "-0.5");
+        //$("#zScale").val(-0.5);
+        $("#zScale").roundSlider("setValue", "-0.5");
         var massStar = 1.1;
         settingsId[3].value = 1.1;
         //$("#starMass").val(1.1);
@@ -511,10 +517,10 @@ var gsDuplex = function(num, logVector){
         settingsId[1].value = 3.95;
         //$("#logg").val(3.95);
         $("#logg").roundSlider("setValue", "3.95");
-        var logKappaScale = -0.5;
+        var logZScale = -0.5;
         settingsId[2].value = -0.5;
-        //$("#kappaScale").val(-0.5);
-        $("#kappaScale").roundSlider("setValue", "-0.5");
+        //$("#zScale").val(-0.5);
+        $("#zScale").roundSlider("setValue", "-0.5");
         var massStar = 2.1;
         settingsId[3].value = 2.1;
         //$("#starMass").val(2.1);
@@ -538,7 +544,9 @@ var gsDuplex = function(num, logVector){
         var lambdaStop = 659.0;
         settingsId[11].value = 659.0;
         $("#lambdaStop").val(659.0);
-      
+        var logKapFudge = -1.0;
+        settingsId[25] = -1.0;
+        $("#logKapFudge").val(-1.0);
     }
 
     if (switchStar === "Regulus") {
@@ -550,10 +558,10 @@ var gsDuplex = function(num, logVector){
         settingsId[1].value = 3.5;
         //$("#logg").val(3.54);
         $("#logg").roundSlider("setValue", "3.5");
-        var logKappaScale = 0.0;
+        var logZScale = 0.0;
         settingsId[2].value = 0.0;
-        //$("#kappaScale").val(0.0);
-        $("#kappaScale").roundSlider("setValue", "0.0");
+        //$("#zScale").val(0.0);
+        $("#zScale").roundSlider("setValue", "0.0");
         var massStar = 3.8;
         settingsId[3].value = 3.8;
         //$("#starMass").val(3.8);
@@ -577,6 +585,9 @@ var gsDuplex = function(num, logVector){
         var lambdaStop = 659.0;
         settingsId[11].value = 659.0;
         $("#lambdaStop").val(659.0);
+        var logKapFudge = -1.0;
+        settingsId[25] = -1.0;
+        $("#logKapFudge").val(-1.0);
     }
 
     if (switchStar === "Procyon") {
@@ -588,10 +599,10 @@ var gsDuplex = function(num, logVector){
         settingsId[1].value = 4.0;
         //$("#logg").val(4.0);
         $("#logg").roundSlider("setValue", "4.0");
-        var logKappaScale = 0.0;
+        var logZScale = 0.0;
         settingsId[2].value = 0.0;
-        //$("#kappaScale").val(0.0);
-        $("#kappaScale").roundSlider("setValue", "0.0");
+        //$("#zScale").val(0.0);
+        $("#zScale").roundSlider("setValue", "0.0");
         var massStar = 1.4;
         settingsId[3].value = 1.4;
         //$("#starMass").val(1.4);
@@ -626,10 +637,10 @@ var gsDuplex = function(num, logVector){
         settingsId[1].value = 4.2;
         //$("#logg").val(4.2);
         $("#logg").roundSlider("setValue", "4.2");
-        var logKappaScale = 0.0;
+        var logZScale = 0.0;
         settingsId[2].value = 0.0;
-        //$("#kappaScale").val(0.0);
-        $("#kappaScale").roundSlider("setValue", "0.0");
+        //$("#zScale").val(0.0);
+        $("#zScale").roundSlider("setValue", "0.0");
         var massStar = 0.6;
         settingsId[3].value = 0.6;
         //$("#starMass").val(0.63);
@@ -664,10 +675,10 @@ var gsDuplex = function(num, logVector){
         settingsId[1].value = 4.3;
         //$("#logg").val(4.33);
         $("#logg").roundSlider("setValue", "4.3");
-        var logKappaScale = 0.0;
+        var logZScale = 0.0;
         settingsId[2].value = 0.0;
-        //$("#kappaScale").val(0.0);
-        $("#kappaScale").roundSlider("setValue", "0.0");
+        //$("#zScale").val(0.0);
+        $("#zScale").roundSlider("setValue", "0.0");
         var massStar = 1.1;
         settingsId[3].value = 1.1;
         //$("#starMass").val(1.11);
@@ -950,6 +961,8 @@ var gsDuplex = function(num, logVector){
     var flagArr = [];
     flagArr.length = numInputs;
     flagArr[0] = false;
+//
+    var F0Vtemp = 7300.0;  // Teff of F0 V star (K)
     var minTeff = 500.0;
     var maxTeff = 50000.0;
     if (teff === null || teff == "") {
@@ -1016,26 +1029,26 @@ var gsDuplex = function(num, logVector){
         //$("#logg").val(5.5);
         $("#logg").roundSlider("setValue", 7.0);
     }
-    if (logKappaScale === null || logKappaScale === "") {
-        alert("logKappaScale must be filled out");
+    if (logZScale === null || logZScale === "") {
+        alert("logZScale must be filled out");
         return;
     }
     flagArr[2] = false;
-    if (logKappaScale < -3.0) {
+    if (logZScale < -3.0) {
         flagArr[2] = true;
-        logKappaScale = -3.0;
+        logZScale = -3.0;
         var logKappaStr = "-3.0";
         settingsId[2].value = -3.0;
-        //$("#kappaScale").val(-2.0);
-        $("#kappaScale").roundSlider("setValue", -3.0);
+        //$("#zScale").val(-2.0);
+        $("#zScale").roundSlider("setValue", -3.0);
     }
-    if (logKappaScale > 1.0) {
+    if (logZScale > 1.0) {
         flagArr[2] = true;
-        logKappaScale = 1.0;
+        logZScale = 1.0;
         var kappaStr = "1.0";
         settingsId[2].value = 1.0;
-        //$("#kappaScale").val(0.5);
-        $("#kappaScale").roundSlider("setValue", 1.0);
+        //$("#zScale").val(0.5);
+        $("#zScale").roundSlider("setValue", 1.0);
     }
     if (massStar === null || massStar == "") {
         alert("mass must be filled out");
@@ -1199,13 +1212,6 @@ var gsDuplex = function(num, logVector){
         settingsId[10].value = lamUV + 1.0;
         $("#lambdaStop").val(lamUV + 1.0);
     }
-    if (lambdaStop > lamIR) {
-        flagArr[10] = true;
-        lambdaStop = lamIR;
-        var lambdaStopStr = String(lamIR);
-        settingsId[10].value = lamIR;
-        $("#lambdaStop").val(lamIR);
-    }
 //Prevent negative or zero lambda range:
     if (lambdaStop <= lambdaStart) {
         flagArr[10] = true;
@@ -1216,11 +1222,26 @@ var gsDuplex = function(num, logVector){
     }
 
 //limit size of synthesis region:
-    if (lambdaStop > lambdaStart+10.0) {
+   var maxSynthRange = 10.0; //set default to minimum value
+  //if we're not in the blue we can get away wth more:
+   if (lambdaStart > 550.0){
+      maxSynthRange = 20.0;
+   }
+   if (lambdaStart > 700.0){
+      maxSynthRange = 50.0;
+   }
+    if (lambdaStop > (lambdaStart+maxSynthRange)) {
         flagArr[10] = true;
-        lambdaStop = lamStart + 10.0; //10 nm = 100 A
+        lambdaStop = lamStart + maxSynthRange; //10 nm = 100 A
         var lambdaStopStr = String(lambdaStop);
         settingsId[10].value = lambdaStop;
+        $("#lambdaStop").val(lamIR);
+    }
+    if (lambdaStop > lamIR) {
+        flagArr[10] = true;
+        lambdaStop = lamIR;
+        var lambdaStopStr = String(lamIR);
+        settingsId[10].value = lamIR;
         $("#lambdaStop").val(lamIR);
     }
 
@@ -1345,14 +1366,40 @@ var gsDuplex = function(num, logVector){
         settingsId[16].value = 10.0;
         $("#diskSigma").val(10.0);
     }
-
+    if (logKapFudge === null || logKapFudge === "") {
+        alert("logKapFudge must be filled out");
+        return;
+    }
+    flagArr[17] = false;
+    if (logKapFudge < -2.0) {
+        flagArr[17] = true;
+        logKapFudge = -2.0;
+        var gamStr = "-2.0";
+        settingsId[17].value = -2.0;
+        $("#logKapFudge").val(-2.0);
+    }
+    if (logKapFudge > 2.0) {
+        flagArr[17] = true;
+        logKapFudge = 2.0;
+        var gamStr = "2.0";
+        settingsId[17].value = 2.0;
+        $("#logKapFudge").val(2.0);
+    }
+  //sigh - don't ask me - makes the Balmer lines show up around A0:
+      if (teff > F0Vtemp){
+        flagArr[17] = true;
+        logKapFudge = -1.0;
+        var logKapFudgeStr = "-1.0";
+        settingsId[17].value = -1.0;
+        $("#logKapFudge").val(-1.0);
+      }
 
 
 var url = "http://www.ap.smu.ca/~ishort/OpenStars/GrayStarServer/grayStarServer.php";
-//var masterInput="teff="+teff+"&logg="+logg+"&logKappaScale="+logKappaScale+"&massStar="+massStar;
-var masterInput="teff="+teff+"&logg="+logg+"&logKappaScale="+logKappaScale+"&massStar="+massStar
+//var masterInput="teff="+teff+"&logg="+logg+"&logZScale="+logZScale+"&massStar="+massStar;
+var masterInput="teff="+teff+"&logg="+logg+"&logZScale="+logZScale+"&massStar="+massStar
   +"&xiT="+xiT+"&lineThresh="+lineThresh+"&voigtThresh="+voigtThresh+"&lambdaStart="+lambdaStart+"&lambdaStop="+lambdaStop
-  +"&sampling="+switchSampl+"&logGammaCol="+logGammaCol;
+  +"&sampling="+switchSampl+"&logGammaCol="+logGammaCol+"&logKapFudge="+logKapFudge;
 //console.log("masterInput " + masterInput);
 
 var xmlhttp = new XMLHttpRequest();
@@ -1411,6 +1458,10 @@ var jsonObj;
     var plotThirteenId = document.getElementById("plotThirteen");
     var cnvsThirteenId = document.getElementById("plotThirteenCnvs");
     var cnvsThirteenCtx = cnvsThirteenId.getContext("2d");
+    var plotFourteenId = document.getElementById("plotFourteen");
+    var cnvsFourteenId = document.getElementById("plotFourteenCnvs");
+    var cnvsFourteenCtx = cnvsFourteenId.getContext("2d");
+
     var printModelId = document.getElementById("printModel"); //detailed model print-out area
 
 //
@@ -1448,6 +1499,7 @@ var jsonObj;
             (ifPrintLDC === true) ||
             (ifPrintLine === true) || 
             (ifPrintLogNums === true) || 
+            (ifPrintJSON === true) || 
             (ifPrintAbnd === true)) {
         printModelId.style.display = "block";
     } else if (ifPrintNone === true) {
@@ -1473,7 +1525,7 @@ var jsonObj;
       //        + " numSpecSyn " + numSpecSyn + " numGaussLines " + numGaussLines);
 
     var grav = Math.pow(10.0, logg);
-    var kappaScale = Math.pow(10.0, logKappaScale);
+    var zScale = Math.pow(10.0, logZScale);
 
     //Gray structure and Voigt line code code begins here:
     // Initial set-up:
@@ -1481,8 +1533,8 @@ var jsonObj;
     var teffSun = 5778.0;
     var loggSun = 4.44;
     var gravSun = Math.pow(10.0, loggSun);
-    var logKappaScaleSun = 0.0;
-    var kappaScaleSun = Math.exp(logKappaScaleSun);
+    var logZScaleSun = 0.0;
+    var zScaleSun = Math.exp(logZScaleSun);
     //Solar units:
     var massSun = 1.0;
     var radiusSun = 1.0;
@@ -1496,7 +1548,7 @@ var jsonObj;
     var massX = 0.70; //Hydrogen
     var massY = 0.28; //Helium
     var massZSun = 0.02; // "metals"
-    var massZ = massZSun * kappaScale; //approximation
+    var massZ = massZSun * zScale; //approximation
 
     var logNH = 17.0;
     var logE = logTen(Math.E); // for debug output
@@ -1505,7 +1557,7 @@ var jsonObj;
     var teffVega = 9950.0;
     var loggVega = 3.95;
     var gravVega = Math.pow(10.0, loggVega);
-    var kappaScaleVega = 0.333;
+    var zScaleVega = 0.333;
 
 
 //
@@ -1528,29 +1580,20 @@ var jsonObj;
          var logMmwAjax = gsAjaxParser(numDeps, jsonObj.logMmw);
          var mmw = gsDuplex(numDeps, logMmwAjax);
          var logKappaAjax = gsAjaxParser(numDeps, jsonObj.logKappa);
-         var kappa = gsDuplex(numDeps, logKappaAjax);
+         var kappaRos = gsDuplex(numDeps, logKappaAjax);
 
-
- //pressure needs special handling to conform to legacy code (stupid!):
-
-    var press = [];
-    press.length = 4;
-    press[0] = [];
-    press[1] = [];
-    press[2] = [];
-    press[3] = [];
-    press[0].length = numDeps;
-    press[1].length = numDeps;
-    press[2].length = numDeps;
-    press[3].length = numDeps;
-
-  for (var i = 0; i < numDeps; i++){
-    press[0][i] = pGas[0][i];
-    press[1][i] = pGas[1][i];
-    press[2][i] = pRad[0][i];
-    press[3][i] = pRad[1][i];
+// Recover partial electron pressure for plot:
+    var k = 1.3806488E-16; // Boltzmann constant in ergs/K
+    var logK = Math.log(k);
+    var Pe = [];
+    Pe.length = 2;
+    Pe[0] = [];
+    Pe[1] = [];
+    Pe[0].length = numDeps;
+    Pe[1].length = numDeps;
+    for (var i = 0; i < numDeps; i++){
+       Pe[1][i] = Ne[1][i] + logK + temp[1][i]; 
     }
-
 
         //Rescaled  kinetic temeprature structure: 
 
@@ -2770,11 +2813,11 @@ var jsonObj;
 //            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotThirteenId);
 
 //plot points
-         //   cnvsThirteenCtx.beginPath();
-         //   cnvsThirteenCtx.arc(xShiftCnvs, yShiftCnvs, dSize, 0, 2*Math.PI);
-         //   RGBHex = colHex(r255, g255, b255);
-         //   cnvsThirteenCtx.strokeStyle = RGBHex;
-         //   cnvsThirteenCtx.stroke();
+          //  cnvsThirteenCtx.beginPath();
+          //  cnvsThirteenCtx.arc(xShiftCnvs, yShiftCnvs, dSize, 0, 2*Math.PI);
+          //  RGBHex = colHex(r255, g255, b255);
+          //  cnvsThirteenCtx.strokeStyle = RGBHex;
+          //  cnvsThirteenCtx.stroke();
 //line plot
             cnvsThirteenCtx.beginPath();
             RGBHex = colHex(r255, g255, b255);
@@ -3080,15 +3123,15 @@ var jsonObj;
                 minXData, maxXData, xAxisName, fineness,
                 plotTenId, cnvsTenCtx);
 
-        // var yAxisParams = YAxis(plotRow, plotCol,
-        //        minYData, maxYData, yAxisName,
-        //        plotTenId);
-
-        //var zRange = 255.0;  //16-bit each for RGB (48-bit colour??)
-
-        //var rangeXData = xAxisParams[1];
+        //xOffset = xAxisParams[0];
+        //yOffset = xAxisParams[4];
+        var rangeXData = xAxisParams[1];
         var deltaXData = xAxisParams[2];
         var deltaXPxl = xAxisParams[3];
+        minXData = xAxisParams[6]; //updated value
+        maxXData = xAxisParams[7]; //updated value
+        //
+
         //var rangeYData = yAxisParams[1];
         //var deltaYData = yAxisParams[2];
         //var deltaYPxl = yAxisParams[3];
@@ -3660,7 +3703,7 @@ var jsonObj;
         //var numYTicks = 6;
         // Build total P from P_Gas & P_Rad:
 
-        var minYData = logE * rho[1][1]; // Avoid upper boundary condition [i]=0
+        var minYData = logE * rho[1][1] - 1.0; // Avoid upper boundary condition [i]=0
         var maxYData = logE * rho[1][numDeps - 1];
         var yAxisName = "Log<sub>10</sub> <em>&#961</em> <br />(g cm<sup>-3</sup>)";
 
@@ -3975,18 +4018,18 @@ var jsonObj;
         // From Hydrostat.hydrostat:
         //press is a 4 x numDeps array:
         // rows 0 & 1 are linear and log *gas* pressure, respectively
-        // rows 2 & 3 are linear and log *radiation* pressure
         // Don't use upper boundary condition as lower y-limit - use a couple of points below surface:
         //var numYTicks = 6;
         // Build total P from P_Gas & P_Rad:
         var logPTot = [];
         logPTot.length = numDeps;
         for (var i = 0; i < numDeps; i++) {
-            logPTot[i] = Math.log(press[0][i] + press[2][i]);
+            logPTot[i] = Math.log(pGas[0][i] + pRad[0][i]);
             //console.log(logPTot[i]);
         }
         //var minYData = logE * logPTot[0] - 2.0; // Avoid upper boundary condition [i]=0
-        var minYData = logE * Math.min(press[1][0], press[3][0]) - 1.0;
+        //var minYData = logE * Math.min(pGas[1][0], pRad[1][0], newPe[1][0]) - 1.0;
+        var minYData = logE * Math.min(pGas[1][0], pRad[1][0], Pe[1][0]) - 1.0;
         var maxYData = logE * logPTot[numDeps - 1];
         var yAxisName = "Log<sub>10</sub> <em>P</em> <br />(dynes <br />cm<sup>-2</sup>)";
         //washer(xRange, xOffset, yRange, yOffset, wColor, plotThreeId);
@@ -4024,7 +4067,8 @@ var jsonObj;
         titleY = panelY + titleOffsetY;
         txtPrint("log Pressure: <span style='color:blue' title='Total pressure'><strong><em>P</em><sub>Tot</sub></strong></span> "
                 + " <a href='http://en.wikipedia.org/wiki/Gas_laws' target='_blank'><span style='color:#00FF88' title='Gas pressure'><em>P</em><sub>Gas</sub></span></a> "
-                + " <a href='http://en.wikipedia.org/wiki/Radiation_pressure' target='_blank'><span style='color:red' title='Radiation pressure'><em>P</em><sub>Rad</sub></span></a>",
+                + " <a href='http://en.wikipedia.org/wiki/Radiation_pressure' target='_blank'><span style='color:red' title='Radiation pressure'><em>P</em><sub>Rad</sub></span></a> "
+                + " <span style='color:black' title='Partial electron pressure'><em>P</em><sub>e</sub></span>",
                 titleOffsetX, titleOffsetY, lineColor, plotThreeId);
 
         //Data loop - plot the result!
@@ -4053,12 +4097,15 @@ var jsonObj;
          var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
 
          var lastYTickPosCnvs = yAxisLength * (logE * logPTot[0] - minYData) / rangeYData;
-         var lastYTickPosGCnvs = yAxisLength * (logE * press[1][0] - minYData) / rangeYData;
-         var lastYTickPosRCnvs = yAxisLength * (logE * press[3][0] - minYData) / rangeYData;
+         var lastYTickPosGCnvs = yAxisLength * (logE * pGas[1][0] - minYData) / rangeYData;
+         var lastYTickPosRCnvs = yAxisLength * (logE * pRad[1][0] - minYData) / rangeYData;
+         var lastYTickPosBCnvs = yAxisLength * (logE * Pe[1][0] - minYData) / rangeYData;
+
          // vertical position in pixels - data values increase upward:
          var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
          var lastYShiftGCnvs = (yAxisYCnvs + yAxisLength) - yTickPosGCnvs;
          var lastYShiftRCnvs = (yAxisYCnvs + yAxisLength) - yTickPosRCnvs;
+         var lastYShiftBCnvs = (yAxisYCnvs + yAxisLength) - yTickPosBCnvs;
         // Avoid upper boundary at i=0
         for (var i = 1; i < numDeps; i++) {
 
@@ -4070,8 +4117,9 @@ var jsonObj;
             xShiftCnvs = Math.floor(xShiftCnvs);
 
             var yTickPosCnvs = yAxisLength * (logE * logPTot[i] - minYData) / rangeYData;
-            var yTickPosGCnvs = yAxisLength * (logE * press[1][i] - minYData) / rangeYData;
-            var yTickPosRCnvs = yAxisLength * (logE * press[3][i] - minYData) / rangeYData;
+            var yTickPosGCnvs = yAxisLength * (logE * pGas[1][i] - minYData) / rangeYData;
+            var yTickPosRCnvs = yAxisLength * (logE * pRad[1][i] - minYData) / rangeYData;
+            var yTickPosBCnvs = yAxisLength * (logE * Pe[1][i] - minYData) / rangeYData;
             // vertical position in pixels - data values increase upward:
             var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
             yShiftCnvs = Math.floor(yShiftCnvs);
@@ -4079,6 +4127,8 @@ var jsonObj;
             yShiftGCnvs = Math.floor(yShiftGCnvs);
             var yShiftRCnvs = (yAxisYCnvs + yAxisLength) - yTickPosRCnvs;
             yShiftRCnvs = Math.floor(yShiftRCnvs);
+            var yShiftBCnvs = (yAxisYCnvs + yAxisLength) - yTickPosBCnvs;
+            yShiftBCnvs = Math.floor(yShiftBCnvs);
 
 //Plot points
             cnvsThreeCtx.beginPath();
@@ -4112,10 +4162,21 @@ var jsonObj;
             cnvsThreeCtx.lineTo(xShiftCnvs, yShiftRCnvs);
             cnvsThreeCtx.stroke();  
 //
+            cnvsThreeCtx.beginPath();
+            cnvsThreeCtx.arc(xShiftCnvs, yShiftBCnvs, dSizeGCnvs, 0, 2*Math.PI);
+            cnvsThreeCtx.strokeStyle = "#000000";
+            cnvsThreeCtx.stroke();
+            cnvsThreeCtx.beginPath();
+            cnvsThreeCtx.strokeStyle="#000000"; 
+            cnvsThreeCtx.moveTo(lastXShiftCnvs, lastYShiftBCnvs);
+            cnvsThreeCtx.lineTo(xShiftCnvs, yShiftBCnvs);
+            cnvsThreeCtx.stroke();  
+//
             lastXShiftCnvs = xShiftCnvs;
             lastYShiftCnvs = yShiftCnvs;
             lastYShiftGCnvs = yShiftGCnvs;
             lastYShiftRCnvs = yShiftRCnvs;
+            lastYShiftBCnvs = yShiftBCnvs;
         }
 
 // Tau=1 cross-hair
@@ -4733,6 +4794,151 @@ var jsonObj;
 
     }
 
+// ****************************************
+    //
+    //
+    //  *****   PLOT FOURTEEN / PLOT 14
+    //
+
+    // Plot fourteen : log(Tau) vs log(kappa)
+    //
+
+    if (ifShowAtmos === true) {
+//
+        var plotRow = 4;
+        var plotCol = 2;
+        var minXData = logE * tauRos[1][0] - 0.0;
+        var maxXData = logE * tauRos[1][numDeps - 1];
+        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> <em>&#964</em><sub>Ros</sub></a></span>";
+        // Don't use upper boundary condition as lower y-limit - use a couple of points below surface:
+        //var numYTicks = 6;
+        // Build total P from P_Gas & P_Rad:
+
+        //var minYData = logE * kappaRos[1][1] - 1.0; // Avoid upper boundary condition [i]=0
+        //var maxYData = logE * kappaRos[1][numDeps - 1];
+        var minYData = kappaRos[1][4];
+        var maxYData = kappaRos[1][numDeps-2];
+        var yAxisName = "Log<sub>10</sub> <em>&#954</em><sub>Ros</sub> <br />(cm<sup>2</sup> g<sup>-1</sup>)";
+
+        var fineness = "normal";
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotFourteenId, cnvsFourteenId);
+        panelX = panelOrigin[0];
+        panelY = panelOrigin[1];
+        cnvsFourteenCtx.fillStyle = wColor;
+        cnvsFourteenCtx.fillRect(0, 0, panelWidth, panelHeight);
+        var xAxisParams = XAxis(panelX, panelY, xAxisLength,
+                minXData, maxXData, xAxisName, fineness,
+                plotFourteenId, cnvsFourteenCtx);
+
+        //xOffset = xAxisParams[0];
+        var rangeXData = xAxisParams[1];
+        var deltaXData = xAxisParams[2];
+        var deltaXPxl = xAxisParams[3];
+        //yOffset = xAxisParams[4];
+        var xLowerYOffset = xAxisParams[5];
+        minXData = xAxisParams[6]; //updated value
+        maxXData = xAxisParams[7]; //updated value
+        //no! var cnvsCtx = xAxisParams[8];
+        var yAxisParams = YAxis(panelX, panelY,
+                minYData, maxYData, yAxisName,
+                plotFourteenId, cnvsFourteenCtx);
+        var rangeYData = yAxisParams[1];
+        var deltaYData = yAxisParams[2];
+        var deltaYPxl = yAxisParams[3];
+        minYData = yAxisParams[6]; //updated value
+        maxYData = yAxisParams[7]; //updated value
+
+        yFinesse = 0;
+        xFinesse = 0;
+        titleX = panelX + titleOffsetX;
+        titleY = panelY + titleOffsetY;
+        txtPrint("log<sub>10</sub> <a href='https://en.wikipedia.org/wiki/Absorption_(electromagnetic_radiation)' title='mass extinction coefficient' target='_blank'>Extinction</a>",
+                titleOffsetX, titleOffsetY, lineColor, plotFourteenId);
+        txtPrint("<span style='font-size:small'>"
+                + "<span><em>&#954</em><sub>Ros</sub></span> ", 
+                titleOffsetX, titleOffsetY+35, lineColor, plotFourteenId);
+
+        //Data loop - plot the result!
+
+        //var dSizeG = 2.0;
+        var dSizeCnvs = 1.0;
+        var opac = 1.0; //opacity
+        // RGB color
+        // PTot:
+        var r255 = 0;
+        var g255 = 0;
+        var b255 = 255; //blue
+        // PGas:
+        var r255G = 0;
+        var g255G = 255;
+        var b255G = 100; //green
+        // PRad:
+        var r255R = 255;
+        var g255R = 0;
+        var b255R = 0; //red
+
+       var it360 = lamPoint(numLams, lambdaScale, 1.0e-7*360.0);
+       var it500 = lamPoint(numLams, lambdaScale, 1.0e-7*500.0);
+//Good odea, but spectrum currently doesn't go out this far:
+       //var it1600 = lamPoint(numLams, lambdaScale, 1.0e-7*1642.0);
+       var it1000 = lamPoint(numLams, lambdaScale, 1.0e-7*1000.0);
+
+        var ii;
+            var xTickPosCnvs = xAxisLength * (logE * tauRos[1][0] - minXData) / rangeXData; // pixels
+            // horizontal position in pixels - data values increase rightward:
+            var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
+            // vertical position in pixels - data values increase upward:
+            var yTickPosCnvs = yAxisLength * (logE * kappaRos[1][0] - minYData) / rangeYData;
+            var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
+
+
+        for (var i = 1; i < numDeps; i++) {
+
+            ii = 1.0 * i;
+            var xTickPosCnvs = xAxisLength * (logE * tauRos[1][i] - minXData) / rangeXData; // pixels
+
+            // horizontal position in pixels - data values increase rightward:
+            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
+
+            // vertical position in pixels - data values increase upward:
+            var yTickPosCnvs = yAxisLength * (logE * kappaRos[1][i] - minYData) / rangeYData;
+            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
+
+ //console.log("i " + i + " lastXShiftCnvs " + lastXShiftCnvs);
+
+//log kappa_Ros
+//Plot points
+//            cnvsFourteenCtx.beginPath();
+//            cnvsFourteenCtx.strokeStyle=lineColor;
+//            cnvsFourteenCtx.arc(xShiftCnvs, yShiftCnvs, dSizeCnvs, 0, 2*Math.PI);
+//            cnvsFourteenCtx.stroke();
+//Line plot
+            cnvsFourteenCtx.beginPath();
+            cnvsFourteenCtx.strokeStyle=lineColor;
+            cnvsFourteenCtx.moveTo(lastXShiftCnvs, lastYShiftCnvs);
+            cnvsFourteenCtx.lineTo(xShiftCnvs, yShiftCnvs);
+            cnvsFourteenCtx.stroke();
+
+            lastXShiftCnvs = xShiftCnvs;
+            lastYShiftCnvs = yShiftCnvs;
+        }
+
+// Tau=1 cross-hair
+
+        var barWidth = 1.0;
+        var barHeight = yAxisLength;
+        var barColor = "#777777";
+        var xShift = YBar(logE*tauRos[1][tTau1], minXData, maxXData, xAxisLength,
+                barWidth, barHeight,
+                yFinesse, barColor, plotFourteenId, cnvsFourteenCtx);
+
+        var barHeight = 1.0;
+        var yShift = XBar(logE * kappaRos[1][tTau1], minYData, maxYData, xAxisLength, barHeight,
+                xFinesse, barColor, plotFourteenId, cnvsFourteenCtx);
+        txtPrint("<span style='font-size:small; color:#444444'><em>&#964</em><sub>Ros</sub>=1</span>",
+                xShift, yShift, lineColor, plotFourteenId);
+    }
+
 
 
 
@@ -4745,8 +4951,8 @@ var jsonObj;
     // **********  Basic canvas parameters: These are numbers in px - needed for calculations:
     // All plots and other output must fit within this region to be white-washed between runs
 
-    var xRangePrint = 1750;
-    var yRangePrint = 10000;
+    var xRangePrint = 2250;
+    var yRangePrint = 20000;
     var xOffsetPrint = 10;
     var yOffsetPrint = yOffsetText + yRangeText + ((numRows+1) * spacingY) + 5;
     var charToPx = 4; // width of typical character font in pixels - CAUTION: finesse!
@@ -4805,7 +5011,7 @@ var jsonObj;
         txtPrint("log<sub>10</sub> <em>P</em><sub>Rad</sub> (dynes cm<sup>-2</sup>)", 10 + 5 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         txtPrint("log<sub>10</sub> <em>&#961</em> (g cm<sup>-3</sup>)", 10 + 6 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         txtPrint("log<sub>10</sub> <em>N</em><sub>e</sub> (cm<sup>-3</sup>)", 10 + 7 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("<em>&#956</em> (a.m.u.)", 10 + 8 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub><em>&#956</em> (g)", 10 + 8 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         txtPrint("log<sub>10</sub> <em>&#954</em> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 9 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
 
         for (var i = 0; i < numDeps; i++) {
@@ -4820,10 +5026,10 @@ var jsonObj;
             value = logE * temp[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 3 * xTab, yTab, txtColor, printModelId);
-            value = logE * press[1][i];
+            value = logE * pGas[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 4 * xTab, yTab, txtColor, printModelId);
-            value = logE * press[3][i];
+            value = logE * pRad[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 5 * xTab, yTab, txtColor, printModelId);
             value = logE * rho[1][i];
@@ -4832,10 +5038,10 @@ var jsonObj;
             value = logE * Ne[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 7 * xTab, yTab, txtColor, printModelId);
-            value = mmw[1][i];
+            value = logE * mmw[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 8 * xTab, yTab, txtColor, printModelId);
-            value = logE * kappa[1][i];
+            value = logE * kappaRos[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 9 * xTab, yTab, txtColor, printModelId);
 
@@ -4942,8 +5148,15 @@ var jsonObj;
         value = value.toPrecision(3);
         numPrint(value, 10 + xTab, yTab, txtColor, printModelId);
      }
-
    }
+
+  if (ifPrintJSON == true){
+     txtPrint("Compound atmospheric model, SED, and synthetic spectrum output as <a href='https://en.wikipedia.org/wiki/JSON' target='_blank'> JSON</a> string", 
+       10, yOffsetPrint, txtColor, printModelId);
+          yTab = yOffsetPrint + vOffset;
+          txtPrint(xmlhttp.responseText, 0, yTab, txtColor, printModelId);
+  }
+
 /*
   if (ifPrintLogNums == true){
      txtPrint(ionEqElement + ": Ionization stage ground state E (eV) & total ion stage log_10 N_k(tau=1))", 10, yOffsetPrint, txtColor, printModelId);

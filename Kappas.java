@@ -203,7 +203,8 @@ public class Kappas {
   
   public static double[][] kappas2(int numDeps, double[][] pe, double zScale, double[][] temp, double[][] rho,
                                    int numLams, double[] lambdas, double logAHe,
-                                   double[] logNH1, double[] logNH2, double[] logNHe1, double[] logNHe2, double[][] Ne){
+                                   double[] logNH1, double[] logNH2, double[] logNHe1, double[] logNHe2, double[][] Ne,
+                                   double teff, double logKapFudge){
 
 
 //
@@ -638,6 +639,10 @@ public class Kappas {
 //Add it in to total - opacity per neutral HI atom, so multiply by logNH1 
 // This is now linear opacity in cm^-1
            logKapH1bf = logKapH1bf + logNH1[iTau];
+////Nasty fix to make Balmer lines show up in A0 stars!
+//     if (teff > 8000){
+//          logKapH1bf = logKapH1bf - logE10*1.5;
+//     }
                      kappa = Math.exp(logKapH1bf); 
   //System.out.println("HIbf " + log10E*logKapH1bf);
 //if (iTau == 36 && iLam == 142){
@@ -652,6 +657,10 @@ public class Kappas {
 //Add it in to total - opacity per neutral HI atom, so multiply by logNH1 
 // This is now linear opacity in cm^-1
            logKapH1ff = logKapH1ff + logNH1[iTau];
+////Nasty fix to make Balmer lines show up in A0 stars!
+//     if (teff > 8000){
+//          logKapH1ff = logKapH1ff - logE10*1.5;
+//     }
                   kappa = kappa + Math.exp(logKapH1ff); 
        //System.out.println("HIff " + log10E*logKapH1ff);
 
@@ -667,7 +676,8 @@ public class Kappas {
  // System.out.println("temp " + temp[0][iTau] + " lambdanm " + lambdanm);
  // }
           logKapHmbf =  -99.0; //initialize default
-          if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 10000.0) ){
+          //if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 10000.0) ){
+          if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 8000.0) ){
              if ((lambdanm > 225.0) && (lambdanm < 1500.0) ){ //nm 
 //if (iTau == 36 && iLam == 142){
  //              System.out.println("In KapHmbf condition...");
@@ -708,7 +718,8 @@ public class Kappas {
 
 // H^- f-f:
           logKapHmff = -99.0; //initialize default
-          if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 10000.0) ){
+          //if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 10000.0) ){
+          if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 8000.0) ){
              if ((lambdanm > 260.0) && (lambdanm < 11390.0) ){ //nm 
                  //construct "f_n" polynomials in log(lambda)
                  for (int j = 0; j < 3; j++){
@@ -919,6 +930,9 @@ public class Kappas {
 // This is now mass extinction in cm^2/g
 //
    logKappa[iLam][iTau] = Math.log(kappa) - rho[1][iTau];
+// Fudge is in cm^2/g:  Converto to natural log:
+   double logEKapFudge = logE10 * logKapFudge;
+   logKappa[iLam][iTau] = logKappa[iLam][iTau] + logEKapFudge;
 //if (iTau == 36 && iLam == 142){
       //System.out.println(" " + log10E*(logKappa[iLam][iTau]+rho[1][iTau]));
 //}
