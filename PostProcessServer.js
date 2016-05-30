@@ -212,14 +212,15 @@ var iColors = function(lambdaScale, intens, numThetas, numLams) {
 }; //iColours
 
 
-var tuneColor = function(lambdaScale, intens, numThetas, numLams, diskLambda, diskSigma, lamUV, lamIR) {
+//Create area normalized Gaussian appropriate for interpolating onto high resolution wavelength gid
+var gaussian = function(lambdaScale, numLams, lambdaIn, sigmaIn, lamUV, lamIR) {
     //No! iColors now returns band-integrated intensities
 
   //diskSigma = 10.0;  //test
   //diskSigma = 0.01;  //test
 //wavelength sampling interval in nm for interpolation 
     var deltaLam = 0.001;  //nm
-      var sigma = diskSigma / deltaLam; //sigma of Gaussian in pixels 
+      var sigma = sigmaIn / deltaLam; //sigma of Gaussian in pixels 
 //Number of wavelength elements for Gaussian
        var numSigmas = 2.5; //+/- 2.5 sigmas
        var numGauss = Math.ceil(2.0 * numSigmas * sigma);  //+/- 2.5 sigmas
@@ -227,8 +228,14 @@ var tuneColor = function(lambdaScale, intens, numThetas, numLams, diskLambda, di
        if ((numGauss % 2) == 0){
           numGauss++;
        }
+//Row 0 holds wavelengths in cm
+//Row 1 holds Gaussian
        var gauss = [];
-       gauss.length = numGauss;
+       gauss.length = 2;
+       gauss[0] = [];
+       gauss[0].length = numGauss;
+       gauss[1] = [];
+       gauss[1].length = numGauss;
        var midPix = Math.floor(numGauss/2);
 
 ////Area normalization factors:
@@ -242,7 +249,7 @@ var tuneColor = function(lambdaScale, intens, numThetas, numLams, diskLambda, di
           x = (i - midPix);
           expFac = x / sigma; 
           expFac = expFac * expFac; 
-          gauss[i] = Math.exp(-0.5 * expFac); 
+          gauss[1][i] = Math.exp(-0.5 * expFac); 
           //gauss[i] = prefac * gauss[i];
           //sum+= gauss[i];   //test
           //console.log("i " + i + " gauss[i] " + gauss[i]);  //test
@@ -250,27 +257,45 @@ var tuneColor = function(lambdaScale, intens, numThetas, numLams, diskLambda, di
        //console.log("Gaussian area: " + sum); 
 
 //establish filter lambda scale:
-   var filterLam = [];
-   filterLam.length = numGauss;
-   lamStart = diskLambda - (numSigmas * diskSigma); //nm
+   //var filterLam = [];
+   //filterLam.length = numGauss;
+   lamStart = lambdaIn - (numSigmas * sigmaIn); //nm
    var ii = 0; 
    for (var i = 0; i < numGauss; i++){
       ii = 1.0 * i;
-      filterLam[i] = lamStart + (ii * deltaLam); //nm
-      filterLam[i] = 1.0e-7 * filterLam[i]; //cm for reference to lambdaScale
+     // filterLam[i] = lamStart + (ii * deltaLam); //nm
+     // filterLam[i] = 1.0e-7 * filterLam[i]; //cm for reference to lambdaScale
+      gauss[0][i] = lamStart + (ii * deltaLam); //nm
+      gauss[0][i] = 1.0e-7 * gauss[0][i]; //cm for reference to lambdaScale
   //Keep wthin limits of treated SED:
-    if (filterLam[i] < 1.0e-7*lamUV){
-      gauss[i] = 0.0;
+    if (gauss[0][i] < 1.0e-7*lamUV){
+      gauss[1][i] = 0.0;
      }  
-    if (filterLam[i] > 1.0e-7*lamIR){
-      gauss[i] = 0.0;
+    if (gauss[0][i] > 1.0e-7*lamIR){
+      gauss[1][i] = 0.0;
      }  
    } 
-       for (var i = 0; i < numGauss; i++){
+       //for (var i = 0; i < numGauss; i++){
           //console.log("i " + i + " filterLam[i] " + filterLam[i] + " gauss[i] " + gauss[i]);  //test
-          } 
+        //  } 
 
   //console.log("numGauss " + numGauss + " sigma " + sigma + " lamStart " + lamStart);
+
+    return gauss;
+
+}; //gaussian
+
+
+//var tuneColor = function(lambdaScale, intens, numThetas, numLams, diskLambda, diskSigma, lamUV, lamIR) {
+var tuneColor = function(lambdaScale, intens, numThetas, numLams, gaussian, lamUV, lamIR) {
+    //No! iColors now returns band-integrated intensities
+
+  //diskSigma = 10.0;  //test
+  //diskSigma = 0.01;  //test
+//wavelength sampling interval in nm for interpolation 
+
+    var numGauss = gaussian[0].length;
+    var deltaLam = gaussian[0][1] - gaussian[0][0];
 
     var bandIntens = [];
     bandIntens.length = numThetas;
@@ -291,7 +316,8 @@ var tuneColor = function(lambdaScale, intens, numThetas, numLams, diskLambda, di
     //    for (var ib = 0; ib < numBands; ib++) {
 
             bandIntens[it] = 0.0; //initialization
-            var newY = interpolV(intensLam, lambdaScale, filterLam);
+            //var newY = interpolV(intensLam, lambdaScale, filterLam);
+            var newY = interpolV(intensLam, lambdaScale, gaussian[0]);
 
 //wavelength loop is over photometric filter data wavelengths
 
@@ -299,7 +325,8 @@ var tuneColor = function(lambdaScale, intens, numThetas, numLams, diskLambda, di
 
 //In this case - interpolate model SED onto wavelength grid of tunable filter 
 
-                product = gauss[il] * newY[il];
+                //product = gauss[il] * newY[il];
+                product = gaussian[1][il] * newY[il];
                 //Rectangular picket integration
                 bandIntens[it] = bandIntens[it] + (product * deltaLam);
                 //console.log("Photometry: ib: " + ib + " bandIntens: " + bandIntens[ib][it]);
@@ -313,7 +340,7 @@ var tuneColor = function(lambdaScale, intens, numThetas, numLams, diskLambda, di
     //return colors;
     return bandIntens;
 
-}; //iColours
+}; //tuneColor
 
 //
 //

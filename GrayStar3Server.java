@@ -230,11 +230,17 @@ public class GrayStar3Server {
             logKapFudge = 2.0;
             logKapFudgeStr = "2.0";
         }
-      // //sigh - don't ask me - makes the Balmer lines show up around A0: 
-      //  if (teff > F0Vtemp){
-      //      logKapFudge = -1.5;
-      //      logKapFudgeStr = "-1.5";
-      //  } 
+
+  double logFudgeTune = 0.0;
+  //sigh - don't ask me - makes the Balmer lines show up around A0:
+      if (teff <= F0Vtemp){
+          logFudgeTune = 0.5;
+      }
+      if (teff > F0Vtemp){
+          logFudgeTune = 0.0;
+      }
+
+   double logTotalFudge = logKapFudge + logFudgeTune;
 
         double logE = Math.log10(Math.E); // for debug output
         double logE10 = Math.log(10.0); //natural log of 10
@@ -379,32 +385,66 @@ public class GrayStar3Server {
  eheu[37]=  2.18;  
  eheu[38]=  1.10; 
  eheu[39]=  1.12;
+//Associate diatomic molecules with each element that forms significant molecules:
+//Initialize arrays:
+  int numAssocMols = 4; //max number of associated molecules
+  String[][] cnameMols = new String[nelemAbnd][numAssocMols];
+  for (int iElem = 0; iElem < nelemAbnd; iElem++){
+     for (int iMol = 0; iMol < numAssocMols; iMol++){
+         cnameMols[iElem][iMol] = "None";
+     }  //iMol loop
+  } //iElem loop
+//CAUTION: cnameMols names should match mnames names in general list of molecules blow
+//List the four molecular species most likely to deplete the atomic species A
   cname[0]="H";
+  cnameMols[0][0] = "H2";
+  cnameMols[0][1] = "H2+";
+  cnameMols[0][2] = "CH";
+  cnameMols[0][3] = "OH";
   cname[1]="He";
   cname[2]="Li";
   cname[3]="Be";
   cname[4]="B";
   cname[5]="C";
+  cnameMols[5][0] = "CH";
+  cnameMols[5][1] = "CO";
+  cnameMols[5][2] = "CN";
+  cnameMols[5][3] = "C2";
   cname[6]="N";
+  cnameMols[6][0] = "NH";
+  cnameMols[6][1] = "NO";
+  cnameMols[6][2] = "CN";
+  cnameMols[6][3] = "N2";
   cname[7]="O";
+  cnameMols[7][0] = "OH";
+  cnameMols[7][1] = "CO";
+  cnameMols[7][2] = "NO";
+  cnameMols[7][3] = "O2";
   cname[8]="F";
   cname[9]="Ne";
   cname[10]="Na";
   cname[11]="Mg";
+  cnameMols[11][0] = "MgH";
   cname[12]="Al";
   cname[13]="Si";
+  cnameMols[13][0] = "SiO";
   cname[14]="P";
   cname[15]="S";
   cname[16]="Cl";
   cname[17]="Ar";
   cname[18]="K";
   cname[19]="Ca";
+  cnameMols[19][0] = "CaH";
+  cnameMols[19][1] = "CaO";
   cname[20]="Sc";
   cname[21]="Ti";
+  cnameMols[21][0] = "TiO";
   cname[22]="V";
+  cnameMols[22][0] = "VO";
   cname[23]="Cr";
   cname[24]="Mn";
   cname[25]="Fe";
+  cnameMols[25][0] = "FeO";
   cname[26]="Co";
   cname[27]="Ni";
   cname[28]="Cu";
@@ -419,6 +459,75 @@ public class GrayStar3Server {
   cname[37]="Ba";
   cname[38]="La";
   cname[39]="Cs";
+
+//Diatomic molecules:
+  int nMols = 18;
+//  var nMols = 1;
+  String[] mname = new String[nMols];
+  String[] mnameA = new String[nMols];
+  String[] mnameB = new String[nMols];
+
+//CAUTION: The molecular number densities, N_AB, will be computed, and will deplete the atomic species, in this order!
+// Put anything where A or B is Hydrogen FIRST - HI is an inexhaustable reservoir at low T
+// Then rank molecules according to largest of A and B abundance, "weighted" by dissociation energy - ??
+//
+// For constituent atomic species, A and B, always designate as 'A' whichever element participates in the
+//  *fewest other* molecuels - we'll put A on the LHS of the molecular Saha equation
+
+  mname[0] = "H2";
+  mnameA[0] = "H";
+  mnameB[0] = "H";
+  mname[1] = "H2+";
+  mnameA[1] = "H";
+  mnameB[1] = "H";
+  mname[2] = "OH";
+  mnameA[2] = "O";
+  mnameB[2] = "H";
+  mname[3] = "CH";
+  mnameA[3] = "C";
+  mnameB[3] = "H";
+  mname[4] = "NH";
+  mnameA[4] = "N";
+  mnameB[4] = "H";
+  mname[5] = "MgH";
+  mnameA[5] = "Mg";
+  mnameB[5] = "H";
+  mname[6] = "CaH";
+  mnameA[6] = "Ca";
+  mnameB[6] = "H";
+  mname[7] = "O2";
+  mnameA[7] = "O";
+  mnameB[7] = "O";
+  mname[8] = "CO";
+  mnameA[8] = "C";
+  mnameB[8] = "O";
+  mname[9] = "C2";
+  mnameA[9] = "C";
+  mnameB[9] = "C";
+  mname[10] = "NO";
+  mnameA[10] = "N";
+  mnameB[10] = "O";
+  mname[11] = "CN";
+  mnameA[11] = "C";
+  mnameB[11] = "N";
+  mname[12] = "N2";
+  mnameA[12] = "N";
+  mnameB[12] = "N";
+  mname[13] = "FeO";
+  mnameA[13] = "Fe";
+  mnameB[13] = "O";
+  mname[14] = "SiO";
+  mnameA[14] = "Si";
+  mnameB[14] = "O";
+  mname[15] = "CaO";
+  mnameA[15] = "Ca";
+  mnameB[15] = "O";
+  mname[16] = "TiO";
+  mnameA[16] = "Ti";
+  mnameB[16] = "O";
+  mname[17] = "VO";
+  mnameA[17] = "V";
+  mnameB[17] = "O";
 
   double ATot = 0.0;
   double thisAz;
@@ -558,24 +667,55 @@ public class GrayStar3Server {
   double[][] tauOneStagePops = new double[nelemAbnd][numStages];
   double unity = 1.0;
   double zScaleList = 1.0; //initialization   
-  double[] thisUw1V = new double[2];
-  double[] thisUw2V = new double[2];
-  double[] thisUw3V = new double[2];
-  double[] thisUw4V = new double[2];
+  double[][] log10UwAArr = new double[numStages][2];
+  for (int i = 0; i < numStages; i++){
+    log10UwAArr[i][0] = 0.0; //default initialization - logarithmic
+    log10UwAArr[i][1] = 0.0; //default initialization - logarithmic
+  }
+//  double[] thisUw1V = new double[2];
+ // double[] thisUw2V = new double[2];
+ // double[] thisUw3V = new double[2];
+ // double[] thisUw4V = new double[2];
  //Ground state ionization E - Stage I (eV) 
-  double thisChiI1;
- //Ground state ionization E - Stage II (eV)
-  double thisChiI2;
-  double thisChiI3;
-  double thisChiI4;
+  double[] chiIArr = new double[numStages];
+//  double thisChiI1;
+// //Ground state ionization E - Stage II (eV)
+//  double thisChiI2;
+//  double thisChiI3;
+//  double thisChiI4;
+//
+//For diatomic molecules:
+ String speciesAB = " ";
+ String speciesA = " ";
+ String speciesB = " ";
+ double massA, massB, logMuAB;
+ double[][] masterMolPops = new double[nMols][numDeps];
+//initialize masterMolPops for mass density (rho) calculation:
+  for (int i = 0; i < nMols; i++){
+    for (int j = 0; j < numDeps; j++){
+       masterMolPops[i][j] = -49.0;  //these are logarithmic
+    }
+  }
+  double[] thisUwAV = new double[2];
+  double[] thisUwBV = new double[2];
+  double thisQwAB, thisDissE;
+
+//
   double[][] newNe = new double[2][numDeps]; 
   double[][] newPe = new double[2][numDeps]; 
   double[][] logNums = new double[numStages][numDeps]; 
+// For diatomic molecules:
+  double[] logNumA = new double[numDeps];
+  double[] logNumB = new double[numDeps];
+  double[] logNumFracAB = new double[numDeps];
+//
+
   double[] Ng = new double[numDeps];
   double[] mmw = new double[numDeps];
   double logMmw;
   double[][] logKappa = new double[numLams][numDeps];
   double[][] kappaRos = new double[2][numDeps];
+  double[][] kappa500 = new double[2][numDeps];
   double[][] pGas = new double[2][numDeps]; 
   double[][] pRad = new double[2][numDeps]; 
   double[] depths = new double[numDeps];
@@ -612,14 +752,57 @@ public class GrayStar3Server {
 //  Default inializations:
        zScaleList = 1.0; //initialization   
        //these 2-element temperature-dependent partition fns are logarithmic  
-       thisUw1V[0] = 0.0; 
-       thisUw1V[1] = 0.0; 
-       thisUw2V[0] = 0.0; 
-       thisUw2V[1] = 0.0; 
-       thisUw3V[0] = 0.0; 
-       thisUw3V[1] = 0.0; 
-       thisUw4V[0] = 0.0; 
-       thisUw4V[1] = 0.0; 
+
+//for diatomic molecules
+       double[][] logNumBArr = new double[numAssocMols][numDeps];
+       double[][] log10UwBArr = new double[numAssocMols][2];
+
+       double[] dissEArr = new double[numAssocMols];
+       double[] log10QwABArr = new double[numAssocMols];
+       double[] logMuABArr = new double[numAssocMols];
+
+// Arrays ofpointers into master molecule and element lists:
+   int[] mname_ptr = new int[numAssocMols];
+   int[] specB_ptr = new int[numAssocMols];
+   int specA_ptr = 0;
+   int specB2_ptr = 0;
+   String mnameBtemplate = " ";
+
+//Default initialization:
+       for (int i = 0; i < numAssocMols; i++){
+           for (int j = 0; j < numDeps; j++){
+               logNumBArr[i][j] = -49.0;
+           }
+           log10UwBArr[i][0] = 0.0;
+           log10UwBArr[i][1] = 0.0;
+           dissEArr[i] = 29.0;  //eV
+           log10QwABArr[i] = 0.0;
+           logMuABArr[i] = Math.log(2.0) + Useful.logAmu();  //g
+           mname_ptr[i] = 0;
+           specB_ptr[i] = 0;
+       }
+
+       double defaultQwAB = 0.0; //for now
+    //default that applies to most cases - neutral stage (I) forms molecules
+       int specBStage = 0; //default that applies to most cases
+
+   //For element A of main molecule being treated in *molecular* equilibrium:
+   //For safety, assign default values where possible
+       double nmrtrDissE = 15.0; //prohitively high by default
+       double[] nmrtrLog10UwB = new double[2];
+       nmrtrLog10UwB[0] = 0.0;
+       nmrtrLog10UwB[1] = 0.0;
+       double nmrtrLog10UwA = 0.0;
+       double nmrtrLog10QwAB = 0.0;
+       double nmrtrLogMuAB = Useful.logAmu();
+       double[] nmrtrLogNumB = new double[numDeps];
+       for (int i = 0; i < numDeps; i++){
+          nmrtrLogNumB[i] = 0.0;
+       }
+
+     double totalIonic;
+     double[] logGroundRatio = new double[numDeps];
+
 
 // Iteration *within* the outer Pe-Pgas iteration:
 //Iterate the electron densities and ionization fractions:
@@ -628,32 +811,84 @@ public class GrayStar3Server {
  
    for (int iElem = 0; iElem < nelemAbnd; iElem++){
        species = cname[iElem] + "I";
-       thisChiI1 = IonizationEnergy.getIonE(species);
+       chiIArr[0] = IonizationEnergy.getIonE(species);
     //THe following is a 2-element vector of temperature-dependent partitio fns, U, 
     // that are base 10 log_10 U
-       thisUw1V = PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[0] = PartitionFn.getPartFn(species); //base 10 log_10 U
        species = cname[iElem] + "II";
-       thisChiI2 = IonizationEnergy.getIonE(species);
-       thisUw2V = PartitionFn.getPartFn(species); //base 10 log_10 U
+       chiIArr[1] = IonizationEnergy.getIonE(species);
+       log10UwAArr[1] = PartitionFn.getPartFn(species); //base 10 log_10 U
        species = cname[iElem] + "III";
-       thisChiI3 = IonizationEnergy.getIonE(species);
-       thisUw3V = PartitionFn.getPartFn(species); //base 10 log_10 U
+       chiIArr[2] = IonizationEnergy.getIonE(species);
+       log10UwAArr[2] = PartitionFn.getPartFn(species); //base 10 log_10 U
        species = cname[iElem] + "IV";
-       thisChiI4 = IonizationEnergy.getIonE(species);
-       thisUw4V = PartitionFn.getPartFn(species); //base 10 log_10 U
+       chiIArr[3] = IonizationEnergy.getIonE(species);
+       log10UwAArr[3]= PartitionFn.getPartFn(species); //base 10 log_10 U
        //double logN = (eheu[iElem] - 12.0) + logNH;
-            //if H or He, make sure kappaScale is unity:
-            if ((cname[iElem].equals("H"))
-                    || (cname[iElem].equals("He"))) {
-                zScaleList = 1.0;
-                //fakeGw1 = 2.0;  //fix for Balmer lines
-            } else {
-                zScaleList = zScale;
-                //fakeGw1 = 1.0;  //fix for Balmer lines
-            }
-       logNums = LevelPopsServer.stagePops(logNz[iElem], guessNe, thisChiI1,
-             thisChiI2, thisChiI3, thisChiI4, thisUw1V, thisUw2V, thisUw3V, thisUw4V, 
-             numDeps, zScaleList, tauRos, temp);
+
+       int thisNumMols = 0; //default initialization
+       for (int iMol = 0; iMol < numAssocMols; iMol++){
+          //console.log("iMol " + iMol + " cnameMols " + cnameMols[iElem][iMol]);
+          if (cnameMols[iElem][iMol] == "None"){
+            break;
+          }
+          thisNumMols++;
+       }
+     //console.log("thisNumMols " + thisNumMols);
+     if (thisNumMols > 0){
+       //Find pointer to molecule in master mname list for each associated molecule:
+       for (int iMol = 0; iMol < thisNumMols; iMol++){
+          for (int jj = 0; jj < nMols; jj++){
+             if (cnameMols[iElem][iMol] == mname[jj]){
+                mname_ptr[iMol] = jj; //Found it!
+                break;
+             }
+          } //jj loop in master mnames list
+       } //iMol loop in associated molecules
+//Now find pointer to atomic species B in master cname list for each associated molecule found in master mname list!
+       for (int iMol = 0; iMol < thisNumMols; iMol++){
+          for (int jj = 0; jj < nelemAbnd; jj++){
+             if (mnameB[mname_ptr[iMol]] == cname[jj]){
+                specB_ptr[iMol] = jj; //Found it!
+                break;
+             }
+          } //jj loop in master cnames list
+       } //iMol loop in associated molecules
+
+//Now load arrays with molecular species AB and atomic species B data for method stagePops2()
+       for (int iMol = 0; iMol < thisNumMols; iMol++){
+  //special fix for H^+_2:
+         if (mnameB[mname_ptr[iMol]] == "H2+"){
+            specBStage = 1;
+         } else {
+            specBStage = 0;
+         }
+          for (int iTau = 0; iTau < numDeps; iTau++){
+             //console.log("iMol " + iMol + " iTau " + iTau + " specB_ptr[iMol] " + specB_ptr[iMol]);
+//Note: Here's one place where ionization equilibrium iteratively couples to molecular equilibrium!
+             logNumBArr[iMol][iTau] = masterStagePops[specB_ptr[iMol]][specBStage][iTau];
+          }
+          dissEArr[iMol] = IonizationEnergy.getDissE(mname[mname_ptr[iMol]]);
+          species = cname[specB_ptr[iMol]] + "I"; //neutral stage
+          log10UwBArr[iMol] = PartitionFn.getPartFn(species); //base 10 log_10 U
+          log10QwABArr[iMol] = defaultQwAB;
+          //Compute the reduced mass, muAB, in g:
+          massA = AtomicMass.getMass(cname[iElem]);
+          massB = AtomicMass.getMass(cname[specB_ptr[iMol]]);
+          logMuABArr[iMol] = Math.log(massA) + Math.log(massB) - Math.log(massA + massB) + Useful.logAmu();
+       }
+   } //if thisNumMols > 0 condition
+
+    //   logNums = LevelPopsServer.stagePops(logNz[iElem], guessNe, thisChiI1,
+    //         thisChiI2, thisChiI3, thisChiI4, thisUw1V, thisUw2V, thisUw3V, thisUw4V, 
+    //         numDeps, temp);
+       logNums = LevelPopsServer.stagePops2(logNz[iElem], guessNe, chiIArr, log10UwAArr,
+                     thisNumMols, logNumBArr, dissEArr, log10UwBArr, log10QwABArr, logMuABArr,
+                     numDeps, temp);
+       //if (cname[iElem].equals("Na") == true){
+       //  System.out.println("iElem " + iElem + " logNz[iElem] " + logNz[iElem] + " thisNumMols " + thisNumMols);
+      // }
+
      for (int iStage = 0; iStage < numStages; iStage++){
           for (int iTau = 0; iTau < numDeps; iTau++){
             masterStagePops[iElem][iStage][iTau] = logNums[iStage][iTau];
@@ -669,6 +904,145 @@ public class GrayStar3Server {
             // }
   } //iElem loop
 
+
+// Compute all molecular populations:
+//
+// *** CAUTION: specB2_ptr refers to element B of main molecule being treated
+// specB_ptr[] is an array of pointers to element B of all molecules associated with
+// element A
+// mname_ptr[] is an array of pointers pointing to the molecules themselves that are
+// associated with element A
+   double[] log10UwA = new double[2];
+   for (int iMol = 0; iMol < nMols; iMol++){
+
+ //Find elements A and B in master atomic element list:
+ //console.log("iMol " + iMol + " mname[iMol] " + mname[iMol] + " mnameA[iMol] " + mnameA[iMol] + " mnameB[iMol] " + mnameB[iMol]);
+    specA_ptr = 0;
+    specB2_ptr = 0;
+    for (int jj = 0; jj < nelemAbnd; jj++){
+       if (mnameA[iMol] == cname[jj]){
+         specA_ptr = jj;
+         break;  //found it!
+       }
+    }
+  //console.log("specA_ptr " + specA_ptr + " cname[specA_ptr] " + cname[specA_ptr]);
+// Get its partition fn:
+    species = cname[specA_ptr] + "I"; //neutral stage
+    log10UwA = PartitionFn.getPartFn(species); //base 10 log_10 U
+    for (int jj = 0; jj < nelemAbnd; jj++){
+       if (mnameB[iMol] == cname[jj]){
+         specB2_ptr = jj;
+         break;  //found it!
+       }
+    }
+  //console.log("specB2_ptr " + specB2_ptr + " cname[specB2_ptr] " + cname[specB2_ptr]);
+
+//We will solve for N_AB/N_A - neutral stage of species A (AI) will be kept on LHS of molecular Saha equations -
+// Therefore, we need ALL the molecules species A participates in - including the current molecule itself
+// - at this point, it's just like setting up the ionization equilibrium to account for molecules as above...
+       int thisNumMols = 0; //default initialization
+       for (int im = 0; im < numAssocMols; im++){
+          //console.log("iMol " + iMol + " cnameMols " + cnameMols[iElem][iMol]);
+          if (cnameMols[specA_ptr][im] == "None"){
+            break;
+          }
+          thisNumMols++;
+       }
+     //console.log("thisNumMols " + thisNumMols);
+     if (thisNumMols > 0){
+       //Find pointer to molecule in master mname list for each associated molecule:
+       for (int im = 0; im < thisNumMols; im++){
+          for (int jj = 0; jj < nMols; jj++){
+             if (cnameMols[specA_ptr][im] == mname[jj]){
+                mname_ptr[im] = jj; //Found it!
+                break;
+             }
+          } //jj loop in master mnames list
+   //console.log("im " + im + " mname_ptr[im] " + mname_ptr[im] + " mname[mname_ptr[im]] " + mname[mname_ptr[im]]);
+       } //im loop in associated molecules
+
+//Now find pointer to atomic species B in master cname list for each associated molecule found in master mname list!
+       for (int im = 0; im < thisNumMols; im++){
+          mnameBtemplate = " "; //initialization
+// "Species B" is whichever element is NOT species "A" in master molecule
+          if (mnameB[mname_ptr[im]] == mnameA[iMol]){
+             //get the *other* atom
+             mnameBtemplate = mnameA[mname_ptr[im]];
+          } else {
+             mnameBtemplate = mnameB[mname_ptr[im]];
+          }
+          //console.log("mnameA[mname_ptr[im]] " + mnameA[mname_ptr[im]] + " mnameB[mname_ptr[im]] " + mnameB[mname_ptr[im]] + " mnameBtemplate " + mnameBtemplate);
+          for (int jj = 0; jj < nelemAbnd; jj++){
+             if (mnameBtemplate == cname[jj]){
+                //console.log("If condition met: jj " + jj + " cname[jj] " + cname[jj]);
+                specB_ptr[im] = jj; //Found it!
+                break;
+             }
+          } //jj loop in master cnames list
+   //console.log("im " + im + " specB_ptr[im] " + specB_ptr[im] + " cname[specB_ptr[im]] " + cname[specB_ptr[im]]);
+       } //iMol loop in associated molecules
+
+//Now load arrays with molecular species AB and atomic species B data for method molPops()
+       for (int im = 0; im < thisNumMols; im++){
+      //special fix for H^+_2:
+         if (mname[mname_ptr[im]] == "H2+"){
+           specBStage = 1;
+         } else {
+           specBStage = 0;
+         }
+          for (int iTau = 0; iTau < numDeps; iTau++){
+             //console.log("iMol " + iMol + " iTau " + iTau + " specB_ptr[iMol] " + specB_ptr[iMol]);
+//Note: Here's one place where ionization equilibrium iteratively couples to molecular equilibrium!
+             logNumBArr[im][iTau] = masterStagePops[specB_ptr[im]][specBStage][iTau];
+          }
+          dissEArr[im] = IonizationEnergy.getDissE(mname[mname_ptr[im]]);
+          species = cname[specB_ptr[im]] + "I";
+          log10UwBArr[im] = PartitionFn.getPartFn(species); //base 10 log_10 U
+          log10QwABArr[im] = defaultQwAB;
+          //Compute the reduced mass, muAB, in g:
+          massA = AtomicMass.getMass(cname[specA_ptr]);
+          massB = AtomicMass.getMass(cname[specB_ptr[im]]);
+          logMuABArr[im] = Math.log(massA) + Math.log(massB) - Math.log(massA + massB) + Useful.logAmu();
+ // One of the species A-associated molecules will be the actual molecule, AB, for which we want
+ // the population - pick this out for the numerator in the master fraction:
+          if (mname[mname_ptr[im]] == mname[iMol]){
+              nmrtrDissE = dissEArr[im];
+ //console.log("Main: log10UwBArr[im][0] " + log10UwBArr[im][0] + " log10UwBArr[im][1] " + log10UwBArr[im][1]);
+              nmrtrLog10UwB[0] = log10UwBArr[im][0];
+              nmrtrLog10UwB[1] = log10UwBArr[im][1];
+              nmrtrLog10QwAB = log10QwABArr[im];
+              nmrtrLogMuAB = logMuABArr[im];
+ //console.log("Main: nmrtrDissE " + nmrtrDissE + " nmrtrLogMuAB " + nmrtrLogMuAB);
+              for (int iTau = 0; iTau < numDeps; iTau++){
+                 nmrtrLogNumB[iTau] = logNumBArr[im][iTau];
+              }
+          }
+       } //im loop
+ //console.log("Main: nmrtrLog10UwB[0] " + nmrtrLog10UwB[0] + " nmrtrLog10UwB[1] " + nmrtrLog10UwB[1]);
+//
+   } //if thisNumMols > 0 condition
+   //Compute total population of particle in atomic ionic stages over number in ground ionization stage
+   //for master denominator so we don't have to re-compue it:
+         for (int iTau = 0; iTau < numDeps; iTau++){
+           //initialization:
+           totalIonic = 0.0;
+           for (int iStage = 0; iStage < numStages; iStage++){
+              totalIonic = totalIonic + Math.exp(masterStagePops[specA_ptr][iStage][iTau]);
+           }
+           logGroundRatio[iTau] = Math.log(totalIonic) - masterStagePops[specA_ptr][0][iTau];
+         }
+       logNumFracAB = LevelPopsServer.molPops(nmrtrLogNumB, nmrtrDissE, log10UwA, nmrtrLog10UwB, nmrtrLog10QwAB, nmrtrLogMuAB,
+                     thisNumMols, logNumBArr, dissEArr, log10UwBArr, log10QwABArr, logMuABArr,
+                     logGroundRatio, numDeps, temp);
+
+//Load molecules into master molecular population array:
+      for (int iTau = 0; iTau < numDeps; iTau++){
+         masterMolPops[iMol][iTau] = logNz[specA_ptr][iTau] + logNumFracAB[iTau];
+         //console.log(" " + iTau + " masterMolPops " + logE*masterMolPops[iMol][iTau]);
+      }
+  } //master iMol loop
+//
+
 //Compute updated Ne & Pe:
      //initialize accumulation of electrons at all depths
      for (int iTau = 0; iTau < numDeps; iTau++){
@@ -678,9 +1052,9 @@ public class GrayStar3Server {
         for (int iElem = 0; iElem < nelemAbnd; iElem++){
           newNe[0][iTau] = newNe[0][iTau] 
                    + Math.exp(masterStagePops[iElem][1][iTau])   //1 e^- per ion
-                   + 2.0 * Math.exp(masterStagePops[iElem][2][iTau])   //2 e^- per ion
-                   + 3.0 * Math.exp(masterStagePops[iElem][3][iTau])   //3 e^- per ion
-                   + 4.0 * Math.exp(masterStagePops[iElem][4][iTau]);   //3 e^- per ion
+                   + 2.0 * Math.exp(masterStagePops[iElem][2][iTau]);   //2 e^- per ion
+                   //+ 3.0 * Math.exp(masterStagePops[iElem][3][iTau])   //3 e^- per ion
+                   //+ 4.0 * Math.exp(masterStagePops[iElem][4][iTau]);   //3 e^- per ion
         }
         newNe[1][iTau] = Math.log(newNe[0][iTau]);
 // Update guess for iteration:
@@ -715,16 +1089,21 @@ public class GrayStar3Server {
                      numLams, lambdaScale, logAz[1],
                      masterStagePops[0][0], masterStagePops[0][1], 
                      masterStagePops[1][0], masterStagePops[1][1], newNe, 
-                     teff, logKapFudge);
+                     teff, logTotalFudge);
 
       kappaRos = Kappas.kapRos(numDeps, numLams, lambdaScale, logKappa, temp); 
 
-      int t500 = ToolBox.lamPoint(numLams, lambdaScale, 500.0e-7);
- 
- 
+//Extract the "kappa_500" monochroamtic continuum oapcity scale
+// - this means we'll try interpreting the prescribed tau grid (still called "tauRos")as the "tau500" scale
+      int it500 = ToolBox.lamPoint(numLams, lambdaScale, 500.0e-7);
+      for (int i = 0; i < numDeps; i++){
+         kappa500[1][i] = logKappa[it500][i];
+         kappa500[0][i] = Math.exp(kappa500[1][i]);
+      }
 
         //press = Hydrostat.hydrostatic(numDeps, grav, tauRos, kappaRos, temp);
-        pGas = Hydrostat.hydroFormalSoln(numDeps, grav, tauRos, kappaRos, temp, guessPGas);
+        //pGas = Hydrostat.hydroFormalSoln(numDeps, grav, tauRos, kappaRos, temp, guessPGas);
+        pGas = Hydrostat.hydroFormalSoln(numDeps, grav, tauRos, kappa500, temp, guessPGas);
         pRad = Hydrostat.radPress(numDeps, temp);
 
 //Update Pgas and Pe guesses for iteration:
@@ -742,13 +1121,15 @@ public class GrayStar3Server {
  } //end Pgas/Pe iteration
 
         // Then construct geometric depth scale from tau, kappa and rho
-        depths = DepthScale.depthScale(numDeps, tauRos, kappaRos, rho);
+        //depths = DepthScale.depthScale(numDeps, tauRos, kappaRos, rho);
+        depths = DepthScale.depthScale(numDeps, tauRos, kappa500, rho);
 
         //int numTCorr = 10;  //test
         int numTCorr = 0;
         for (int i = 0; i < numTCorr; i++) {
             //newTemp = TCorr.tCorr(numDeps, tauRos, temp);
-            newTemp = MulGrayTCorr.mgTCorr(numDeps, teff, tauRos, temp, rho, kappaRos);
+            //newTemp = MulGrayTCorr.mgTCorr(numDeps, teff, tauRos, temp, rho, kappaRos);
+            newTemp = MulGrayTCorr.mgTCorr(numDeps, teff, tauRos, temp, rho, kappa500);
             for (int iTau = 0; iTau < numDeps; iTau++) {
                 temp[1][iTau] = newTemp[1][iTau];
                 temp[0][iTau] = newTemp[0][iTau];
@@ -1123,7 +1504,7 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
           // System.out.println("iLine " + iLine + " list2Lam0nm " +  list2Lam0[iLine] + " list2ChiL " + list2ChiL[iLine] +
 // " thisUwV[] " + thisUwV[0] + " " + thisUwV[1] + " list2GwL " + list2GwL[iLine]);
             double[] numHelp = LevelPopsServer.levelPops(list2Lam0[iLine], list2LogNums[logNums_ptr], list2ChiL[iLine], thisUwV, 
-                    list2GwL[iLine], numDeps, tauRos, temp);
+                    list2GwL[iLine], numDeps, temp);
             for (int iTau = 0; iTau < numDeps; iTau++){
                list2LogNums[2][iTau] = numHelp[iTau];
                //System.out.println("list2LogNums[2][iTau] " + list2LogNums[2][iTau] + " list2LogNums2[2][iTau] " + list2LogNums2[2][iTau]);
@@ -1332,7 +1713,7 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
 //System.out.println("iLine " + iLine + " list2Lam0 " + list2Lam0[gaussLine_ptr[iLine]] + " list2ChiL" + list2ChiL[gaussLine_ptr[iLine]] +
 // " thisUwV[] " + thisUwV[0] + " " + thisUwV[1] + " list2GwL " + list2GwL[gaussLine_ptr[iLine]]);
             double[] numHelp = LevelPopsServer.levelPops(list2Lam0[gaussLine_ptr[iLine]], list2LogNums[logNums_ptr], list2ChiL[gaussLine_ptr[iLine]], thisUwV,
-                    list2GwL[gaussLine_ptr[iLine]], numDeps, tauRos, temp);
+                    list2GwL[gaussLine_ptr[iLine]], numDeps, temp);
             for (int iTau = 0; iTau < numDeps; iTau++){
                list2LogNums[2][iTau] = numHelp[iTau];
                list2LogNums[3][iTau] = -19.0; //upper E-level - not used - fake for testing with gS3 line treatment
@@ -1375,68 +1756,17 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
                 for (int iD = 0; iD < numDeps; iD++) {
                     //Still need to put in multi-Gray levels here:
                     logMasterKaps[iL][iD] = logMasterKapsOut[iL][iD];
+                   // if (iD == 36){
+                   //    System.out.println("iL " + iL + " masterLams " + masterLams[iL] + " logMasterKaps " + logMasterKaps[iL][iD]);
+                   // }
                 }
             }
           //No! } //ifThisLine strength condition
         } //numLines loop
-
-
-//Line blanketed monochromatic optical depth array:
-        //System.out.println("tauLambda call 1:");
-        double logTauMaster[][] = LineTau2.tauLambda(numDeps, numMaster, logMasterKaps,
-                logKappa, tauRos, numLams, lambdaScale, masterLams);
-
-//Lin blanketed formal Rad Trans solution:
-        //Evaluate formal solution of rad trans eq at each lambda throughout line profile
-        // Initial set to put lambda and tau arrays into form that formalsoln expects
-        double[][] masterIntens = new double[numMaster][numThetas];
-        double[] masterIntensLam = new double[numThetas];
-
-        double[][] masterFlux = new double[2][numMaster];
-        double[] masterFluxLam = new double[2];
-
-        double[][] thisTau = new double[2][numDeps];
-
-        lineMode = false;  //no scattering for overall SED
-
-        for (int il = 0; il < numMaster; il++) {
-
-//                        }
-            for (int id = 0; id < numDeps; id++) {
-                thisTau[1][id] = logTauMaster[il][id];
-                thisTau[0][id] = Math.exp(logTauMaster[il][id]);
-            } // id loop
-
-            masterIntensLam = FormalSoln.formalSoln(numDeps,
-                    cosTheta, masterLams[il], thisTau, temp, lineMode);
-
-            masterFluxLam = Flux.flux(masterIntensLam, cosTheta);
-
-            for (int it = 0; it < numThetas; it++) {
-                masterIntens[il][it] = masterIntensLam[it];
-            } //it loop - thetas
-
-            masterFlux[0][il] = masterFluxLam[0];
-            masterFlux[1][il] = masterFluxLam[1];
-
-            //// Teff test - Also needed for convection module!:
-            if (il > 1) {
-                lambda2 = masterLams[il]; // * 1.0E-7;  // convert nm to cm
-                lambda1 = masterLams[il - 1]; // * 1.0E-7;  // convert nm to cm
-                fluxSurfBol = fluxSurfBol
-                        + masterFluxLam[0] * (lambda2 - lambda1);
-            }
-        } //il loop
-
-        logFluxSurfBol = Math.log(fluxSurfBol);
-        double logTeffFlux = (logFluxSurfBol - Useful.logSigma()) / 4.0;
-        double teffFlux = Math.exp(logTeffFlux);
-
-//
 ////
 //Continuum monochromatic optical depth array:
-        double logTauCont[][] = LineTau2.tauLambda(numDeps, numLams, logKappa,
-                logKappa, tauRos, numLams, lambdaScale, masterLams);
+        double logTauCont[][] = LineTau2.tauLambdaCont(numLams, logKappa,
+                 kappa500, numDeps, tauRos, logTotalFudge);
 
         //Evaluate formal solution of rad trans eq at each lambda 
         // Initial set to put lambda and tau arrays into form that formalsoln expects
@@ -1445,6 +1775,7 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
 
         double[][] contFlux = new double[2][numLams];
         double[] contFluxLam = new double[2];
+        double[][] thisTau = new double[2][numDeps];
 
         lineMode = false;  //no scattering for overall SED
 
@@ -1475,6 +1806,60 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
                         + contFluxLam[0] * (lambda2 - lambda1);
             }
         } //il loop
+
+//Line blanketed monochromatic optical depth array:
+       // double logTauMaster[][] = LineTau2.tauLambda(numMaster, masterLams, logMasterKaps,
+       //         numLams, lambdaScale, logKappa, numDeps, logTauCont, kappa500, tauRos, logTotalFudge);
+        double logTauMaster[][] = LineTau2.tauLambda(numMaster, masterLams, logMasterKaps,
+                numDeps, kappa500, tauRos, logTotalFudge);
+
+//Lin blanketed formal Rad Trans solution:
+        //Evaluate formal solution of rad trans eq at each lambda throughout line profile
+        // Initial set to put lambda and tau arrays into form that formalsoln expects
+        double[][] masterIntens = new double[numMaster][numThetas];
+        double[] masterIntensLam = new double[numThetas];
+
+        double[][] masterFlux = new double[2][numMaster];
+        double[] masterFluxLam = new double[2];
+
+        lineMode = false;  //no scattering for overall SED
+
+        for (int il = 0; il < numMaster; il++) {
+
+//                        }
+            for (int id = 0; id < numDeps; id++) {
+                thisTau[1][id] = logTauMaster[il][id];
+                thisTau[0][id] = Math.exp(logTauMaster[il][id]);
+                //if (id == 36){
+                //  System.out.println("il " + il + " masterLams " + masterLams[il] + " logMasterKaps " + logE*logMasterKaps[il][id] 
+                //     + " logTauMaster " + logE*logTauMaster[il][id]); 
+               // }
+            } // id loop
+
+            masterIntensLam = FormalSoln.formalSoln(numDeps,
+                    cosTheta, masterLams[il], thisTau, temp, lineMode);
+
+            masterFluxLam = Flux.flux(masterIntensLam, cosTheta);
+
+            for (int it = 0; it < numThetas; it++) {
+                masterIntens[il][it] = masterIntensLam[it];
+            } //it loop - thetas
+
+            masterFlux[0][il] = masterFluxLam[0];
+            masterFlux[1][il] = masterFluxLam[1];
+
+            //// Teff test - Also needed for convection module!:
+            if (il > 1) {
+                lambda2 = masterLams[il]; // * 1.0E-7;  // convert nm to cm
+                lambda1 = masterLams[il - 1]; // * 1.0E-7;  // convert nm to cm
+                fluxSurfBol = fluxSurfBol
+                        + masterFluxLam[0] * (lambda2 - lambda1);
+            }
+        } //il loop
+
+        logFluxSurfBol = Math.log(fluxSurfBol);
+        double logTeffFlux = (logFluxSurfBol - Useful.logSigma()) / 4.0;
+        double teffFlux = Math.exp(logTeffFlux);
 
 //Extract linear monochromatic continuum limb darlening coefficients (LDCs) ("epsilon"s):
     double[] ldc = new double[numLams];

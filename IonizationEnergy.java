@@ -499,9 +499,78 @@ public class IonizationEnergy {
         }          
 
 //
-return ionE;
+    return ionE;
 
-}  //end of method getIonE    
+  }  //end of method getIonE    
 
 
-} //end AtomicMass class
+// Molecular dissociation energies in eV 
+//From NIST Allen's Astrophysical Quantities, 4th Ed.
+
+
+
+   public static double getDissE(String species){
+
+   double dissE = 8.0; //default initialization
+
+      if (species == "H2"){
+         dissE = 4.4781;
+       }
+      if (species == "H2+"){
+         dissE = 2.6507;
+       }
+      if (species == "C2"){
+         dissE = 6.296;
+       }
+      if (species == "CH"){
+         dissE = 3.465;
+       }
+      if (species == "CO"){
+         dissE = 11.092;
+       }
+      if (species == "CN"){
+         dissE = 7.76;
+       }
+      if (species == "N2"){
+         dissE = 9.759;
+       }
+      if (species == "NH"){
+         dissE = 3.47;
+       }
+      if (species == "NO"){
+         dissE = 6.497;
+       }
+      if (species == "O2"){
+         dissE = 5.116;
+       }
+      if (species == "OH"){
+         dissE = 4.392;
+       }
+      if (species == "MgH"){
+         dissE = 1.34;
+       }
+      if (species == "SiO"){
+         dissE = 8.26;
+       }
+      if (species == "CaH"){
+         dissE = 1.70;
+       }
+      if (species == "CaO"){
+         dissE = 4.8;
+       }
+      if (species == "TiO"){
+         dissE = 6.87;
+       }
+      if (species == "VO"){
+         dissE = 6.4;
+       }
+      if (species == "FeO"){
+         dissE = 4.20;
+       }
+
+//
+  return dissE;
+
+  };  //end of method getDissE    
+
+} //end IonizationEnergy class

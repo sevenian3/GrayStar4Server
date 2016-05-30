@@ -1,11 +1,8 @@
 
 package graystar3server;
 
-// Graound state ionization energies in eV 
-//From NIST Atomic Spectra Database
-//Ionization Energies Data
-//Kramida, A., Ralchenko, Yu., Reader, J., and NIST ASD Team (2014). NIST Atomic Spectra Database (ver. 5.2), [Online]. Available: http://physics.nist.gov/asd [2015, November 23]. National Institute of Standards and Technology, Gaithersburg, MD.
-//Heaviest element treatable: La
+// Partition functions at two temperatures (5000 K and 10000 K) 
+//From Allen's Astrophysical Quantities, 4th Ed. 
 
 // CAUTION: Return Base 10 log_10 of partition fn
 //Ionization stages that don't exist (eg. "HIII") are given dummy values of 0.0;

@@ -8,23 +8,7 @@ package graystar3server;
 
 
 /**
- * Method 2: Compute monochromatic tau scales by re-scaling from Tau_Ross -
- * PROBLEM: the approximate, scaled solar kappa_Ros values are not consistent
- * with the prescribed Tau_Ros values HOWEVER: this method removes dependence on
- * the flaky depth scale calculation and vulnerability to low rho value at the
- * surface Compute the monochromatic optical depth scale, tau_lambda, at each
- * lambda across the line profile Also computes line centre Continuum
- * monochromatic optical depth scale for continuum rectification And stores it
- * in array element numPoints+1 This may differ from the prescribed Tau_Ross
- * because kappa_Ross was NOT computed consistently with it Inputs: lineGrid
- * -only neded for row 0 - wavelengths logKappaL - monochromatic line extinction
- * co-efficients kappa - we need the background continuum extinction
- * co-efficients, too!
  *
- * PROBLEM: line kappaL values converted to mass extinction by division by rho()
- * are not consistent with fake Kramer's Law based scaling of kappa_Ros with g.
- * Try leaving kappaLs as linear extinctions and converting the scaled kappa_Ros
- * back to linear units with solar rho()
  */
 public class LineTau2 {
 
@@ -37,43 +21,135 @@ public class LineTau2 {
      * @param tauRos
      * @return
      */
-    public static double[][] tauLambda(int numDeps, int numMaster, double[][] logKappaL,
-            double[][] kappa, double[][] tauRos, int numLams, double[] lambdaScale, double[] masterLams) {
+/* This version is for computing the monochromatic optical depth distribution from a line blanketed 
+ * and a continuum monochromatic extinction distribution */
+/* logTauCont is the optical depth scale corresponding to the continuum extinction logKappa*/
+
+/* This might be the wrong approach - using the *local* monochromatic continuum optical depth and extinction 
+ * scale for reference at each wavelength - the alternative is to use a universal tau and kappa scale
+ * for reference, like Rosseland tau and kappa (or those at 500 nm)*/
+   // public static double[][] tauLambda(int numMaster, double[] masterLams, double[][] logKappaL,
+    //        int numLams, double[] lambdaScale, double[][] logKappa, int numDeps, double[][] logTauCont, double[][] logKappaRef, double[][] tauRef, double logTotalFudge) {
+    public static double[][] tauLambda(int numMaster, double[] masterLams, double[][] logKappaL,
+            int numDeps, double[][] logKappaRef, double[][] tauRef, double logTotalFudge) {
+ 
+        //No monochromatic optical depth can be less than the Rosseland optical depth,
+        // so prevent zero tau_lambda values by setting each tau_lambda(lambda) at the 
+        //top of the atmosphere to the tau_Ross value at the top 
+        // - prevents trying to take a log of zero!
+        double logE = Math.log10(Math.E); // for debug output
+        double logE10 = Math.log(10.0);
+        double minTauL = tauRef[0][0];
+        double minLogTauL = tauRef[1][0];
+
+        //int numPoints = linePoints[0].length;
+        double[][] logTauL = new double[numMaster][numDeps];
+
+        double tau1, tau2, delta, tauL, thisTau, lastTau,
+                integ, logKapRat, lastLogKapRat, kapTot;
+
+//Interpolate continuum opacity and corresponding optical depth scale onto onto line-blanketed opacity lambda array:
+//
+/*
+        double[] logKappaC = new double[numLams];
+        double[] logKappaC2 = new double[numMaster];
+        double[][] logKappa2 = new double[numMaster][numDeps];
+        double[] logTauC = new double[numLams];
+        double[] logTauC2 = new double[numMaster];
+        double[][] logTau2 = new double[numMaster][numDeps];
+        for (int id = 0; id < numDeps; id++) {
+           for (int il = 0; il < numLams; il++) {
+              logKappaC[il] = logKappa[il][id];
+              logTauC[il] = logTauCont[il][id];
+           }
+           logKappaC2 = ToolBox.interpolV(logKappaC, lambdaScale, masterLams); 
+           logTauC2 = ToolBox.interpolV(logTauC, lambdaScale, masterLams);
+           for (int il = 0; il < numMaster; il++){ 
+              logKappa2[il][id] = logKappaC2[il];
+              logTau2[il][id] = logTauC2[il];
+           }
+        }
+*/
+        for (int il = 0; il < numMaster; il++) {
+
+            tau1 = minTauL; //initialize accumulator
+            logTauL[il][0] = minLogTauL; // Set upper boundary TauL           
+
+            //System.out.println("LineTau: minTauL: " + minTauL);
+            //Trapezoid method: first integrand:
+            //total extinction co-efficient
+            //// With local monochromatic optical depth scale as reference scale:
+            //lastLogKapRat = logKappaL[il][0] - logKappa2[il][0];
+            //With Rosseland optical depth scale as reference scale:
+            //lastLogKapRat = Math.log(kapTot) - kappaRef[1][0];
+            lastLogKapRat = logKappaL[il][0] - logKappaRef[1][0];
+            lastLogKapRat = lastLogKapRat + logE10*logTotalFudge;
+            for (int id = 1; id < numDeps; id++) {
+
+                // With local monochromatic optical depth scale as reference scale:
+                //thisTau = Math.exp(logTau2[il][id]);
+                //lastTau = Math.exp(logTau2[il][id - 1]);
+               ////With Rosseland optical depth scale as reference scale:
+                thisTau = tauRef[0][id];
+                lastTau = tauRef[0][id-1];
+//
+                delta = thisTau - lastTau;
+                // With local monochromatic optical depth scale as reference scale:
+                //logKapRat = Math.log(kapTot) - logKappa2[il][id];
+                //logKapRat = logKappaL[il][id] - logKappa2[il][id];
+               ////With Rosseland optical depth scale as reference scale:
+                logKapRat = logKappaL[il][id] - logKappaRef[1][id];
+                logKapRat = logKapRat + logE10*logTotalFudge;
+
+                //opacity being handed in is now total oppcity: line plux continuum:
+                //trapezoid rule:
+                integ = 0.5 * (Math.exp(logKapRat) + Math.exp(lastLogKapRat));
+                tau2 = tau1 + (integ * delta);
+
+                logTauL[il][id] = Math.log(tau2);
+                tau1 = tau2;
+                lastLogKapRat = logKapRat;
+
+            } //id loop
+
+        } //il loop
+
+        return logTauL;
+
+    } //end method tauLambda
+    
+     
+/* This version is for computing the monochromatic optical depth distribution from a continuum monochromatic extinction 
+ * distribution and a reference extinction scale */ 
+//
+// kappaRef is usual 2 x numDeps array with linear (row 0) and logarithmic (row 1) reference extinction coefficient
+// values
+// tauRef is the optical depth distribution corresponding to the extinction distribution kappaRef
+    public static double[][] tauLambdaCont(int numCont, double[][] logKappaCont,
+             double[][] logKappaRef, int numDeps, double[][] tauRef, double logTotalFudge) {
 
         //No monochromatic optical depth can be less than the Rosseland optical depth,
         // so prevent zero tau_lambda values by setting each tau_lambda(lambda) at the 
         //top of the atmosphere to the tau_Ross value at the top 
         // - prevents trying to take a log of zero!
         double logE = Math.log10(Math.E); // for debug output
-        double minTauL = tauRos[0][0];
-        double minLogTauL = tauRos[1][0];
+        double logE10 = Math.log(10.0); 
+        double minTauC = tauRef[0][0];
+        double minLogTauC = tauRef[1][0];
 
         //int numPoints = linePoints[0].length;
         // returns numPoints+1 x numDeps array: the numPoints+1st row holds the line centre continuum tau scale
-        double[][] logTauL = new double[numMaster][numDeps];
+        double[][] logTauC = new double[numCont][numDeps];
 
         double tau1, tau2, delta, tauL,
-                integ, logKapRat, logKappaC, lastLogKapRat;
+                integ, logKapRat, lastLogKapRat;
 
 //Interpolate continuum opacity onto onto line-blanketed opacity lambda array:
 //
-        double[] kappaC = new double[numLams];
-        double[] kappaC2 = new double[numMaster];
-        double[][] kappa2 = new double[numMaster][numDeps];
-        for (int id = 0; id < numDeps; id++) {
-           for (int il = 0; il < numLams; il++) {
-              kappaC[il] = kappa[il][id];
-           }
-           kappaC2 = ToolBox.interpolV(kappaC, lambdaScale, masterLams); 
-           for (int il = 0; il < numMaster; il++){ 
-              kappa2[il][id] = kappaC2[il];
-           }
-        }
+        for (int il = 0; il < numCont; il++) {
 
-        for (int il = 0; il < numMaster; il++) {
-
-            tau1 = minTauL; //initialize accumulator
-            logTauL[il][0] = minLogTauL; // Set upper boundary TauL           
+            tau1 = minTauC; //initialize accumulator
+            logTauC[il][0] = minLogTauC; // Set upper boundary TauL           
 
             //System.out.println("LineTau: minTauL: " + minTauL);
             //Trapezoid method: first integrand:
@@ -85,8 +161,8 @@ public class LineTau2 {
 
             //delta = tauRos[0][1] - tauRos[0][0];
             //logKapRat = logKappaL[il][0] - kappa[1][0];
-            lastLogKapRat = logKappaL[il][0] - kappa2[il][0];
-
+            lastLogKapRat = logKappaCont[il][0] - logKappaRef[1][0];
+            lastLogKapRat = lastLogKapRat + logE10*logTotalFudge;
             //tau2 = tau1 + ((Math.exp(logKapRat) + 1.0) * delta);
             //opacity being handed in is now total oapcity: line plux continuum:
             //tau2 = tau1 + (Math.exp(logKapRat) * delta);
@@ -98,11 +174,15 @@ public class LineTau2 {
                 // Convert kappa_Ros to cm^-1 for consistency with kappaL:
                 //logKappaC = kappa[1][id] + rhoSun[1][id]; // - logg;
                 //logKappaC = kappa[1][id];
-                delta = tauRos[0][id] - tauRos[0][id - 1];
+                delta = tauRef[0][id] - tauRef[0][id - 1];
                 //logKapRat = logKappaL[il][id] - kappa[1][id];
                 //logKapRat = logKappaL[il][id] - logKappaC;
-                logKapRat = logKappaL[il][id] - kappa2[il][id];
-
+                logKapRat = logKappaCont[il][id] - logKappaRef[1][id];
+                logKapRat = logKapRat + logE10*logTotalFudge;
+               // if (id == 36){
+                   //System.out.println("il " + il + " masterLams " + masterLams[il] + " logKappaL " + logE*logKappaL[il][id] + " kappa2 " + logE*kappa2[il][id]
+                    //   + " logKapRat " + logKapRat);
+                //}
 
                 //tau2 = tau1 + ((Math.exp(logKapRat) + 1.0) * delta);
                 //opacity being handed in is now total oppcity: line plux continuum:
@@ -110,7 +190,7 @@ public class LineTau2 {
                 integ = 0.5 * (Math.exp(logKapRat) + Math.exp(lastLogKapRat));
                 tau2 = tau1 + (integ * delta);
 
-                logTauL[il][id] = Math.log(tau2);
+                logTauC[il][id] = Math.log(tau2);
                 tau1 = tau2;
                 lastLogKapRat = logKapRat;
 
@@ -135,9 +215,9 @@ public class LineTau2 {
 
         }
 */
-        return logTauL;
+        return logTauC;
 
-    }
+    } //end method tauLambda
     
     
-}
+} //end class LineTau2

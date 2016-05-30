@@ -452,12 +452,12 @@ var gsDuplex = function(num, logVector){
         var xiT = 1.0;
         settingsId[6].value = 1.0;
         $("#xiT").roundSlider("setValue", "1.0");
-        var macroV = 1.0;
-        settingsId[13].value = 1.0;
-        $("#macroV").val(1.0);
-        var rotV = 1.5;
-        settingsId[14].value = 1.5;
-        $("#rotV").val(1.5);
+        var macroV = 2.0;
+        settingsId[13].value = 2.0;
+        $("#macroV").val(2.0);
+        var rotV = 2.0;
+        settingsId[14].value = 2.0;
+        $("#rotV").val(2.0);
         var rotI = 90.0;
         settingsId[15].value = 90.0;
         $("#rotI").val(90.0);
@@ -468,6 +468,9 @@ var gsDuplex = function(num, logVector){
         var lambdaStop = 592.0;
         settingsId[11].value = 592.0;
         $("#lambdaStop").val(592.0);
+        var logKapFudge = 0.0;
+        settingsId[17] = 0.0;
+        $("#logKapFudge").val(0.0);
     }
 
     if (switchStar === "Arcturus") {
@@ -493,9 +496,9 @@ var gsDuplex = function(num, logVector){
         var macroV = 4.0;
         settingsId[13].value = 4.0;
         $("#macroV").val(4.0);
-        var rotV = 1.0;
-        settingsId[14].value = 1.0;
-        $("#rotV").val(1.0);
+        var rotV = 2.0;
+        settingsId[14].value = 2.0;
+        $("#rotV").val(2.0);
         var rotI = 90.0;
         settingsId[15].value = 90.0;
         $("#rotI").val(90.0);
@@ -506,6 +509,9 @@ var gsDuplex = function(num, logVector){
         var lambdaStop = 592.0;
         settingsId[11].value = 592.0;
         $("#lambdaStop").val(592.0);
+        var logKapFudge = 0.0;
+        settingsId[17] = 0.0;
+        $("#logKapFudge").val(0.0);
     }
 
     if (switchStar === "Vega") {
@@ -528,9 +534,9 @@ var gsDuplex = function(num, logVector){
         var xiT = 2.0;
         settingsId[6].value = 2.0;
         $("#xiT").roundSlider("setValue", "2.0");
-        var macroV = 1.0;
-        settingsId[13].value = 1.0;
-        $("#macroV").val(1.0);
+        var macroV = 2.0;
+        settingsId[13].value = 2.0;
+        $("#macroV").val(2.0);
         var rotV = 200.0;
         settingsId[14].value = 200.0;
         $("#rotV").val(200.0);
@@ -544,9 +550,9 @@ var gsDuplex = function(num, logVector){
         var lambdaStop = 659.0;
         settingsId[11].value = 659.0;
         $("#lambdaStop").val(659.0);
-        var logKapFudge = -1.0;
-        settingsId[25] = -1.0;
-        $("#logKapFudge").val(-1.0);
+        var logKapFudge = 0.0;
+        settingsId[17] = 0.0;
+        $("#logKapFudge").val(0.0);
     }
 
     if (switchStar === "Regulus") {
@@ -569,9 +575,9 @@ var gsDuplex = function(num, logVector){
         var xiT = 1.0;
         settingsId[6].value = 1.0;
         $("#xiT").roundSlider("setValue", "1.0");
-        var macroV = 1.0;
-        settingsId[13].value = 1.0;
-        $("#macroV").val(1.0);
+        var macroV = 2.0;
+        settingsId[13].value = 2.0;
+        $("#macroV").val(2.0);
         var rotV = 350.0;
         settingsId[14].value = 350.0;
         $("#rotV").val(350.0);
@@ -585,9 +591,9 @@ var gsDuplex = function(num, logVector){
         var lambdaStop = 659.0;
         settingsId[11].value = 659.0;
         $("#lambdaStop").val(659.0);
-        var logKapFudge = -1.0;
-        settingsId[25] = -1.0;
-        $("#logKapFudge").val(-1.0);
+        var logKapFudge = 0.0;
+        settingsId[17] = 0.0;
+        $("#logKapFudge").val(0.0);
     }
 
     if (switchStar === "Procyon") {
@@ -610,9 +616,9 @@ var gsDuplex = function(num, logVector){
         var xiT = 1.0;
         settingsId[6].value = 1.0;
         $("#xiT").roundSlider("setValue", "1.0");
-        var macroV = 1.0;
-        settingsId[13].value = 1.0;
-        $("#macroV").val(1.0);
+        var macroV = 2.0;
+        settingsId[13].value = 2.0;
+        $("#macroV").val(2.0);
         var rotV = 3.5;
         settingsId[14].value = 3.5;
         $("#rotV").val(3.5);
@@ -626,6 +632,9 @@ var gsDuplex = function(num, logVector){
         var lambdaStop = 592.0;
         settingsId[11].value = 592.0;
         $("#lambdaStop").val(592.0);
+        var logKapFudge = 0.0;
+        settingsId[17] = 0.0;
+        $("#logKapFudge").val(0.0);
     }
 
     if (switchStar === "61CygniA") {
@@ -651,9 +660,9 @@ var gsDuplex = function(num, logVector){
         var macroV = 2.0;
         settingsId[13].value = 2.0;
         $("#macroV").val(2.0);
-        var rotV = 0.5;
-        settingsId[14].value = 0.5;
-        $("#rotV").val(0.5);
+        var rotV = 2.0;
+        settingsId[14].value = 2.0;
+        $("#rotV").val(2.0);
         var rotI = 90.0;
         settingsId[15].value = 90.0;
         $("#rotI").val(90.0);
@@ -664,6 +673,9 @@ var gsDuplex = function(num, logVector){
         var lambdaStop = 592.0;
         settingsId[11].value = 592.0;
         $("#lambdaStop").val(592.0);
+        var logKapFudge = 0.0;
+        settingsId[17] = 0.0;
+        $("#logKapFudge").val(0.0);
     }
 
     if (switchStar === "51Pegasi") {
@@ -689,9 +701,9 @@ var gsDuplex = function(num, logVector){
         var macroV = 2.0;
         settingsId[13].value = 2.0;
         $("#macroV").val(2.0);
-        var rotV = 1.0;
-        settingsId[14].value = 1.0;
-        $("#rotV").val(1.0);
+        var rotV = 2.0;
+        settingsId[14].value = 2.0;
+        $("#rotV").val(2.0);
         var rotI = 90.0;
         settingsId[15].value = 90.0;
         $("#rotI").val(90.0);
@@ -702,6 +714,9 @@ var gsDuplex = function(num, logVector){
         var lambdaStop = 592.0;
         settingsId[11].value = 592.0;
         $("#lambdaStop").val(592.0);
+        var logKapFudge = 0.0;
+        settingsId[17] = 0.0;
+        $("#logKapFudge").val(0.0);
     }
 
     var switchPlanet = "None";
@@ -786,10 +801,10 @@ var gsDuplex = function(num, logVector){
         var lam0 = 589.592;
         var lambdaStart = lam0 - 2.0
         var lambdaStop = lam0 + 2.0
-        var lineThresh = 1.0;
+        var lineThresh = -3.0;
         settingsId[10].value = lambdaStart;
         settingsId[11].value = lambdaStop;
-        settingsId[8].value = 3.0; //lineThresh
+        settingsId[8].value = -3.0; //lineThresh
         settingsId[9].value = -3.0; //voigtThresh
         $("#lambdaStart").val(lambdaStart);
         $("#lambdaStop").val(lambdaStop);
@@ -803,10 +818,10 @@ var gsDuplex = function(num, logVector){
         var lam0 = 588.995;
         var lambdaStart = lam0 - 2.0
         var lambdaStop = lam0 + 2.0
-        var lineThresh = 1.0;
+        var lineThresh = -3.0;
         settingsId[10].value = lambdaStart;
         settingsId[11].value = lambdaStop;
-        settingsId[8].value = 3.0; //lineThresh
+        settingsId[8].value = -3.0; //lineThresh
         settingsId[9].value = -3.0; //voigtThresh
         $("#lambdaStart").val(lambdaStart);
         $("#lambdaStop").val(lambdaStop);
@@ -820,10 +835,10 @@ var gsDuplex = function(num, logVector){
         var lam0 = 518.360;
         var lambdaStart = lam0 - 1.0
         var lambdaStop = lam0 + 1.0
-        var lineThresh = 1.0;
+        var lineThresh = -3.0;
         settingsId[10].value = lambdaStart;
         settingsId[11].value = lambdaStop;
-        settingsId[8].value = 3.0; //lineThresh
+        settingsId[8].value = -3.0; //lineThresh
         settingsId[9].value = -3.0; //voigtThresh
         $("#lambdaStart").val(lambdaStart);
         $("#lambdaStop").val(lambdaStop);
@@ -837,10 +852,10 @@ var gsDuplex = function(num, logVector){
         var lam0 = 393.366;
         var lambdaStart = lam0 - 3.0
         var lambdaStop = lam0 + 3.0
-        var lineThresh = 3.0;
+        var lineThresh = -3.0;
         settingsId[10].value = lambdaStart;
         settingsId[11].value = lambdaStop;
-        settingsId[8].value = 3.0; //lineThresh
+        settingsId[8].value = -3.0; //lineThresh
         settingsId[9].value = -3.0; //voigtThresh
         $("#lambdaStart").val(lambdaStart);
         $("#lambdaStop").val(lambdaStop);
@@ -854,10 +869,10 @@ var gsDuplex = function(num, logVector){
         var lam0 = 396.847;
         var lambdaStart = lam0 - 3.0
         var lambdaStop = lam0 + 3.0
-        var lineThresh = 3.0;
+        var lineThresh = -3.0;
         settingsId[10].value = lambdaStart;
         settingsId[11].value = lambdaStop;
-        settingsId[8].value = 3.0; //lineThresh
+        settingsId[8].value = -3.0; //lineThresh
         settingsId[9].value = -3.0; //voigtThresh
         $("#lambdaStart").val(lambdaStart);
         $("#lambdaStop").val(lambdaStop);
@@ -871,10 +886,10 @@ var gsDuplex = function(num, logVector){
         var lam0 = 422.673;
         var lambdaStart = lam0 - 2.0
         var lambdaStop = lam0 + 2.0
-        var lineThresh = 2.0;
+        var lineThresh = -3.0;
         settingsId[10].value = lambdaStart;
         settingsId[11].value = lambdaStop;
-        settingsId[8].value = 3.0; //lineThresh
+        settingsId[8].value = -3.0; //lineThresh
         settingsId[9].value = -3.0; //voigtThresh
         $("#lambdaStart").val(lambdaStart);
         $("#lambdaStop").val(lambdaStop);
@@ -888,10 +903,10 @@ var gsDuplex = function(num, logVector){
         var lam0 = 404.581;
         var lambdaStart = lam0 - 1.0
         var lambdaStop = lam0 + 1.0
-        var lineThresh = 1.0;
+        var lineThresh = -3.0;
         settingsId[10].value = lambdaStart;
         settingsId[11].value = lambdaStop;
-        settingsId[8].value = 3.0; //lineThresh
+        settingsId[8].value = -3.0; //lineThresh
         settingsId[9].value = -3.0; //voigtThresh
         $("#lambdaStart").val(lambdaStart);
         $("#lambdaStop").val(lambdaStop);
@@ -905,10 +920,10 @@ var gsDuplex = function(num, logVector){
         var lam0 = 427.176;
         var lambdaStart = lam0 - 1.0
         var lambdaStop = lam0 + 1.0
-        var lineThresh = 1.0;
+        var lineThresh = -3.0;
         settingsId[10].value = lambdaStart;
         settingsId[11].value = lambdaStop;
-        settingsId[8].value = 3.0; //lineThresh
+        settingsId[8].value = -3.0; //lineThresh
         settingsId[9].value = -3.0; //voigtThresh
         $("#lambdaStart").val(lambdaStart);
         $("#lambdaStop").val(lambdaStop);
@@ -925,7 +940,7 @@ var gsDuplex = function(num, logVector){
         var lineThresh = -5.0;
         settingsId[10].value = lambdaStart;
         settingsId[11].value = lambdaStop;
-        settingsId[8].value = 3.0; //lineThresh
+        settingsId[8].value = -5.0; //lineThresh
         settingsId[9].value = -3.0; //voigtThresh
         $("#lambdaStart").val(lambdaStart);
         $("#lambdaStop").val(lambdaStop);
@@ -942,7 +957,7 @@ var gsDuplex = function(num, logVector){
         var lineThresh = -5.0;
         settingsId[10].value = lambdaStart;
         settingsId[11].value = lambdaStop;
-        settingsId[8].value = 3.0; //lineThresh
+        settingsId[8].value = -5.0; //lineThresh
         settingsId[9].value = -3.0; //voigtThresh
         $("#lambdaStart").val(lambdaStart);
         $("#lambdaStop").val(lambdaStop);
@@ -1311,12 +1326,12 @@ var gsDuplex = function(num, logVector){
         return;
     }
     flagArr[14] = false;
-    if (rotV < 0.0) {
+    if (rotV < 2.0) {
         flagArr[14] = true;
-        rotV = 0.0;
-        var rotVStr = "0.0";
-        settingsId[14].value = 0.0;
-        $("#rotV").val(0.0);
+        rotV = 2.0;
+        var rotVStr = "2.0";
+        settingsId[14].value = 2.0;
+        $("#rotV").val(2.0);
     }
     if (rotV > 350.0) {
         flagArr[14] = true;
@@ -1332,19 +1347,19 @@ var gsDuplex = function(num, logVector){
         return;
     }
     flagArr[15] = false;
-    if (rotI < 0.0) {
+    if (rotI < 30.0) {
         flagArr[15] = true;
-        rotI = 0.0;
-        var rotIStr = "0.0";
-        settingsId[15].value = 0.0;
-        $("#rotI").val(0.0);
+        rotI = 30.0;
+        var rotIStr = "30.0";
+        settingsId[15].value = 30.0;
+        $("#rotI").val(30.0);
     }
-    if (rotI > 200.0) {
+    if (rotI > 90.0) {
         flagArr[15] = true;
-        rotI = 200.0;
-        var rotIStr = "200.0";
-        settingsId[15].value = 200.0;
-        $("#rotI").val(200.0);
+        rotI = 90.0;
+        var rotIStr = "90.0";
+        settingsId[15].value = 90.0;
+        $("#rotI").val(90.0);
     }
 
     if (diskSigma === null || diskSigma == "") {
@@ -1385,14 +1400,6 @@ var gsDuplex = function(num, logVector){
         settingsId[17].value = 2.0;
         $("#logKapFudge").val(2.0);
     }
-  //sigh - don't ask me - makes the Balmer lines show up around A0:
-      if (teff > F0Vtemp){
-        flagArr[17] = true;
-        logKapFudge = -1.0;
-        var logKapFudgeStr = "-1.0";
-        settingsId[17].value = -1.0;
-        $("#logKapFudge").val(-1.0);
-      }
 
 
 var url = "http://www.ap.smu.ca/~ishort/OpenStars/GrayStarServer/grayStarServer.php";
@@ -1663,7 +1670,9 @@ var jsonObj;
     var bandIntens = iColors(masterLams, masterIntens, numThetas, numMaster); 
     // tunable monochromatic band intensity annuli - for disk rendering:
     //var diskSigma = 1; //nm test
-    var tuneBandIntens = tuneColor(masterLams, masterIntens, numThetas, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
+    //var tuneBandIntens = tuneColor(masterLams, masterIntens, numThetas, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
+    var gaussFilter = gaussian(masterLams, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
+    var tuneBandIntens = tuneColor(masterLams, masterIntens, numThetas, numMaster, gaussFilter, lamUV, lamIR); 
 
     //default initializations:
 
@@ -1694,6 +1703,12 @@ var jsonObj;
          var logFluxAjax = gsAjaxParser(numLams, jsonObj.logFluxC);
          var contFlux = gsDuplex(numLams, logFluxAjax);
 
+//console.log("Testing...");
+   var logContFluxI = interpolV(contFlux[1], lambdaScale, masterLams);
+   //for (var i = 0; i < numMaster; i++){
+   //  console.log("i " + " masterLams[i] " + masterLams[i] + " masterFlux[1][i] " + masterFlux[1][i] + " logContFluxI[i] " + logContFluxI[i]
+   //   + " masterFlux/ContFlux " + Math.exp(masterFlux[1][i] - logContFluxI[i]));
+   //}
 //Unpack the linear monochromatic continuum limb darkening cofficients (LDCs) 
 
          var ldc = gsAjaxParser(numLams, jsonObj.LDC);
@@ -1771,12 +1786,16 @@ var jsonObj;
               masterFluxBroad[0][i] = tiny;
                }
            //approximate rectification:
-           //System.out.println("i " + i + " masterLams[i] " + masterLams[i] + " masterFluxBroad[1][i] " + masterFluxBroad[1][i] + " Planck.planck(teff, masterLams[i]) " + Planck.planck(teff, masterLams[i]) );
+          // console.log("i " + i + " masterLams[i] " + masterLams[i] + " masterFluxBroad[1][i] " + masterFluxBroad[1][i] 
+          //    + " logContFlux2[i] " + logContFlux2[i]
+          //    + " planck(teff, masterLams[i]) " + planck(teff, masterLams[i]) );
          //specSynFlux[1][iCount] = masterFluxBroad[1][i] - Planck.planck(teff, masterLams[i]);
          // specSynFlux[1][iCount] = masterFluxBroad[1][i] - planck(teff, masterFluxBroad[2][i]);
            specSynFlux[1][iCount] = masterFluxBroad[1][i] - logContFlux2[i];
            specSynFlux[0][iCount] = Math.exp(specSynFlux[1][iCount]);
-           //System.out.println("iCount " + iCount + " specSynLams[iCount] " + specSynLams[iCount] + " specSynFlux[1][iCount] " + specSynFlux[1][iCount]);
+          //console.log("iCount " + iCount + " specSynLams[iCount] " + specSynLams[iCount] 
+           //  + " masterFluxBroad " + masterFluxBroad[1][i] + " logContFlux2 " + logContFlux2[i]
+            // + " specSynFlux[0][iCount] " + specSynFlux[0][iCount]);
            iCount++;
          }
 
@@ -2784,7 +2803,20 @@ var jsonObj;
         var dSize = 1;
         opac = 1;
 
-        // Avoid upper boundary at i=0
+//Does Guasian filter fall within spectrum synthesis region:
+        var plotFilt = false;
+        var numGauss = gaussFilter[0].length;
+        if ( ( (gaussFilter[0][0] > specSynLams[0]) && (gaussFilter[0][0] < specSynLams[numSpecSyn-1]) )
+          || ( (gaussFilter[0][numGauss-1] > specSynLams[0]) && (gaussFilter[0][numGauss-1] < specSynLams[numSpecSyn-1]) ) ){
+          //    console.log("plotFilt condition met");
+              plotFilt = true;
+        } 
+//Interpolate Gaussian filter used for monochromatic image onto synthetic spectrum wavelength
+//grid for overplotting:
+          var newFilter = [];
+        if (plotFilt == true){ 
+           newFilter = interpolV(gaussFilter[1], gaussFilter[0], specSynLams);
+        }
 
         var lambdanm = 1.0e7 * specSynLams[0];
         var xTickPosCnvs = thisXAxisLength * (lambdanm - minXData) / (rangeXData); // pixels
@@ -2792,7 +2824,14 @@ var jsonObj;
         var yTickPosCnvs = yAxisLength * ((specSynFlux[0][0] / norm) - minYData) / rangeYData;
         // vertical position in pixels - data values increase upward:
         var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-        var xShiftCnvs, yShiftCnvs;
+        var xShiftCnvs, yShiftCnvs, yShiftFiltCnvs;
+//Gaussian filter:
+        var yTickPosFiltCnvs; 
+        var lastYShiftFiltCnvs; 
+        if (plotFilt == true){ 
+          yTickPosFiltCnvs = yAxisLength * ((newFilter[0]) - minYData) / rangeYData;
+          lastYShiftFiltCnvs = (yAxisYCnvs + yAxisLength) - yTickPosFiltCnvs;
+        }
         for (var i = 1; i < numSpecSyn; i++) {
 
 
@@ -2810,6 +2849,12 @@ var jsonObj;
             yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
             yShiftCnvs = Math.floor(yShiftCnvs);
 
+//Gaussian filter:
+        if (plotFilt == true){ 
+            yTickPosFiltCnvs = yAxisLength * (newFilter[i] - minYData) / rangeYData;
+            yShiftFiltCnvs = (yAxisYCnvs + yAxisLength) - yTickPosFiltCnvs;
+            yShiftFiltCnvs = Math.floor(yShiftFiltCnvs);
+        }
 //            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotThirteenId);
 
 //plot points
@@ -2818,16 +2863,25 @@ var jsonObj;
           //  RGBHex = colHex(r255, g255, b255);
           //  cnvsThirteenCtx.strokeStyle = RGBHex;
           //  cnvsThirteenCtx.stroke();
-//line plot
+//line plot - spectrum:
             cnvsThirteenCtx.beginPath();
-            RGBHex = colHex(r255, g255, b255);
+            RGBHex = colHex(0, 0, 0);
             cnvsThirteenCtx.strokeStyle=RGBHex; 
             cnvsThirteenCtx.moveTo(lastXShiftCnvs, lastYShiftCnvs);
             cnvsThirteenCtx.lineTo(xShiftCnvs, yShiftCnvs);
+            cnvsThirteenCtx.stroke(); 
+        if (plotFilt == true){ 
+// Gaussian filter:
+            cnvsThirteenCtx.beginPath();
+            RGBHex = colHex(255, 0, 0);
+            cnvsThirteenCtx.strokeStyle=RGBHex; 
+            cnvsThirteenCtx.moveTo(lastXShiftCnvs, lastYShiftFiltCnvs);
+            cnvsThirteenCtx.lineTo(xShiftCnvs, yShiftFiltCnvs);
             cnvsThirteenCtx.stroke();  
-
+        }
             lastXShiftCnvs = xShiftCnvs;
             lastYShiftCnvs = yShiftCnvs;
+            lastYShiftFiltCnvs = yShiftFiltCnvs;
         }
     
 
@@ -2878,7 +2932,7 @@ var jsonObj;
         }
            //monochromatic disk lambda
             barFinesse = yAxisYCnvs;
-            barHeight = 180;
+            barHeight = 18;
             barWidth = 2;
             RGBHex = "#FF0000";
             if ( (diskLambda > lambdaStart) && (diskLambda < lambdaStop) ){
@@ -4816,8 +4870,8 @@ var jsonObj;
 
         //var minYData = logE * kappaRos[1][1] - 1.0; // Avoid upper boundary condition [i]=0
         //var maxYData = logE * kappaRos[1][numDeps - 1];
-        var minYData = kappaRos[1][4];
-        var maxYData = kappaRos[1][numDeps-2];
+        var minYData = logE*kappaRos[1][1];
+        var maxYData = logE*kappaRos[1][numDeps-1];
         var yAxisName = "Log<sub>10</sub> <em>&#954</em><sub>Ros</sub> <br />(cm<sup>2</sup> g<sup>-1</sup>)";
 
         var fineness = "normal";
@@ -5013,6 +5067,8 @@ var jsonObj;
         txtPrint("log<sub>10</sub> <em>N</em><sub>e</sub> (cm<sup>-3</sup>)", 10 + 7 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         txtPrint("log<sub>10</sub><em>&#956</em> (g)", 10 + 8 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         txtPrint("log<sub>10</sub> <em>&#954</em> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 9 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#954</em><sub>500</sub> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 10 * xTab, yOffsetT + lineHeight, txtColor, printModelId);
+
 
         for (var i = 0; i < numDeps; i++) {
             yTab = yOffsetPrint + vOffset + i * lineHeight;
@@ -5044,7 +5100,9 @@ var jsonObj;
             value = logE * kappaRos[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 9 * xTab, yTab, txtColor, printModelId);
-
+            value = logE * kappa500[1][i];
+            value = value.toPrecision(5);
+            numPrint(value, 10 + 10 * xTab, yTab, txtColor, printModelId);
         }
 
     }
