@@ -216,7 +216,7 @@ public class LineProf {
 
     public static double[][] voigt(double[][] linePoints, double lam0In, double logAij, double logGammaCol,
             int numDeps, double teff, double[][] tauRos, double[][] temp, double[][] pGas,
-            double[][] tempSun, double[][] pGasSun) {
+            double[][] tempSun, double[][] pGasSun, double[][] hjertComp) {
 
         double c = Useful.c;
         double logC = Useful.logC();
@@ -272,6 +272,8 @@ public class LineProf {
         double gamma, logGamma, a, logA, voigt, core, wing, logWing, logVoigt;
         double Aij = Math.pow(10.0, logAij);
         int il0 = 36;
+// For Hjerting function approximation:
+    double vSquare, vFourth, vAbs, a2, a3, a4, Hjert0, Hjert1, Hjert2, Hjert3, Hjert4, hjertFn;
         //System.out.println("il0 " + il0 + " temp[il] " + temp[0][il0] + " press[il] " + logE*press[1][il0]);
         for (int id = 0; id < numDeps; id++) {
 
@@ -292,6 +294,10 @@ public class LineProf {
             //Voigt "a" parameter with line centre wavelength:
             logA = 2.0 * logLam0 + logGamma - ln4pi - logC - logDopp;
             a = Math.exp(logA);
+            a2 = Math.exp(2.0*logA);
+            a3 = Math.exp(3.0*logA);
+            a4 = Math.exp(4.0*logA);
+
             //    if (id == 12) {
             //System.out.println("LineGrid: lam0: " + lam0 + " logGam " + logE * logGamma + " logA " + logE * logA);
             //     }
@@ -302,8 +308,34 @@ public class LineProf {
             for (int il = 0; il < numPoints; il++) {
 
                 v[il] = linePoints[1][il];
+                vAbs = Math.abs(v[il]);
+                vSquare = vAbs * vAbs;
+                vFourth = vSquare * vSquare;
                 //System.out.println("LineProf: il, v[il]: " + il + " " + v[il]);
 
+//Approximate Hjerting fn from tabulated expansion coefficients:
+// Interpolate in Hjerting table to exact "v" value for each expanstion coefficient:
+// Row 0 of Hjerting component table used for tabulated abscissae, Voigt "v" parameter
+            if (vAbs <= 12.0){
+              //we are within abscissa domain of table
+              Hjert0 = ToolBox.interpol(hjertComp[0], hjertComp[1], vAbs);
+              Hjert1 = ToolBox.interpol(hjertComp[0], hjertComp[2], vAbs);
+              Hjert2 = ToolBox.interpol(hjertComp[0], hjertComp[3], vAbs);
+              Hjert3 = ToolBox.interpol(hjertComp[0], hjertComp[4], vAbs);
+              Hjert4 = ToolBox.interpol(hjertComp[0], hjertComp[5], vAbs);
+           } else {
+              // We use the analytic expansion
+              Hjert0 = 0.0;
+              Hjert1 = (0.56419 / vSquare) + (0.846 / vFourth);
+              Hjert2 = 0.0;
+              Hjert3 = -0.56 / vFourth;
+              Hjert4 = 0.0;
+           }
+//Approximate Hjerting fn with power expansion in Voigt "a" parameter
+// "Observation & Analysis of Stellar Photospeheres" (D. Gray), 3rd Ed., p. 258:
+          hjertFn = Hjert0 + a*Hjert1 + a2*Hjert2 + a3*Hjert3 + a4*Hjert4;
+
+/* Gaussian + Lorentzian approximation:
                 //if (il <= numCore) {
                 if (v[il] <= 2.0 && v[il] >= -2.0) {
 
@@ -330,12 +362,12 @@ public class LineProf {
                 //    System.out.println("LINEGRID- WING: wing: " + wing + " logV " + logV);
                  //     }
                 } // end else
-
+*/
                 //System.out.println("LINEGRID: il, v[il]: " + il + " " + v[il] + " lineProf[0][il]: " + lineProf[0][il]);
                 //System.out.println("LINEGRID: il, Voigt, H(): " + il + " " + voigt);
                 //Convert from H(a,v) in dimensionless Voigt units to physical phi((Delta lambda) profile:
-                logVoigt = Math.log(voigt) + 2.0 * logLam0 - lnSqRtPi - logDopp - logC;
-
+                //logVoigt = Math.log(voigt) + 2.0 * logLam0 - lnSqRtPi - logDopp - logC;
+                logVoigt = Math.log(hjertFn) + 2.0 * logLam0 - lnSqRtPi - logDopp - logC;
                 lineProf[il][id] = Math.exp(logVoigt);
                // if (id == 12) {
                 //    System.out.println("il " + il + " linePoints " + 1.0e7 * linePoints[0][il] + " id " + id + " lineProf[il][id] " + lineProf[il][id]);

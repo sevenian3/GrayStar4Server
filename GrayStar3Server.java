@@ -1590,7 +1590,9 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
 //System.out.println("  ");
 //System.out.println(" *********************************************** ");
 
- //
+ //Get the components for the power series expansion approximation of the Hjerting function
+ //for treating Voigt profiles:
+        double[][] hjertComp = HjertingComponents.hjertingComponents();
 
         //Notes
         //if Hydrogen or Helium, kappaScale should be unity for these purposes:
@@ -1735,7 +1737,7 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
             double[][] listLinePoints = LineGrid.lineGridVoigt(list2Lam0[gaussLine_ptr[iLine]], list2Mass[gaussLine_ptr[iLine]], xiT, numDeps, teff, listNumCore, listNumWing);
             double[][] listLineProf = LineProf.voigt(listLinePoints, list2Lam0[gaussLine_ptr[iLine]], list2LogAij[gaussLine_ptr[iLine]],
                     list2LogGammaCol[gaussLine_ptr[iLine]],
-                    numDeps, teff, tauRos, temp, pGas, tempSun, pGasSun);
+                    numDeps, teff, tauRos, temp, pGas, tempSun, pGasSun, hjertComp);
             double[][] listLogKappaL = LineKappa.lineKap(list2Lam0[gaussLine_ptr[iLine]], list2LogNums, list2Logf[gaussLine_ptr[iLine]], listLinePoints, listLineProf,
                     numDeps, zScaleList, tauRos, temp, rho);
             double[] listLineLambdas = new double[listNumPoints];

@@ -469,7 +469,7 @@ var gsDuplex = function(num, logVector){
         settingsId[11].value = 592.0;
         $("#lambdaStop").val(592.0);
         var logKapFudge = 0.0;
-        settingsId[17] = 0.0;
+        settingsId[17].value = 0.0;
         $("#logKapFudge").val(0.0);
     }
 
@@ -510,7 +510,7 @@ var gsDuplex = function(num, logVector){
         settingsId[11].value = 592.0;
         $("#lambdaStop").val(592.0);
         var logKapFudge = 0.0;
-        settingsId[17] = 0.0;
+        settingsId[17].value = 0.0;
         $("#logKapFudge").val(0.0);
     }
 
@@ -551,7 +551,7 @@ var gsDuplex = function(num, logVector){
         settingsId[11].value = 659.0;
         $("#lambdaStop").val(659.0);
         var logKapFudge = 0.0;
-        settingsId[17] = 0.0;
+        settingsId[17].value = 0.0;
         $("#logKapFudge").val(0.0);
     }
 
@@ -592,7 +592,7 @@ var gsDuplex = function(num, logVector){
         settingsId[11].value = 659.0;
         $("#lambdaStop").val(659.0);
         var logKapFudge = 0.0;
-        settingsId[17] = 0.0;
+        settingsId[17].value = 0.0;
         $("#logKapFudge").val(0.0);
     }
 
@@ -633,7 +633,7 @@ var gsDuplex = function(num, logVector){
         settingsId[11].value = 592.0;
         $("#lambdaStop").val(592.0);
         var logKapFudge = 0.0;
-        settingsId[17] = 0.0;
+        settingsId[17].value = 0.0;
         $("#logKapFudge").val(0.0);
     }
 
@@ -674,7 +674,7 @@ var gsDuplex = function(num, logVector){
         settingsId[11].value = 592.0;
         $("#lambdaStop").val(592.0);
         var logKapFudge = 0.0;
-        settingsId[17] = 0.0;
+        settingsId[17].value = 0.0;
         $("#logKapFudge").val(0.0);
     }
 
@@ -715,7 +715,7 @@ var gsDuplex = function(num, logVector){
         settingsId[11].value = 592.0;
         $("#lambdaStop").val(592.0);
         var logKapFudge = 0.0;
-        settingsId[17] = 0.0;
+        settingsId[17].value = 0.0;
         $("#logKapFudge").val(0.0);
     }
 

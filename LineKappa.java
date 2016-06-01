@@ -114,6 +114,8 @@ public class LineKappa {
                 //Convert to mass co-efficient in g/cm^2:                
                 // This direct approach won't work - is not consistent with fake Kramer's law scaling of Kapp_Ros with g instead of rho
                 logKappaL[il][id] = logKappaL[il][id] - rho[1][id];
+//Try something:
+                logKappaL[il][id] = logKappaL[il][id] + Math.log(4.0);
 
                  //if (id == 12) {
                  //  System.out.println("LINEKAPPA: id, il " + id + " " + il + " logKappaL " + logE * logKappaL[il][id]
