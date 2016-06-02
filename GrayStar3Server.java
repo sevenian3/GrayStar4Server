@@ -1590,10 +1590,6 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
 //System.out.println("  ");
 //System.out.println(" *********************************************** ");
 
- //Get the components for the power series expansion approximation of the Hjerting function
- //for treating Voigt profiles:
-        double[][] hjertComp = HjertingComponents.hjertingComponents();
-
         //Notes
         //if Hydrogen or Helium, kappaScale should be unity for these purposes:
         //double kappaScaleList = 1.0; //initialization                   
@@ -1653,6 +1649,12 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
 // This holds 2-element temperature-dependent base 10 logarithmic parition fn:
         thisUwV[0] = 0.0; //default initialization
         thisUwV[1] = 0.0;
+ 
+ //Get the components for the power series expansion approximation of the Hjerting function
+ //for treating Voigt profiles:
+        double[][] hjertComp = HjertingComponents.hjertingComponents();
+
+        double[][] listLineProf = new double[listNumPoints][numDeps];
 
 // Put in high res spectrum synthesis lines:
         for (int iLine = 0; iLine < numGaussLines; iLine++) {
@@ -1735,9 +1737,16 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
 //                    numDeps, teff, tauRos, temp, tempSun);
             // Gaussian + Lorentzian approximation to profile (voigt()):
             double[][] listLinePoints = LineGrid.lineGridVoigt(list2Lam0[gaussLine_ptr[iLine]], list2Mass[gaussLine_ptr[iLine]], xiT, numDeps, teff, listNumCore, listNumWing);
-            double[][] listLineProf = LineProf.voigt(listLinePoints, list2Lam0[gaussLine_ptr[iLine]], list2LogAij[gaussLine_ptr[iLine]],
+            if (species.equals("HI")){
+// System.out.println("Calling Stark...");
+                 listLineProf = LineProf.stark(listLinePoints, list2Lam0[gaussLine_ptr[iLine]], list2LogAij[gaussLine_ptr[iLine]],
+                    list2LogGammaCol[gaussLine_ptr[iLine]],
+                    numDeps, teff, tauRos, temp, pGas, newNe, tempSun, pGasSun, hjertComp);
+            } else {
+                 listLineProf = LineProf.voigt(listLinePoints, list2Lam0[gaussLine_ptr[iLine]], list2LogAij[gaussLine_ptr[iLine]],
                     list2LogGammaCol[gaussLine_ptr[iLine]],
                     numDeps, teff, tauRos, temp, pGas, tempSun, pGasSun, hjertComp);
+            } 
             double[][] listLogKappaL = LineKappa.lineKap(list2Lam0[gaussLine_ptr[iLine]], list2LogNums, list2Logf[gaussLine_ptr[iLine]], listLinePoints, listLineProf,
                     numDeps, zScaleList, tauRos, temp, rho);
             double[] listLineLambdas = new double[listNumPoints];
