@@ -1429,9 +1429,9 @@ var jsonObj;
     var textId = document.getElementById("outPanel"); // text output area
 
     //var masterId = document.getElementById("container"); // graphical output area
-    var plotOneId = document.getElementById("plotOne");
-    var cnvsOneId = document.getElementById("plotOneCnvs");
-    var cnvsOneCtx = cnvsOneId.getContext("2d");
+  //  var plotOneId = document.getElementById("plotOne");
+  //  var cnvsOneId = document.getElementById("plotOneCnvs");
+ //   var cnvsOneCtx = cnvsOneId.getContext("2d");
     var plotTwoId = document.getElementById("plotTwo");
     var cnvsTwoId = document.getElementById("plotTwoCnvs");
     var cnvsTwoCtx = cnvsTwoId.getContext("2d");
@@ -1468,6 +1468,9 @@ var jsonObj;
     var plotFourteenId = document.getElementById("plotFourteen");
     var cnvsFourteenId = document.getElementById("plotFourteenCnvs");
     var cnvsFourteenCtx = cnvsFourteenId.getContext("2d");
+    var plotFifteenId = document.getElementById("plotFifteen");
+    var cnvsFifteenId = document.getElementById("plotFifteenCnvs");
+    var cnvsFifteenCtx = cnvsFifteenId.getContext("2d");
 
     var printModelId = document.getElementById("printModel"); //detailed model print-out area
 
@@ -1475,7 +1478,7 @@ var jsonObj;
     var printModelId = document.getElementById("printModel"); //detailed model print-out area
 
     if (ifShowAtmos === true) {
-        plotOneId.style.display = "block";
+        //plotOneId.style.display = "block";
         plotTwoId.style.display = "block";
         plotThreeId.style.display = "block";
     }
@@ -1488,7 +1491,7 @@ var jsonObj;
         plotEightId.style.display = "block";
     }
     if (ifShowAtmos === false) {
-        plotOneId.style.display = "none";
+        //plotOneId.style.display = "none";
         plotTwoId.style.display = "none";
         plotThreeId.style.display = "none";
     }
@@ -1673,6 +1676,10 @@ var jsonObj;
     //var tuneBandIntens = tuneColor(masterLams, masterIntens, numThetas, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
     var gaussFilter = gaussian(masterLams, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
     var tuneBandIntens = tuneColor(masterLams, masterIntens, numThetas, numMaster, gaussFilter, lamUV, lamIR); 
+
+    //Fourier transform of narrow band image:
+    var ft = fourier(numThetas, cosTheta, tuneBandIntens);
+    var numK = ft[0].length;
 
     //default initializations:
 
@@ -2119,7 +2126,7 @@ var jsonObj;
 //  - in pixels
 //
 //How many rows and columns of plots:
-  var numRows = 4;
+  var numRows = 5;
   var numCols = 3;
 //
 // These are with respect to browser viewport upper left corner 
@@ -3739,6 +3746,8 @@ var jsonObj;
 
 
 // ****************************************
+//
+/*
     //
     //
     //  *****   PLOT ONE / PLOT 1
@@ -3750,7 +3759,7 @@ var jsonObj;
 //
         var plotRow = 3;
         var plotCol = 2;
-        var minXData = logE * tauRos[1][0] - 2.0;
+        var minXData = logE * tauRos[1][0] - 1.0;
         var maxXData = logE * tauRos[1][numDeps - 1];
         var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> <em>&#964</em><sub>Ros</sub></a></span>";
         // Don't use upper boundary condition as lower y-limit - use a couple of points below surface:
@@ -3867,7 +3876,7 @@ var jsonObj;
         txtPrint("<span style='font-size:small; color:#444444'><em>&#964</em><sub>Ros</sub>=1</span>",
                 xShift, yShift, lineColor, plotOneId);
     }
-
+*/
 //
 //
 //  *****   PLOT TWO / PLOT 2
@@ -4301,24 +4310,17 @@ var jsonObj;
         //var iLamMax = iLamMinMax[1];
         //var lamMax = (1.0e7 * masterLams[iLamMax]).toPrecision(3);
 
-        var lam1 = (1.0e7 * masterLams[0]).toPrecision(3);
-        var lam1Str = lam1.toString(10);
-        var lamN = (1.0e7 * masterLams[numMaster - 1]).toPrecision(3);
-        var lamNStr = lamN.toString(10);
-        var lam0r = (1.0e7 * lam0).toPrecision(3);
-        var lam0rStr = lam0r.toString(10);
+        var diskLamLbl = diskLambda.toPrecision(3);
+        var diskLamStr = diskLamLbl.toString(10);
 //
         titleX = panelX + titleOffsetX;
         titleY = panelY + titleOffsetY;
-        txtPrint("<span style='font-size:small'><span style='color:#00FF88'><em>&#955</em><sub>Max</sub> = " + lamMaxStr + "nm</span><br /> "
-                + " <span style='color:blue'><em>&#955</em> = " + lam1Str + "nm</span><br /> "
-                + " <span style='color:red'><em>&#955</em> = " + lamNStr + "nm</span><br />"
-                + " <span style='color:#444444'>line <em>&#955</em><sub>0</sub> = " + lam0rStr + "nm</span></span>",
-                xAxisXCnvs+10, titleOffsetY+yAxisLength-20, lineColor, plotFourId);
+        txtPrint("<span style='font-size:small'><span style='color:#000000'><em>&#955</em><sub>Filter</sub> = " + diskLamStr + "nm</span><br /> ",
+                xAxisXCnvs+10, titleOffsetY+20, lineColor, plotFourId);
         // Add title annotation:
 
 
-        txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Limb_darkening' target='_blank'>Limb darkening and reddening</a></span>",
+        txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Limb_darkening' target='_blank'>Limb darkening</a></span>",
                 titleOffsetX, titleOffsetY, lineColor, plotFourId);
         //Data loop - plot the result!
 
@@ -4343,14 +4345,10 @@ var jsonObj;
         var xTickPosCnvs = xAxisLength * (180.0 * Math.acos(cosTheta[1][0]) / Math.PI - minXData) / rangeXData; // pixels   
         // horizontal position in pixels - data values increase rightward:
         var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-        var yTickPosCnvs = yAxisLength * ((masterIntens[iLamMax][0] / masterIntens[iLamMax][0]) - minYData) / rangeYData;
-        var yTickPos0Cnvs = yAxisLength * ((masterIntens[0][0] / masterIntens[0][0]) - minYData) / rangeYData;
-        var yTickPosNCnvs = yAxisLength * ((masterIntens[numMaster - 1][0] / masterIntens[numMaster - 1][0]) - minYData) / rangeYData;
+        var yTickPosCnvs = yAxisLength * ((tuneBandIntens[0] / tuneBandIntens[0]) - minYData) / rangeYData;
 
         // vertical position in pixels - data values increase upward:
         var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-        var lastYShift0Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos0Cnvs;
-        var lastYShiftNCnvs = (yAxisYCnvs + yAxisLength) - yTickPosNCnvs;
 //
         for (var i = 1; i < numThetas; i++) {
 
@@ -4359,22 +4357,16 @@ var jsonObj;
             var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
             xShiftCnvs = Math.floor(xShiftCnvs);
 
-            yTickPosCnvs = yAxisLength * ((masterIntens[iLamMax][i] / masterIntens[iLamMax][0]) - minYData) / rangeYData;
-            yTickPos0Cnvs = yAxisLength * ((masterIntens[0][i] / masterIntens[0][0]) - minYData) / rangeYData;
-            yTickPosNCnvs = yAxisLength * ((masterIntens[numMaster - 1][i] / masterIntens[numMaster - 1][0]) - minYData) / rangeYData;
+            yTickPosCnvs = yAxisLength * ((tuneBandIntens[i] / tuneBandIntens[0]) - minYData) / rangeYData;
 
             // vertical position in pixels - data values increase upward:
             var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
             yShiftCnvs = Math.floor(yShiftCnvs);
-            var yShift0Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos0Cnvs;
-            yShift0Cnvs = Math.floor(yShift0Cnvs);
-            var yShiftNCnvs = (yAxisYCnvs + yAxisLength) - yTickPosNCnvs;
-            yShiftNCnvs = Math.floor(yShiftNCnvs);
 
 //Plot points
             cnvsFourCtx.beginPath();
             cnvsFourCtx.arc(xShiftCnvs, yShiftCnvs, dSizeCnvs, 0, 2*Math.PI);
-            RGBHex = colHex(r255, g255, b255);
+            RGBHex = colHex(0, 0, 0);
             cnvsFourCtx.strokeStyle = RGBHex;
             cnvsFourCtx.stroke();
 //line plot
@@ -4384,35 +4376,9 @@ var jsonObj;
             cnvsFourCtx.lineTo(xShiftCnvs, yShiftCnvs);
             cnvsFourCtx.stroke();  
             //
-            cnvsFourCtx.beginPath();
-            cnvsFourCtx.arc(xShiftCnvs, yShift0Cnvs, dSize0Cnvs, 0, 2*Math.PI);
-            RGBHex = colHex(r2550, g2550, b2550);
-            cnvsFourCtx.strokeStyle = RGBHex;
-            cnvsFourCtx.stroke();
-//
-            cnvsFourCtx.beginPath();
-            cnvsFourCtx.strokeStyle = RGBHex;
-            cnvsFourCtx.moveTo(lastXShiftCnvs, lastYShift0Cnvs);
-            cnvsFourCtx.lineTo(xShiftCnvs, yShift0Cnvs);
-            cnvsFourCtx.stroke();  
-//
-            cnvsFourCtx.beginPath();
-            cnvsFourCtx.arc(xShiftCnvs, yShiftNCnvs, dSize0Cnvs, 0, 2*Math.PI);
-            RGBHex = colHex(r255N, g255N, b255N);
-            cnvsFourCtx.strokeStyle = RGBHex;
-            cnvsFourCtx.stroke();
-//
-            cnvsFourCtx.beginPath();
-            RGBHex = colHex(r255N, g255N, b255N);
-            cnvsFourCtx.strokeStyle = RGBHex;
-            cnvsFourCtx.moveTo(lastXShiftCnvs, lastYShiftNCnvs);
-            cnvsFourCtx.lineTo(xShiftCnvs, yShiftNCnvs);
-            cnvsFourCtx.stroke(); 
 // 
             lastXShiftCnvs = xShiftCnvs;
             lastYShiftCnvs = yShiftCnvs;
-            lastYShift0Cnvs = yShift0Cnvs;
-            lastYShiftNCnvs = yShiftNCnvs;
         }
     }
 
@@ -4612,9 +4578,9 @@ var jsonObj;
             // vertical position in pixels - data values increase upward:
             yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
             yShiftCnvs = Math.floor(yShiftCnvs);
-            yShift0Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos0Cnvs;
+            var yShift0Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos0Cnvs;
             yShift0Cnvs = Math.floor(yShift0Cnvs);
-            yShiftNCnvs = (yAxisYCnvs + yAxisLength) - yTickPosNCnvs;
+            var yShiftNCnvs = (yAxisYCnvs + yAxisLength) - yTickPosNCnvs;
             yShiftNCnvs = Math.floor(yShiftNCnvs);
 
 //plot points
@@ -4859,7 +4825,7 @@ var jsonObj;
 
     if (ifShowAtmos === true) {
 //
-        var plotRow = 4;
+        var plotRow = 3;
         var plotCol = 2;
         var minXData = logE * tauRos[1][0] - 0.0;
         var maxXData = logE * tauRos[1][numDeps - 1];
@@ -4993,6 +4959,154 @@ var jsonObj;
                 xShift, yShift, lineColor, plotFourteenId);
     }
 
+    //
+    //
+    //  *****   PLOT FIFTEEN / PLOT 15
+    //
+    //
+    // Plot fifteen:  Fourier (cosine) transform of Intensity profile across disk (I(theta/(pi/2)))
+
+   if ((ifShowRad === true)) {
+
+        var plotRow = 5;
+        var plotCol = 1;
+//
+        var minXData = ft[0][0];
+        var maxXData = ft[0][numK-1];
+// console.log("minXData " + minXData + " maxXData " + maxXData);
+        var xAxisName = "<em>k</em> (RAD/RAD)";
+        var iFtMinMax = minMax(ft[1]);
+// console.log("iFtMinMax[1] " + iFtMinMax[1] + " ft[1][iFtMinMax[1]] " + ft[1][iFtMinMax[1]]);
+//logarithmic        var minYData = -2.0;   //logarithmic
+//logarithmic        var maxYData = logE*Math.log(ft[1][iFtMinMax[1]]);   //logarithmic
+        var minYData = ft[1][iFtMinMax[0]];   //logarithmic
+        var maxYData = ft[1][iFtMinMax[1]];   //logarithmic
+        //var maxYData = tuneBandIntens[0] / norm;
+        var yAxisName = "<span title='Monochromatic surface specific intensity'><a href='http://en.wikipedia.org/wiki/Specific_radiative_intensity' target='_blank'><em>I</em><sub>&#955</sub>(<em>k</em>)/<br /><em>I</em><sub>&#955</sub>(0)</a></span>";
+
+        var fineness = "normal";
+//
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotFifteenId, cnvsFifteenId);
+        panelX = panelOrigin[0];
+        panelY = panelOrigin[1];
+        cnvsFifteenCtx.fillStyle = wColor;
+        cnvsFifteenCtx.fillRect(0, 0, panelWidth, panelHeight);
+        var xAxisParams = XAxis(panelX, panelY, xAxisLength,
+                minXData, maxXData, xAxisName, fineness,
+                plotFifteenId, cnvsFifteenCtx);
+        var yAxisParams = YAxis(panelX, panelY,
+                minYData, maxYData, yAxisName,
+                plotFifteenId, cnvsFifteenCtx);
+        var rangeXData = xAxisParams[1];
+        var deltaXData = xAxisParams[2];
+        var deltaXPxl = xAxisParams[3];
+        var rangeYData = yAxisParams[1];
+        var deltaYData = yAxisParams[2];
+        var deltaYPxl = yAxisParams[3];
+        minXData = xAxisParams[6]; //updated value
+        minYData = yAxisParams[6]; //updated value
+        maxXData = xAxisParams[7]; //updated value
+        maxYData = yAxisParams[7]; //updated value
+// console.log("minXData " + minXData + " maxXData " + maxXData);
+        //
+        // Add legend annotation:
+
+        //var iLamMinMax = minMax2(masterFlux);
+        //var iLamMax = iLamMinMax[1];
+        //var lamMax = (1.0e7 * masterLams[iLamMax]).toPrecision(3);
+
+//
+        lineColor = "#000000";
+        var diskLamLbl = diskLambda.toPrecision(3);
+        var diskLamStr = diskLamLbl.toString(10);
+        titleX = panelX + titleOffsetX;
+        titleY = panelY + titleOffsetY;
+        txtPrint("<span style='font-size:small'><span style='color:#000000'><em>&#955</em><sub>Filter</sub> = " + diskLamStr + "nm</span><br /> ",
+                xAxisXCnvs+10, titleOffsetY+20, lineColor, plotFifteenId);
+        // Add title annotation:
+
+
+        txtPrint("<span style='font-size:normal; color:blue'><a href='https://en.wikipedia.org/wiki/Discrete_Fourier_transform' target='_blank'> Fourier transform of <em>I</em><sub>&#955</sub>(<em>&#952</em>)/ <em>I</em><sub>&#955</sub>(0)</a> </a></span>",
+                titleOffsetX, titleOffsetY, lineColor, plotFifteenId);
+        //Data loop - plot the result!
+
+        var dSizeCnvs = 2.0; //plot point size
+        var dSize0Cnvs = 1.0;
+        var opac = 1.0; //opacity
+        // RGB color
+        // PTot:
+        var r255 = 0;
+        var g255 = 255;
+        var b255 = 100; //green
+        // PGas:
+        var r2550 = 0;
+        var g2550 = 0;
+        var b2550 = 255; //blue
+        // PRad:
+        var r255N = 255;
+        var g255N = 0;
+        var b255N = 0; //red
+
+
+        var xTickPosCnvs = xAxisLength * (ft[0][0] - minXData) / rangeXData; // pixels
+        // horizontal position in pixels - data values increase rightward:
+        var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
+  //logarithmic      var yTickPosCnvs = yAxisLength * (logE*Math.log(ft[1][0]) - minYData) / rangeYData;  //logarithmic 
+        var yTickPosCnvs = yAxisLength * (ft[1][0] - minYData) / rangeYData;
+        var yTickPos2Cnvs = yAxisLength * (ft[2][0] - minYData) / rangeYData;
+
+        // vertical position in pixels - data values increase upward:
+        var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
+        var lastYShift2Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos2Cnvs;
+//
+        for (var i = 1; i < numK; i++) {
+
+  //console.log("i " + i + " ft[0] " + ft[0][i] + " ft[1] " + ft[1][i]);
+            xTickPosCnvs = xAxisLength * (ft[0][i] - minXData) / rangeXData; // pixels
+            // horizontal position in pixels - data values increase rightward:
+            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
+
+   //logarithmic         yTickPosCnvs = yAxisLength * (logE*Math.log(ft[1][i]) - minYData) / rangeYData;   //logarithmic
+            yTickPosCnvs = yAxisLength * (ft[1][i] - minYData) / rangeYData;   
+            yTickPos2Cnvs = yAxisLength * (ft[2][i] - minYData) / rangeYData;   
+
+            // vertical position in pixels - data values increase upward:
+            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
+            var yShift2Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos2Cnvs;
+
+//Plot points
+            cnvsFifteenCtx.beginPath();
+            cnvsFifteenCtx.arc(xShiftCnvs, yShiftCnvs, dSizeCnvs, 0, 2*Math.PI);
+            RGBHex = colHex(0, 0, 0);
+            cnvsFifteenCtx.strokeStyle = RGBHex;
+            cnvsFifteenCtx.stroke();
+//line plot
+            cnvsFifteenCtx.beginPath();
+            cnvsFifteenCtx.strokeStyle = RGBHex;
+            cnvsFifteenCtx.moveTo(lastXShiftCnvs, lastYShiftCnvs);
+            cnvsFifteenCtx.lineTo(xShiftCnvs, yShiftCnvs);
+            cnvsFifteenCtx.stroke();
+            //
+
+//Plot points
+            cnvsFifteenCtx.beginPath();
+            cnvsFifteenCtx.arc(xShiftCnvs, yShift2Cnvs, dSizeCnvs, 0, 2*Math.PI);
+            RGBHex = colHex(250, 0, 0);
+            cnvsFifteenCtx.strokeStyle = RGBHex;
+            cnvsFifteenCtx.stroke();
+//line plot
+            cnvsFifteenCtx.beginPath();
+            cnvsFifteenCtx.strokeStyle = RGBHex;
+            cnvsFifteenCtx.moveTo(lastXShiftCnvs, lastYShift2Cnvs);
+            cnvsFifteenCtx.lineTo(xShiftCnvs, yShift2Cnvs);
+            cnvsFifteenCtx.stroke();
+
+            lastXShiftCnvs = xShiftCnvs;
+            lastYShiftCnvs = yShiftCnvs;
+            lastYShift2Cnvs = yShift2Cnvs;
+        }
+    }
+
 
 
 
@@ -5067,7 +5181,7 @@ var jsonObj;
         txtPrint("log<sub>10</sub> <em>N</em><sub>e</sub> (cm<sup>-3</sup>)", 10 + 7 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         txtPrint("log<sub>10</sub><em>&#956</em> (g)", 10 + 8 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         txtPrint("log<sub>10</sub> <em>&#954</em> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 9 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>&#954</em><sub>500</sub> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 10 * xTab, yOffsetT + lineHeight, txtColor, printModelId);
+        //txtPrint("log<sub>10</sub> <em>&#954</em><sub>500</sub> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 10 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
 
 
         for (var i = 0; i < numDeps; i++) {
@@ -5100,9 +5214,9 @@ var jsonObj;
             value = logE * kappaRos[1][i];
             value = value.toPrecision(5);
             numPrint(value, 10 + 9 * xTab, yTab, txtColor, printModelId);
-            value = logE * kappa500[1][i];
-            value = value.toPrecision(5);
-            numPrint(value, 10 + 10 * xTab, yTab, txtColor, printModelId);
+            //value = logE * kappa500[1][i];
+            //value = value.toPrecision(5);
+            //numPrint(value, 10 + 10 * xTab, yTab, txtColor, printModelId);
         }
 
     }

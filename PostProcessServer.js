@@ -30,7 +30,9 @@ var UBVRI = function(lambdaScale, flux, numDeps, tauRos, temp) {
     //var vegaColors = [0.0, 0.0, 0.0, 0.0, 0.0]; //For re-calibrating with raw Vega colours
     // Aug 2015 - with 14-line linelist:
     //var vegaColors = [0.289244, -0.400324, 0.222397, -0.288568, -0.510965];
-    var vegaColors = [0.163003, -0.491341, 0.161940, -0.464265, -0.626204];
+    //var vegaColors = [0.163003, -0.491341, 0.161940, -0.464265, -0.626204];
+    //With Balmer line linear Stark broadening wings:
+    vegaColors = [0.321691, -0.248000, 0.061419, -0.463083, -0.524502];
 
     var deltaLam, newY, product;
 
@@ -1251,4 +1253,132 @@ var planck = function(temp, lambda) {
 
     return logBBlam;
 };
+
+ //Discrete cosine and sine Fourier transform of input narrow-band intensity profile
+ //
+ // We will interpret theta/(theta/2) with respect to the local surface normal of the star to
+ // be the spatial domain "x" coordinate - this is INDEPENDENT of the distance to, and linear
+ // radius of, the star! :-)
+ var fourier = function(numThetas, cosTheta, filtIntens){
+
+  var pi = Math.PI; //a handy enough wee quantity
+  var halfPi = pi / 2.0;
+
+    //number of sample points in full intensity profile I(theta), theta = -pi/2 to pi/2 RAD:
+      var numX0 = 2 * numThetas - 1;
+
+//We have as input the itnesity half-profile I(cos(theta)), cos(theta) = 1 to 0
+ //create the doubled root-intensity profile sqrt(I(theta/halfPi)), theta/halfPi = -1 to 1
+ //this approach assumes the real (cosine) and imaginary (sine) components are in phase
+     var rootIntens2 = [];
+     var x0 = [];
+     rootIntens2.length = numX0;
+     x0.length = numX0;
+     var normIntens;
+//negative x domain of doubled profile:
+     var j = 0;
+     for (var i = numThetas-1; i >=0; i--){
+        x0[j] = -1.0*Math.acos(cosTheta[1][i]) / halfPi;
+        normIntens = filtIntens[i] / filtIntens[0]; //normalize
+        rootIntens2[j] = Math.sqrt(normIntens);
+        //console.log("i " + i + " cosTheta " + cosTheta[1][i] + " filtIntens " + filtIntens[i] + " normIntens " + normIntens
+        //  + " j " + j + " x0 " + x0[j] + " rootIntens2 " + rootIntens2[j] );
+        j++;
+     }
+//positive x domain of doubled profile:
+     for (var i = numThetas; i < numX0; i++){
+        j = i - (numThetas-1);
+        x0[i] = Math.acos(cosTheta[1][j]) / halfPi;
+        normIntens = filtIntens[j] / filtIntens[0]; //normalize
+        //rootIntens2[i] = Math.sqrt(normIntens);
+        rootIntens2[i] = normIntens;
+        //console.log("j " + j + " cosTheta " + cosTheta[1][j] + " filtIntens " + filtIntens[j] + " normIntens " + normIntens
+        //  + " i " + i + " x0 " + x0[i] + " rootIntens2 " + rootIntens2[i] );
+     }
+
+//create the uniformly sampled spatial domain ("x") and the complementary
+//spatial frequecy domain "k" domain
+//
+//We're interpreting theta/halfPi with respect to local surface normal at surface
+//of star as the spatial domain, "x"
+  var minX = -2.0;
+  var maxX = 1.0;
+  var numX = 100;  //(is also "numK" - ??)
+  var deltaX = (maxX - minX) / numX;
+
+//Complentary limits in "k" domain; k = 2pi/lambda (radians)
+//  - lowest k value corresponds to one half spatial wavelength (lambda) = 2 (ie. 1.0 - (-1.0)):
+  var maxLambda = 2.0 * 2.0;
+  // stupid?? var minK = 2.0 * pi / maxLambda;  //(I know, I know, but let's keep this easy for the human reader)
+//  - highest k value has to do with number of points sampling x:  Try Nyquist sampling rate of
+//     two x points per lambda
+  var minLambda = 8.0 * 2.0 * deltaX;
+  var maxK = 2.0 * pi / minLambda; //"right-going" waves
+  var minK = -1.0 * maxK;  //"left-going" waves
+  var deltaK = (maxK - minK) / numX;
+ // console.log("maxK " + maxK + " minK " + minK + " deltaK " + deltaK);
+
+
+  var x = [];
+  var k = [];
+  x.length = numX;
+  k.length = numX;
+  var ii;
+  for (var i = 0; i < numX; i++){
+     ii = 1.0 * i;
+     x[i] = minX + ii*deltaX;
+     k[i] = minK + ii*deltaK;
+    // console.log("i " + i + " x " + x[i] + " k " + k[i]);
+  }
+
+//Interpolate the rootIntens2(theta/halfpi) signal onto uniform spatial sampling:
+  //doesn't work: var rootIntens3 = interpolV(rootIntens2, x0, x);
+  var rootIntens3 = [];
+  rootIntens3.length = numX;
+  for (var i = 0; i < numX; i++){
+     rootIntens3[i] = interpol(x0, rootIntens2, x[i]);
+     //console.log("i " + i + " x " + x[i] + " rootIntens3 " + rootIntens3[i]);
+  }
+
+//returned variable ft:
+//  Row 0: wavenumber, spatial frequency, k (radians)
+//  Row 1: cosine transform (real component)
+//  Row 2: sine transform (imaginary component
+      var ft = [];
+      ft.length = 3;
+      ft[0] = [];
+      ft[1] = [];
+      ft[2] = [];
+      ft[0].length = numX-1;
+      ft[1].length = numX-1;
+      ft[2].length = numX-1;
+
+ var argument, rootFt;
+ //numXFloat = 1.0 * numX;
+//Outer loop is over the elements of vector holding the power at each frequency "k"
+    for (var ik = 0; ik < numX-1; ik++){
+//intiialize ft
+       ft[0][ik] = k[ik];
+       rootFtCos = 0.0;
+       rootFtSin = 0.0;
+       ft[1][ik] = 0.0;
+       ft[2][ik] = 0.0;
+//Inner llop is cumulative summation over spatial positions "x" - the Fourier cosine and sine series
+       for (var ix = 0; ix < numX-1; ix++){
+         //ixFloat = 1.0 * ix;
+         argument = -1.0 * k[ik] * x[ix];
+         //console.log("ik " + ik + " ix " + ix + " argument " + argument + " x " + x[ix] + " rootIntens3 " + rootIntens3[ix]);
+         // cosine series:
+         rootFtCos = rootFtCos + rootIntens3[ix] * Math.cos(argument);
+         // sine series:
+         rootFtSin = rootFtSin + rootIntens3[ix] * Math.sin(argument);
+       } //ix loop
+         ft[1][ik] = rootFtCos; // * rootFtCos; //Power
+         ft[2][ik] = rootFtSin; // * rootFtSin;
+         //console.log("ik " + ik + " k " + k[ik] + " ft[1] " + ft[1][ik]);
+    } //ik loop
+
+      return ft;
+
+   }; //end method fourier
 
