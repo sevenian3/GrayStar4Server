@@ -33,7 +33,7 @@ public class LineKappa {
 //    public static double[][] lineKap(double lam0In, double logNlIn, double logFluIn, boolean ionized, double chiI, double chiL, double[][] linePoints, double[][] lineProf,
 //            int numDeps, double kappaScale, double[][] tauRos, double[][] temp, double[][] rho) {
 // Level population now computed in LevelPops.levelPops()
-    public static double[][] lineKap(double lam0In, double[][] logNums, double logFluIn, double[][] linePoints, double[][] lineProf,
+    public static double[][] lineKap(double lam0In, double[] logNums, double logFluIn, double[][] linePoints, double[][] lineProf,
             int numDeps, double zScale, double[][] tauRos, double[][] temp, double[][] rho) {
 
         double c = Useful.c;
@@ -91,11 +91,7 @@ public class LineKappa {
             stimEm = 1.0 - Math.exp(expFac);
             logStimEm = Math.log(stimEm);
 
-            // logNums is a 2D 3 x numDeps array of logarithmic number densities
-            // Row 0: neutral stage ground state population
-            // Row 1: ionized stage ground state population
-            // Row 2: level population of lower level of bb transition (could be in either stage I or II!) 
-            logNum = logNums[2][id];
+            logNum = logNums[id];
 
             //if (id == refRhoIndx) {
             //    System.out.println("LINEKAPPA: logStimEm " + logE*logStimEm);

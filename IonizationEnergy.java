@@ -513,58 +513,58 @@ public class IonizationEnergy {
 
    double dissE = 8.0; //default initialization
 
-      if (species == "H2"){
+      if (species.equals("H2")){
          dissE = 4.4781;
        }
-      if (species == "H2+"){
+      if (species.equals("H2+")){
          dissE = 2.6507;
        }
-      if (species == "C2"){
+      if (species.equals("C2")){
          dissE = 6.296;
        }
-      if (species == "CH"){
+      if (species.equals("CH")){
          dissE = 3.465;
        }
-      if (species == "CO"){
+      if (species.equals("CO")){
          dissE = 11.092;
        }
-      if (species == "CN"){
+      if (species.equals("CN")){
          dissE = 7.76;
        }
-      if (species == "N2"){
+      if (species.equals("N2")){
          dissE = 9.759;
        }
-      if (species == "NH"){
+      if (species.equals("NH")){
          dissE = 3.47;
        }
-      if (species == "NO"){
+      if (species.equals("NO")){
          dissE = 6.497;
        }
-      if (species == "O2"){
+      if (species.equals("O2")){
          dissE = 5.116;
        }
-      if (species == "OH"){
+      if (species.equals("OH")){
          dissE = 4.392;
        }
-      if (species == "MgH"){
+      if (species.equals("MgH")){
          dissE = 1.34;
        }
-      if (species == "SiO"){
+      if (species.equals("SiO")){
          dissE = 8.26;
        }
-      if (species == "CaH"){
+      if (species.equals("CaH")){
          dissE = 1.70;
        }
-      if (species == "CaO"){
+      if (species.equals("CaO")){
          dissE = 4.8;
        }
-      if (species == "TiO"){
+      if (species.equals("TiO")){
          dissE = 6.87;
        }
-      if (species == "VO"){
+      if (species.equals("VO")){
          dissE = 6.4;
        }
-      if (species == "FeO"){
+      if (species.equals("FeO")){
          dissE = 4.20;
        }
 

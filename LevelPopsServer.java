@@ -684,7 +684,7 @@ public class LevelPopsServer{
  
        //}
 //   For molecular species:
-        double nmrtrSaha, nmrtrLogSahaMol, nmrtrInvSahaMol;
+        double nmrtrSaha, nmrtrLogSahaMol, nmrtrLogInvSahaMol; //, nmrtrInvSahaMol;
         double[] logMolFrac = new double[numDeps];
         double[] logSahaMol = new double[numMolsB]; 
         double[] invSahaMol = new double[numMolsB];
@@ -726,8 +726,8 @@ public class LevelPopsServer{
    //Ionization stage Saha factors: 
 //console.log("id " + id + " nmrtrLogNumB[id] " + logE*nmrtrLogNumB[id]);             
                nmrtrLogSahaMol = nmrtrLogMolSahaFac - nmrtrLogNumB[id] - (nmrtrBoltzFacIAB / temp[0][id]) + (3.0 * temp[1][id] / 2.0) + nmrtrThisLogUwB + thisLogUwA - nmrtrLogQwAB;
-               nmrtrLogSahaMol = -1.0 * nmrtrLogSahaMol;
-               nmrtrInvSahaMol = Math.exp(nmrtrLogSahaMol);
+               nmrtrLogInvSahaMol = -1.0 * nmrtrLogSahaMol;
+               //nmrtrInvSahaMol = Math.exp(nmrtrLogSahaMol);
 
           //if (id == 36){
           //     console.log("nmrtrBoltzFacIAB " + nmrtrBoltzFacIAB + " nmrtrThisLogUwB " + logE*nmrtrThisLogUwB + " thisLogUwA " + logE*thisLogUwA + " nmrtrLogQwAB " + nmrtrLogQwAB);   
@@ -765,7 +765,7 @@ public class LevelPopsServer{
          // }
             //var logDenominator = Math.log( 1.0 + saha21 + (saha32 * saha21) + (saha43 * saha32 * saha21) + (saha54 * saha43 * saha32 * saha21) );
 
-          logMolFrac[id] = nmrtrInvSahaMol - logDenominator;
+          logMolFrac[id] = nmrtrLogInvSahaMol - logDenominator;
           //if (id == 36){
            //    console.log("jStg " + jStg + " logIonFrac[jStg] " + logE*logIonFrac[jStg]);
           //}

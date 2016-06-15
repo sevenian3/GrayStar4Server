@@ -1,13 +1,15 @@
 
 package graystar3server;
 
-//Atomic masses in atomic mass units (amu. "mu")
-//From CIAAW
-//Atomic weights of the elements 2015 ciaaw.org/atomic-weights.htm, Aug. 2015
-//Heaviest element treated in La (57)
+//Atomic  AND molecular masses in atomic mass units (amu. "mu")
 
 
 public class AtomicMass {
+
+//Atomic masses in atomic mass units (amu. "mu")
+//From CIAAW
+//Atomic weights of the elements 2015 ciaaw.org/atomic-weights.htm, Aug. 2015
+//Heaviest element treated is La (57)
 
     public static double getMass(String elName){
 
@@ -242,6 +244,23 @@ public class AtomicMass {
 
 
 } // end of getMass method
+
+//Molecular masses in atomic mass units (amu. "mu")
+
+    public static double getMolMass(String molName){
+
+    double molMass = 2.0;  //default initialization (H_2)
+
+    if ("TiO".equals(molName)){
+       molMass = getMass("O") + getMass("Ti");
+        }
+   
+
+// 
+    return molMass; 
+
+
+} // end of getMolMass method
 
 
 } //end AtomicMass class

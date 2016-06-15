@@ -1038,7 +1038,7 @@ public class GrayStar3Server {
 //Load molecules into master molecular population array:
       for (int iTau = 0; iTau < numDeps; iTau++){
          masterMolPops[iMol][iTau] = logNz[specA_ptr][iTau] + logNumFracAB[iTau];
-         //console.log(" " + iTau + " masterMolPops " + logE*masterMolPops[iMol][iTau]);
+         //System.out.println(" " + iTau + " masterMolPops " + logE*masterMolPops[iMol][iTau]);
       }
   } //master iMol loop
 //
@@ -1188,9 +1188,18 @@ public class GrayStar3Server {
 
 //
 //     FILE I/O Section
+//External line list input file approach:
+//
+Charset charset = Charset.forName("US-ASCII");
+String pattern = "0.0000000000000000";
+//String pattern = "###.####";
+DecimalFormat myFormatter = new DecimalFormat(pattern);
 //
 String dataPath = "./InputData/";
-//External line list input file approach:
+//
+//
+// **************  Atomic line list:
+//
 //
 //Stuff for byte file method:
 //
@@ -1205,10 +1214,6 @@ String dataPath = "./InputData/";
  barray = ByteFileRead.readFileBytes(lineListBytes, bArrSize);
 
 //Path path = Paths.get(dataPath + lineListFile); //java.nio.file not available in Java 6
-Charset charset = Charset.forName("US-ASCII");
-String pattern = "0.0000000000000000";
-//String pattern = "###.####";
-DecimalFormat myFormatter = new DecimalFormat(pattern);
 
 // We have Java SE 6 - we don't have the java.nio package!
 //From http://www.deepakgaikwad.net/index.php/2009/11/23/reading-text-file-line-by-line-in-java-6.html
@@ -1242,12 +1247,90 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
 
         int numLineList = arrayLineString.length;
         //System.out.println("arrayLineString[0] " + arrayLineString[0]);
-        //System.out.println("numLineList " + numLineList); 
+//
+//
+// ************   Molecular line list:
+//
+//
+//Stuff for byte file method:
+//
+// *** NOTE: bArrSize must have been noted from the stadout of LineListServer and be consistent
+// with whichever line list is linked to gsLineListBytes.dat, and be st manually here:
+ String molListBytes = dataPath + "gsMolListBytes.dat";
+ File fileMol = new File(molListBytes);
+ int bArrSizeMol = (int) fileMol.length();
+ //System.out.println(" bArrSize =" +  bArrSize);
+// int bArrSize = 484323;
+ byte[] barrayMol = new byte[bArrSizeMol];
+ int numMolList = 0;  //default initialization
+
+ int maxMolLines = 100000; //sigh
+ int molCount = 0;
+ String[] arrayMolString = new String[maxMolLines];
+//initialize:
+ for (int i = 0; i < maxMolLines; i++){
+    arrayMolString[i] = " ";
+ }
+
+boolean ifMolLines = false;  //for testing
+//
+if (ifMolLines == true){
+ barrayMol = ByteFileRead.readFileBytes(molListBytes, bArrSizeMol);
+
+//Path path = Paths.get(dataPath + lineListFile); //java.nio.file not available in Java 6
+
+// We have Java SE 6 - we don't have the java.nio package!
+//From http://www.deepakgaikwad.net/index.php/2009/11/23/reading-text-file-line-by-line-in-java-6.html
+//
+
+//System.out.println(" *********************************************** ");
+//System.out.println("  ");
+//System.out.println("  ");
+//System.out.println("BEFORE MOLECULAR FILE READ");
+//System.out.println("  ");
+//System.out.println("  ");
+//System.out.println(" *********************************************** ");
+
+
+ barrayMol = ByteFileRead.readFileBytes(molListBytes, bArrSizeMol);
+ String decodedMol = new String(barrayMol, 0, bArrSizeMol);  // example for one encoding type 
+// String decoded = new String(barray, 0, bArrSize, "UTF-8") throws UnsupportedEncodingException;  // example for one encoding type 
+
+//System.out.println(" *********************************************** ");
+//System.out.println("  ");
+//System.out.println("  ");
+//System.out.println("AFTER MOLECULAR FILE READ");
+//System.out.println("  ");
+//System.out.println("  ");
+//System.out.println(" *********************************************** ");
+
+//System.out.println("decoded " + decoded);
+  arrayMolString = decodedMol.split("%%");  //does this resize arrayMolString???
+
+//Okay, how many molecular lines are there REALLY:
+
+// Unnecessary - doesn't work??
+//   molCount = 0;
+//   for (int i = 0; i < maxMolLines; i++){
+//       if (arrayMolString[i].equals(" ")){
+//          break;
+//       }
+//       molCount++;
+//   }
+//    numMolList = molCount;
+
+//Number of lines MUST be the ONLY entry on the first line 
+
+         numMolList = arrayMolString.length;
+
+        //System.out.println("numMolList " + numMolList); 
+        //System.out.println("arrayMolString[0] " + arrayMolString[0]);
 //        for (int i = 0; i < 5; i++){
 //           System.out.println(arrayLineString[i]);
 //        }
+} //ifMolLines
 
-
+//Atomic lines:
 //Okay, here we go:
         //System.out.println("numLineList " + numLineList);
         double[] list2Lam0 = new double[numLineList];  // nm
@@ -1257,9 +1340,9 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
         double[] list2Mass = new double[numLineList]; // amu
         double[] list2LogGammaCol = new double[numLineList];
         //abundance in logarithmic A12 sysytem
-        double[] list2A12 = new double[numLineList];
+        //double[] list2A12 = new double[numLineList]; //deprecated
         //Einstein coefficient for spontaneous de-exciation:
-        double[] list2LogAij = new double[numLineList];
+        double[] list2LogAij = new double[numLineList]; //log base 10
         //Log of unitless oscillator strength, f 
         double[] list2Logf = new double[numLineList];
         //Ground state ionization E - Stage I (eV) 
@@ -1376,23 +1459,24 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
            //list2Gw4[list2_ptr] = 1.0; 
            list2LogGammaCol[list2_ptr] = logGammaCol; 
 
-     // The base solar abundance for this species:
-     // Java has not intrinsic method for finding a vlaue in an array:
-          //System.out.println("list2Element[list2_ptr]" + list2Element[list2_ptr]+"!");
-          int iAbnd = 0; //initialization
-          for (int jj = 0; jj < nelemAbnd; jj++){
-             //System.out.println("jj " + jj + " cname[jj]" + cname[jj]+"!");
-             if (list2Element[list2_ptr].equals(cname[jj])){
-                 break;   //we found it
-                 }
-             iAbnd++;
-            }
-           if (iAbnd == nelemAbnd){
-              //the element is not in out set - flag this with a special abundance value
-              list2A12[list2_ptr] = 0.0;
-                 } else {
-              list2A12[list2_ptr] = eheu[iAbnd]; 
-                 } 
+//Deprecated:
+     //// The base solar abundance for this species:
+     //// Java has not intrinsic method for finding a vlaue in an array:
+     //     //System.out.println("list2Element[list2_ptr]" + list2Element[list2_ptr]+"!");
+     //     int iAbnd = 0; //initialization
+     //     for (int jj = 0; jj < nelemAbnd; jj++){
+     //        //System.out.println("jj " + jj + " cname[jj]" + cname[jj]+"!");
+     //        if (list2Element[list2_ptr].equals(cname[jj])){
+     //            break;   //we found it
+     //            }
+     //        iAbnd++;
+     //       }
+     //    if (iAbnd == nelemAbnd){
+     //       //the element is not in out set - flag this with a special abundance value
+     //       list2A12[list2_ptr] = 0.0;
+     //          } else {
+     //       list2A12[list2_ptr] = eheu[iAbnd]; 
+     //          } 
  
     //We've gotten everything we need from the NIST line list:
            list2_ptr++;
@@ -1400,6 +1484,95 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
        } //iLine loop 
 
   int numLines2 = list2_ptr;
+
+
+//
+//Molecular lines:
+//Okay, here we go:
+        //System.out.println("numMolList " + numMolList);
+        double[] molList2Lam0 = new double[numMolList];  // nm
+        double[] molList2Mass = new double[numMolList]; // amu
+        double[] molList2LogGammaRad = new double[numMolList]; //log base 10
+        //abundance in logarithmic A12 sysytem
+        //double[] list2A12 = new double[numMolList]; //deprecated
+        //Log of unitless oscillator strength, f 
+        double[] molList2Log10gf = new double[numMolList];
+        //Ground state ionization E - Stage I (eV) 
+        double[] molList2DissE = new double[numMolList];
+        //Excitation E of lower E-level of b-b transition (eV)
+        double[] molList2ChiL = new double[numMolList];
+        //Unitless statisital weight, lower E-level of b-b transition   
+        // To be computed from v, J, and N??             
+        double[] molList2GwL = new double[numMolList];
+        //double[] list2GwU For now we'll just set GwU to 1.0
+        //Name of molecule - for labeling
+        String[] molList2Name = new String[numMolList];
+        //Name of electronic transition system - for labeling 
+        String[] molList2System = new String[numMolList];
+        //Name of branch - for labeling 
+        String[] molList2Branch = new String[numMolList];
+
+        double molList2LogGammaCol = 0.0;
+
+        //Atomic Data sources:
+ 
+ int molList2_ptr = 0; //pointer into line list2 that we're populating
+ int numMolFields = 8; //number of field per record 
+ // 0: element, 1: ion stage, 2: lambda_0, 3: logf, 4: g_l, 5: chi_l
+ String[] thisMolRecord = new String[numMolFields]; 
+    
+ //String myString;  //useful helper
+ 
+     for (int iMolLine = 0; iMolLine < numMolList; iMolLine++){
+
+        // "|" turns out to mean something in regexp, so we need to escape with '\\':
+        //System.out.println("iMolLine " + iMolLine + " arrayLineString[iMolLine] " + arrayLineString[iMolLine]);
+        thisMolRecord = arrayMolString[iMolLine].split("\\|");
+        //System.out.println("thisMolRecord[0] " + thisMolRecord[0]
+        //                 + "thisMolRecord[1] " + thisMolRecord[1] 
+        //                 + "thisMolRecord[2] " + thisMolRecord[2] 
+        //                 + "thisMolRecord[3] " + thisMolRecord[3] 
+        //                 + "thisMolRecord[4] " + thisMolRecord[4] 
+        //                 + "thisMolRecord[5] " + thisMolRecord[5]);
+                 
+       
+        myString = thisMolRecord[0].trim(); 
+        molList2Lam0[iMolLine] = Double.parseDouble(myString);
+        myString = thisMolRecord[1].trim();
+        molList2Log10gf[iMolLine] = Double.parseDouble(myString);  
+        //System.out.println("iMolLine " + iMolLine + " thisMolRecord[2] " + thisMolRecord[2]);    
+        myString = thisMolRecord[2].trim(); 
+        //System.out.println("myString " + myString);
+        molList2ChiL[iMolLine] = Double.parseDouble(myString);
+        myString = thisMolRecord[3].trim();
+//Probably don't need this - Plez' TiO list already has log(gf):
+        molList2GwL[iMolLine] = Double.parseDouble(myString);
+        myString = thisMolRecord[4].trim();
+        molList2LogGammaRad[iMolLine] = Double.parseDouble(myString);
+        myString = thisMolRecord[5].trim();
+        molList2Name[iMolLine] = myString;
+        myString = thisMolRecord[6].trim();
+        molList2System[iMolLine] = myString;
+        myString = thisMolRecord[7].trim();
+        molList2Branch[iMolLine] = myString;
+           
+    //System.out.println("iMolLine " + iMolLine + " list2Element[iMolLine] " + list2Element[iMolLine] + " list2StageRoman " + list2StageRoman[iLine] + " list2Lam0[iMolLine] " + list2Lam0[iMolLine] + " list2Logf[iMolLine] " + list2Logf[iMolLine] + " list2GwL[iMolLine] " + list2GwL[iMolLine] + " list2ChiL[iMolLine] " + list2ChiL[iMolLine]);   
+        
+    // Some more processing:
+           molList2Mass[molList2_ptr] = AtomicMass.getMolMass(molList2Name[molList2_ptr]);
+           molList2DissE[molList2_ptr] = IonizationEnergy.getDissE(molList2Name[molList2_ptr]); 
+
+    //We've gotten everything we need from the NIST line list:
+           molList2_ptr++;
+        
+       } //iMolLine loop 
+
+  int numMolLines2 = molList2_ptr;
+  //System.out.println("numMolLines2 " + numMolLines2);
+  //System.out.println("molList2Lam0 " + molList2Lam0[0] + " molList2Log10gf " + molList2Log10gf[0] + " molList2ChiL " + molList2ChiL[0] 
+  //  + " molList2GwL " + molList2GwL[0] + " molList2LogGammaRad " + molList2LogGammaRad[0] + " molList2Name " + molList2Name[0] 
+  //  + " molList2System " + molList2System[0] + " molList2Branch " + molList2Branch[0]
+  //  + " molList2Mass " + molList2Mass[0] + " molList2DissE " + molList2DissE[0]);
 
 
 //Okay - what kind of mess did we make...
@@ -1517,7 +1690,7 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
         int listNumPointsDelta = 1;
            double[][] listLinePointsDelta = LineGrid.lineGridDelta(list2Lam0[iLine], list2Mass[iLine], xiT, numDeps, teff);
            double[][] listLineProfDelta = LineProf.delta(listLinePointsDelta, list2Lam0[iLine], numDeps, tauRos, list2Mass[iLine], xiT, teff); 
-           double[][] listLogKappaLDelta = LineKappa.lineKap(list2Lam0[iLine], list2LogNums, list2Logf[iLine], listLinePointsDelta, listLineProfDelta,
+           double[][] listLogKappaLDelta = LineKappa.lineKap(list2Lam0[iLine], list2LogNums[2], list2Logf[iLine], listLinePointsDelta, listLineProfDelta,
                     numDeps, zScaleList, tauRos, temp, rho);
    /* Let's not do this - too slow:
             // Low resolution SED lines and high res spectrum synthesis region lines are mutually
@@ -1570,6 +1743,116 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
 //
        } //iLine loop
 
+//
+//Now do same for molecules
+//Triage: For each line: Voigt, Gaussian, or negelct??
+//
+//
+        int molGaussLineCntr = 0; //initialize accumulator
+        //int sedLineCntr = 0; //initialize accumulator
+        //No! boolean[] ifThisLine = new boolean[numLines2]; //initialize line strength flag
+        int molGaussLine_ptr[] = new int[numMolLines2]; //array of pointers to lines that make the cut in the 
+        //int sedLine_ptr[] = new int[numLines2]; //array of pointers to lines that make the cut in the 
+                                                  // master line list  
+        //System.out.println("sedThresh " + sedThresh + " lineThresh " + lineThresh 
+        //   + " lamUV " + lamUV + " lamIR " + lamIR + " lambdaStart " + lambdaStart + " lambdaStop " + lambdaStop);
+        boolean isMolFirstLine = true; //initialization
+        int firstMolLine = 0; //default initialization
+// This holds 2-element temperature-dependent base 10 logarithmic molecular parition fn:
+        double[] thisQwABv = new double[2];
+        thisQwABv[0] = 0.0; //default initialization //base 10 log_10 Q
+        thisQwABv[1] = 0.0;
+        for (int iMolLine = 0; iMolLine < numMolLines2; iMolLine++) {
+
+          molList2Lam0[iMolLine] = molList2Lam0[iMolLine] * 1.0e-7;  // nm to cm
+          int iMol = 0; //initialization
+          int logMolNums_ptr = 0;
+            //System.out.println("iMolLine " + iMolLine + " molList2Name[iMolLine] " + molList2Name[iMolLine]);
+          for (int jj = 0; jj < nMols; jj++){
+             //System.out.println("jj " + jj + " mname[jj]" + mname[jj]+"!");
+             if (molList2Name[iMolLine].equals(mname[jj])){
+//Fake molecular parition fn for now...
+                thisQwABv[0] = 0.0;  //base 10 log_10 Q
+                thisQwABv[1] = 0.0;  //base 10 log_10 Q
+                 break;   //we found it
+             }
+             iMol++;
+          } //jj loop
+                zScaleList = zScale;
+          //System.out.println("iMol " + iMol); // + " mname[iMol] " + cmame[iMol]);
+           //System.out.println("molList2Name[iMolLine] " + molList2Name[iMolLine] + " cmame[iMol] " + cmame[iMol]);
+//For molecular - row 0 holds total molecular number density, 
+//              - row 1 holds number density in lower E-level
+           double[][] molList2LogNums = new double[2][numDeps];
+            for (int iTau = 0; iTau < numDeps; iTau++){
+               molList2LogNums[0][iTau] = masterMolPops[iMol][iTau];
+            }
+            //double[] numHelp = LevelPopsServer.levelPops(molList2Lam0[iMolLine], molList2LogNums[molList2Stage[iMolLine]], molList2ChiL[iMolLine], thisUwV, 
+             //       molList2GwL[iMolLine], numDeps, tauRos, temp);
+          // System.out.println("iMolLine " + iMolLine + " molList2Lam0nm " +  molList2Lam0[iMolLine] + " molList2ChiL " + molList2ChiL[iMolLine] +
+// " thisUwV[] " + thisUwV[0] + " " + thisUwV[1] + " molList2GwL " + molList2GwL[iMolLine]);
+            double[] numHelp = LevelPopsServer.levelPops(molList2Lam0[iMolLine], molList2LogNums[0], molList2ChiL[iMolLine], thisQwABv, 
+                    molList2GwL[iMolLine], numDeps, temp);
+            for (int iTau = 0; iTau < numDeps; iTau++){
+               molList2LogNums[1][iTau] = numHelp[iTau];
+               //System.out.println("molList2LogNums[2][iTau] " + molList2LogNums[2][iTau] + " molList2LogNums2[2][iTau] " + molList2LogNums2[2][iTau]);
+            } 
+
+        //linePoints: Row 0 in cm (will need to be in nm for Plack.planck), Row 1 in Doppler widths
+        //For now - initial strength check with delta fn profiles at line centre for triage:
+        int listNumPointsDelta = 1;
+           double[][] listLinePointsDelta = LineGrid.lineGridDelta(molList2Lam0[iMolLine], molList2Mass[iMolLine], xiT, numDeps, teff);
+           double[][] listLineProfDelta = LineProf.delta(listLinePointsDelta, molList2Lam0[iMolLine], numDeps, tauRos, molList2Mass[iMolLine], xiT, teff); 
+           double[][] listLogKappaLDelta = LineKappa.lineKap(molList2Lam0[iMolLine], molList2LogNums[1], molList2Log10gf[iMolLine], listLinePointsDelta, listLineProfDelta,
+                    numDeps, zScaleList, tauRos, temp, rho);
+   /* Let's not do this - too slow:
+            // Low resolution SED lines and high res spectrum synthesis region lines are mutually
+            // exclusive sets in wavelength space:
+            //Does line qualify for inclusion in SED as low res line at all??
+            // Check ratio of line centre opacity to continuum at log(TauRos) = -5, -3, -1
+            if ( (logE*(listLogKappaLDelta[0][6] - kappa[1][6]) > sedThresh)  
+              || (logE*(listLogKappaLDelta[0][18] - kappa[1][18]) > sedThresh)  
+              || (logE*(listLogKappaLDelta[0][30] - kappa[1][30]) > sedThresh) ){ 
+                   if ( ( molList2Stage[iMolLine] == 0) || (molList2Stage[iMolLine] == 1) 
+                    ||  ( molList2Stage[iMolLine] == 2) || (molList2Stage[iMolLine] == 3) ){
+                        if ( (molList2Lam0[iMolLine] > lamUV) && (molList2Lam0[iMolLine] < lamIR) ){
+                           if ( (molList2Lam0[iMolLine] < lambdaStart) || (molList2Lam0[iMolLine] > lambdaStop) ){ 
+                      //No! ifThisLine[iMolLine] = true;
+                      sedLine_ptr[sedLineCntr] = iMolLine;
+                      sedLineCntr++;
+      //System.out.println("SED passed, iMolLine= " + iMolLine + " sedLineCntr " + sedLineCntr 
+      //   + " molList2Lam0[iMolLine] " + molList2Lam0[iMolLine] 
+      //   + " molList2Name[iMolLine] " + molList2Name[iMolLine]
+      //   + " molList2Stage[iMolLine] " + molList2Stage[iMolLine]); 
+                                 }
+                            }
+                      } 
+                }
+  */
+            //Does line qualify for inclusion in high res spectrum synthesis region??
+            // Check ratio of line centre opacity to continuum at log(TauRos) = -5, -3, -1
+           //Find local value of lambda-dependent continuum kappa - molList2Lam0 & lambdaScale both in cm here: 
+            int thisLambdaPtr = ToolBox.lamPoint(numLams, lambdaScale, molList2Lam0[iMolLine]);
+            if ( (logE*(listLogKappaLDelta[0][6] - logKappa[thisLambdaPtr][6]) > lineThresh)  
+              || (logE*(listLogKappaLDelta[0][18] - logKappa[thisLambdaPtr][18]) > lineThresh)  
+		      || (logE*(listLogKappaLDelta[0][30] - logKappa[thisLambdaPtr][30]) > lineThresh) ){ 
+				if ( (molList2Lam0[iMolLine] > lambdaStart) && (molList2Lam0[iMolLine] < lambdaStop) ){ 
+			      //No! ifThisLine[iMolLine] = true;
+			      molGaussLine_ptr[molGaussLineCntr] = iMolLine;
+			      molGaussLineCntr++;
+                              if (isFirstLine == true){
+                                 firstLine = iMolLine;
+                                 isFirstLine = false;
+                              } 
+//	      System.out.println("specSyn passed, iMolLine= " + iMolLine + " molGaussLineCntr " + molGaussLineCntr 
+//		 + " molList2Lam0[iMolLine] " + molList2Lam0[iMolLine] 
+//		 + " molList2Name[iMolLine] " + molList2Name[iMolLine]
+//		 + " molList2Stage[iMolLine] " + molList2Stage[iMolLine]); 
+                            }
+                }
+//
+       } //iMolLine loop
+
 //We need to have at least one line in rgion:
        boolean areNoLines = false; //initialization
        if (gaussLineCntr == 0){
@@ -1579,8 +1862,10 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
              }
 
        int numGaussLines = gaussLineCntr;
+       int numMolGaussLines = molGaussLineCntr;
+      // System.out.println("numMolGaussLines " + numMolGaussLines);
        //int numSedLines = sedLineCntr; //Gauss lines double-counted
-       int numTotalLines = numGaussLines; // + numSedLines;
+       //int numTotalLines = numGaussLines; // + numSedLines;
 //       System.out.println("We found " + numGaussLines + " lines strong enough for Gaussian and " + numSedLines + " strong enough for blanketing SED");
 //System.out.println(" *********************************************** ");
 //System.out.println("  ");
@@ -1599,14 +1884,20 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
         //int sedNumCore = 3;  //half-core //default initialization
         int listNumWing = 1;  //per wing
         //int sedNumWing = 1;  //per wing
+        int molListNumCore = 3;  //half-core //default initialization
+        int molListNumWing = 1;  //per wing
         //int thisNumCore = sedNumCore; //default initialization
         //int thisNumWing = sedNumWing; //default initialization
         if (sampling.equals("coarse")){
            listNumCore = 3;  //half-core
            listNumWing = 3;  //per wing
+           molListNumCore = 3;  //half-core //default initialization
+           molListNumWing = 1;  //per wing
         } else {
            listNumCore = 5;  //half-core
            listNumWing = 9;  //per wing
+           molListNumCore = 3;  //half-core //default initialization
+           molListNumWing = 3;  //per wing
         } 
 //Delta fn - for testing and strength triage
         //int listNumPoints = 1;
@@ -1614,10 +1905,11 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
         //int listNumPoints = 2 * listNumCore - 1; // + 1;  //Extra wavelength point at end for monochromatic continuum tau scale
 ////All full voigt:
         int listNumPoints = (2 * (listNumCore + listNumWing) - 1); // + 1;  //Extra wavelength point at end for monochromatic continuum tau scale
+        int molListNumPoints = (2 * (molListNumCore + molListNumWing) - 1); // + 1;  //Extra wavelength point at end for monochromatic continuum tau scale
         //int sedNumPoints = (2 * (sedNumCore + sedNumWing) - 1); // + 1;  //Extra wavelength point at end for monochromatic continuum tau scale
         //int thisNumPoints = sedNumPoints; //default initialization
         int numNow = numLams;  //initialize dynamic counter of how many array elements are in use
-        int numMaster = numLams + (numGaussLines * listNumPoints); // + (numSedLines * sedNumPoints); //total size (number of wavelengths) of master lambda & total kappa arrays 
+        int numMaster = numLams + (numGaussLines * listNumPoints) + (numMolGaussLines * molListNumPoints); // + (numSedLines * sedNumPoints); //total size (number of wavelengths) of master lambda & total kappa arrays 
         double[] masterLams = new double[numMaster];
 //Line blanketed opacity array:
         double[][] logMasterKaps = new double[numMaster][numDeps];
@@ -1646,13 +1938,14 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
         //Stuff for the the Teff recovery test:
         double lambda1, lambda2, fluxSurfBol, logFluxSurfBol;
         fluxSurfBol = 0;
-// This holds 2-element temperature-dependent base 10 logarithmic parition fn:
-        thisUwV[0] = 0.0; //default initialization
-        thisUwV[1] = 0.0;
  
  //Get the components for the power series expansion approximation of the Hjerting function
  //for treating Voigt profiles:
         double[][] hjertComp = HjertingComponents.hjertingComponents();
+
+// This holds 2-element temperature-dependent base 10 logarithmic parition fn:
+        thisUwV[0] = 0.0; //default initialization
+        thisUwV[1] = 0.0;
 
         double[][] listLineProf = new double[listNumPoints][numDeps];
 
@@ -1747,7 +2040,7 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
                     list2LogGammaCol[gaussLine_ptr[iLine]],
                     numDeps, teff, tauRos, temp, pGas, tempSun, pGasSun, hjertComp);
             } 
-            double[][] listLogKappaL = LineKappa.lineKap(list2Lam0[gaussLine_ptr[iLine]], list2LogNums, list2Logf[gaussLine_ptr[iLine]], listLinePoints, listLineProf,
+            double[][] listLogKappaL = LineKappa.lineKap(list2Lam0[gaussLine_ptr[iLine]], list2LogNums[2], list2Logf[gaussLine_ptr[iLine]], listLinePoints, listLineProf,
                     numDeps, zScaleList, tauRos, temp, rho);
             double[] listLineLambdas = new double[listNumPoints];
             for (int il = 0; il < listNumPoints; il++) {
@@ -1755,8 +2048,8 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
                 listLineLambdas[il] = listLinePoints[0][il] + list2Lam0[gaussLine_ptr[iLine]];
             }
 
-            for (int ll = 0; ll < listNumPoints; ll++){
-             }  
+          //huh?  for (int ll = 0; ll < listNumPoints; ll++){
+          //huh?   }  
             double[] masterLamsOut = SpecSyn.masterLambda(numLams, numMaster, numNow, masterLams, listNumPoints, listLineLambdas);
             double[][] logMasterKapsOut = SpecSyn.masterKappa(numDeps, numLams, numMaster, numNow, masterLams, masterLamsOut, logMasterKaps, listNumPoints, listLineLambdas, listLogKappaL);
             numNow = numNow + listNumPoints;
@@ -1774,6 +2067,102 @@ DecimalFormat myFormatter = new DecimalFormat(pattern);
             }
           //No! } //ifThisLine strength condition
         } //numLines loop
+////
+
+//
+//Now the same for molecular lines:
+// This holds 2-element temperature-dependent base 10 logarithmic parition fn:
+        thisQwABv[0] = 0.0; //default initialization
+        thisQwABv[1] = 0.0;
+
+        double[][] molListLineProf = new double[molListNumPoints][numDeps];
+
+// Put in high res spectrum synthesis lines:
+        for (int iMolLine = 0; iMolLine < numMolGaussLines; iMolLine++) {
+
+                zScaleList = zScale;
+
+//
+          int iMol = 0; //initialization
+          int logMolNums_ptr = 0;
+          for (int jj = 0; jj < nMols; jj++){
+             if (molList2Name[molGaussLine_ptr[iMolLine]].equals(mname[jj])){
+                  logMolNums_ptr = 0;  //may not be necessary - inherited from atom/ion treatment
+//Fake molecular partition fns for now...
+                thisQwABv[0] = 0.0; //base 10 log_10 Q
+                thisQwABv[1] = 0.0; //base 10 log_10 Q
+                 break;   //we found it
+                 }
+             iMol++;
+          } //jj loop
+//For molecular - row 0 holds total molecular number density, 
+//              - row 1 holds number density in lower E-level
+           double[][] molList2LogNums = new double[2][numDeps];
+            for (int iTau = 0; iTau < numDeps; iTau++){
+               molList2LogNums[0][iTau] = masterMolPops[iMol][iTau];
+            }
+            //double[] numHelp = LevelPopsServer.levelPops(molList2Lam0[molGaussLine_ptr[iMolLine]], molList2LogNums[molList2Stage[molGaussLine_ptr[iMolLine]]], molList2ChiL[molGaussLine_ptr[iMolLine]], thisUwV,
+             //       molList2GwL[molGaussLine_ptr[iMolLine]], numDeps, tauRos, temp);
+//System.out.println("iMolLine " + iMolLine + " molList2Lam0 " + molList2Lam0[molGaussLine_ptr[iMolLine]] + " molList2ChiL" + molList2ChiL[molGaussLine_ptr[iMolLine]] +
+// " thisUwV[] " + thisUwV[0] + " " + thisUwV[1] + " molList2GwL " + molList2GwL[molGaussLine_ptr[iMolLine]]);
+            double[] numHelp = LevelPopsServer.levelPops(molList2Lam0[molGaussLine_ptr[iMolLine]], molList2LogNums[0], molList2ChiL[molGaussLine_ptr[iMolLine]], thisQwABv,
+                    molList2GwL[molGaussLine_ptr[iMolLine]], numDeps, temp);
+            for (int iTau = 0; iTau < numDeps; iTau++){
+               molList2LogNums[1][iTau] = numHelp[iTau];
+              // if (iTau == 36){
+               //  System.out.println("iMolLine " + iMolLine + " iTau " + iTau + " listLogNums[2] " + logE*molList2LogNums[2][iTau]);
+              // }
+            } 
+
+             //Proceed only if line strong enough: 
+             // 
+             //ifThisLine[molGaussLine_ptr[iMolLine]] = true; //for testing
+             //No! if (ifThisLine[molGaussLine_ptr[iMolLine]] == true){
+              
+            // Gaussian only approximation to profile (voigt()):
+//            double[][] listLinePoints = LineGrid.lineGridGauss(molList2Lam0[molGaussLine_ptr[iMolLine]], molList2Mass[molGaussLine_ptr[iMolLine]], xiT, numDeps, teff, listNumCore);
+//            double[][] listLineProf = LineProf.molGauss(listLinePoints, molList2Lam0[molGaussLine_ptr[iMolLine]],
+//                    numDeps, teff, tauRos, temp, tempSun);
+            // Gaussian + Lorentzian approximation to profile (voigt()):
+            double[][] listLinePoints = LineGrid.lineGridVoigt(molList2Lam0[molGaussLine_ptr[iMolLine]], molList2Mass[molGaussLine_ptr[iMolLine]], xiT, numDeps, teff, molListNumCore, molListNumWing);
+            if (species.equals("HI")){
+// System.out.println("Calling Stark...");
+                 listLineProf = LineProf.stark(listLinePoints, molList2Lam0[molGaussLine_ptr[iMolLine]], molList2LogGammaRad[molGaussLine_ptr[iMolLine]],
+                    molList2LogGammaCol,
+                    numDeps, teff, tauRos, temp, pGas, newNe, tempSun, pGasSun, hjertComp);
+            } else {
+                 listLineProf = LineProf.voigt(listLinePoints, molList2Lam0[molGaussLine_ptr[iMolLine]], molList2LogGammaRad[molGaussLine_ptr[iMolLine]],
+                    molList2LogGammaCol,
+                    numDeps, teff, tauRos, temp, pGas, tempSun, pGasSun, hjertComp);
+            } 
+            double[][] listLogKappaL = LineKappa.lineKap(molList2Lam0[molGaussLine_ptr[iMolLine]], molList2LogNums[1], molList2Log10gf[molGaussLine_ptr[iMolLine]], listLinePoints, listLineProf,
+                    numDeps, zScaleList, tauRos, temp, rho);
+            double[] listLineLambdas = new double[molListNumPoints];
+            for (int il = 0; il < molListNumPoints; il++) {
+                // // lineProf[molGaussLine_ptr[iMolLine]][*] is DeltaLambda from line centre in cm
+                listLineLambdas[il] = listLinePoints[0][il] + molList2Lam0[molGaussLine_ptr[iMolLine]];
+            }
+
+            for (int ll = 0; ll < molListNumPoints; ll++){
+             }  
+            double[] masterLamsOut = SpecSyn.masterLambda(numLams, numMaster, numNow, masterLams, molListNumPoints, listLineLambdas);
+            double[][] logMasterKapsOut = SpecSyn.masterKappa(numDeps, numLams, numMaster, numNow, masterLams, masterLamsOut, logMasterKaps, molListNumPoints, listLineLambdas, listLogKappaL);
+            numNow = numNow + molListNumPoints;
+
+            //update masterLams and logMasterKaps:
+            for (int iL = 0; iL < numNow; iL++) {
+                masterLams[iL] = masterLamsOut[iL];
+                for (int iD = 0; iD < numDeps; iD++) {
+                    //Still need to put in multi-Gray levels here:
+                    logMasterKaps[iL][iD] = logMasterKapsOut[iL][iD];
+                   // if (iD == 36){
+                   //    System.out.println("iL " + iL + " masterLams " + masterLams[iL] + " logMasterKaps " + logMasterKaps[iL][iD]);
+                   // }
+                }
+            }
+          //No! } //ifThisLine strength condition
+        } //numMolLines loop
+//
 ////
 //Continuum monochromatic optical depth array:
         double logTauCont[][] = LineTau2.tauLambdaCont(numLams, logKappa,
