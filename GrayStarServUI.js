@@ -172,7 +172,7 @@ var gsDuplex = function(num, logVector){
 
 //JQuery:  Independent of order of switches in HTML file?
 // Stellar atmospheric parameters
-    var numInputs = 18;
+    var numInputs = 19;
 //Make settingsId object array by hand:
 // setId() is an object constructor
     function setId(nameIn, valueIn) {
@@ -217,6 +217,7 @@ var gsDuplex = function(num, logVector){
     var diskLambda = 1.0 * $("#diskLam").val(); //nm
     var diskSigma = 1.0 * $("#diskSigma").val(); //nm
     var logKapFudge = 1.0 * $("#logKapFudge").val(); //log_10 cm^2/g mass extinction fudge
+    var RV = 1.0 * $("#RV").val(); // radial velocity of star 
 
 //    
     settingsId[0] = new setId("<em>T</em><sub>eff</sub>", teff);
@@ -239,6 +240,7 @@ var gsDuplex = function(num, logVector){
     settingsId[15] = new setId("<em>i</em><sub>Rot</sub>", rotI);
     settingsId[16] = new setId("&#963<sub>Filter</sub>", diskSigma);
     settingsId[17] = new setId("&#954<sub>Fudge</sub>", logKapFudge);
+    settingsId[18] = new setId("RV", RV);
 
     //
     var numPerfModes = 8;
@@ -375,7 +377,7 @@ var gsDuplex = function(num, logVector){
 
   //Spectrum synthesis line sampling options:
     var switchSampl = "fine"; //default initialization
-// Coarse sampling: (default)
+// Coarse sampling: 
     if ($("#coarse").is(":checked")) {
         switchSampl = $("#coarse").val(); // radio 
     }
@@ -384,6 +386,17 @@ var gsDuplex = function(num, logVector){
         switchSampl = $("#fine").val(); // radio 
     }
    //console.log("line sampling " + switchSampl);
+
+  //Spectrum synthesis wavelength scale options:
+    var vacAir = "vacuum"; //default initialization
+// Wavelengths in Air : 
+    if ($("#air").is(":checked")) {
+        vacAir = $("#air").val(); // radio 
+    }
+// Wavelengths in vacuum: (default)
+    if ($("#vacuum").is(":checked")) {
+        vacAir = $("#vacuum").val(); // radio 
+    }
 
     //       
 
@@ -1389,17 +1402,38 @@ var gsDuplex = function(num, logVector){
     if (logKapFudge < -2.0) {
         flagArr[17] = true;
         logKapFudge = -2.0;
-        var gamStr = "-2.0";
+        var fudgeStr = "-2.0";
         settingsId[17].value = -2.0;
         $("#logKapFudge").val(-2.0);
     }
     if (logKapFudge > 2.0) {
         flagArr[17] = true;
         logKapFudge = 2.0;
-        var gamStr = "2.0";
+        var fudgeStr = "2.0";
         settingsId[17].value = 2.0;
         $("#logKapFudge").val(2.0);
     }
+
+    if (RV === null || RV === "") {
+        alert("RV must be filled out");
+        return;
+    }
+    flagArr[18] = false;
+    if (RV < -200.0) {
+        flagArr[18] = true;
+        RV = -200.0;
+        var RVStr = "-200";
+        settingsId[18].value = -200;
+        $("#RV").val(-200);
+    }
+    if (RV > 200.0) {
+        flagArr[18] = true;
+        RV = 200.0;
+        var RVStr = "200";
+        settingsId[18].value = 200;
+        $("#RV").val(200);
+    }
+
 
 
 var url = "http://www.ap.smu.ca/~ishort/OpenStars/GrayStarServer/grayStarServer.php";
@@ -1645,7 +1679,6 @@ var jsonObj;
             }
          var logFluxAjax = gsAjaxParser(numMaster, jsonObj.logFlux);
          var masterFlux = gsDuplex(numMaster, logFluxAjax);
- 
 
      // set up cosTheta as 2D array for now for consistency with legacy
      // first row is Gaussian-Legendre quadrature weight, but I don't think we need it
@@ -1667,20 +1700,23 @@ var jsonObj;
         }  //j 
       }  //i
 
-    var colors =  UBVRI(masterLams, masterFlux, numDeps, tauRos, temp);
+/* Do this later...
+    var colors =  UBVRI(masterLams2, masterFlux, numDeps, tauRos, temp);
 
     // UBVRI band intensity annuli - for disk rendering:
-    var bandIntens = iColors(masterLams, masterIntens, numThetas, numMaster); 
+    var bandIntens = iColors(masterLams2, masterIntens, numThetas, numMaster); 
     // tunable monochromatic band intensity annuli - for disk rendering:
     //var diskSigma = 1; //nm test
-    //var tuneBandIntens = tuneColor(masterLams, masterIntens, numThetas, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
+    //var tuneBandIntens = tuneColor(masterLams2, masterIntens, numThetas, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
+    //Use UN-shifted wavelength scale (masterLams) for defining the user-filter:
     var gaussFilter = gaussian(masterLams, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
-    var tuneBandIntens = tuneColor(masterLams, masterIntens, numThetas, numMaster, gaussFilter, lamUV, lamIR); 
+    //Use *shifted* wavelength scale (masterLams2) for user-filter integration of spectrum:
+    var tuneBandIntens = tuneColor(masterLams2, masterIntens, numThetas, numMaster, gaussFilter, lamUV, lamIR); 
 
     //Fourier transform of narrow band image:
     var ft = fourier(numThetas, cosTheta, tuneBandIntens);
     var numK = ft[0].length;
-
+*/
     //default initializations:
 
     //var specSynLams = [];
@@ -1878,6 +1914,63 @@ var jsonObj;
           }
       }
     
+
+//Apply corrections to wavelength scale before filter integrations:
+// - do them in the order nature does them in...
+//
+//Radial velocity correction:
+//We have to correct both masterLams AND specSynLams to correct both the overall SED and the spectrum synthesis region:
+     var masterLams2 = [];
+     masterLams2.length = numMaster;
+     var specSynLams2 = [];
+     specSynLams2.length = numSpecSyn;
+//refresh default each run:
+     for (var i = 0; i < numMaster; i++){
+        masterLams2[i] = masterLams[i];
+     }
+     for (var i = 0; i < numSpecSyn; i++){
+        specSynLams2[i] = specSynLams[i];
+     }
+     var deltaLam = 0.0;
+     var c = 2.9979249E+10; // light speed in vaccuum in cm/s
+     var RVfac = RV / (1.0e-5*c);
+     if (RV != 0.0){
+       for (var i = 0; i < numMaster; i++){
+          deltaLam = RVfac * masterLams[i];
+          masterLams2[i] = masterLams2[i] + deltaLam; 
+       }
+       for (var i = 0; i < numSpecSyn; i++){
+          deltaLam = RVfac * specSynLams[i];
+          specSynLams2[i] = specSynLams2[i] + deltaLam; 
+       }
+     }
+     var invnAir = 1.0 / 1.000277; // reciprocal of refractive index of air at STP 
+     if (vacAir == "air"){
+       for (var i = 0; i < numMaster; i++){
+         masterLams2[i] = invnAir * masterLams2[i];
+       }
+       for (var i = 0; i < numSpecSyn; i++){
+         specSynLams2[i] = invnAir * specSynLams2[i];
+       }
+     }
+
+
+    var colors =  UBVRI(masterLams2, masterFlux, numDeps, tauRos, temp);
+
+    // UBVRI band intensity annuli - for disk rendering:
+    var bandIntens = iColors(masterLams2, masterIntens, numThetas, numMaster); 
+    // tunable monochromatic band intensity annuli - for disk rendering:
+    //var diskSigma = 1; //nm test
+    //var tuneBandIntens = tuneColor(masterLams2, masterIntens, numThetas, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
+    //Use UN-shifted wavelength scale (masterLams) for defining the user-filter:
+    var gaussFilter = gaussian(masterLams, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
+    //Use *shifted* wavelength scale (masterLams2) for user-filter integration of spectrum:
+    var tuneBandIntens = tuneColor(masterLams2, masterIntens, numThetas, numMaster, gaussFilter, lamUV, lamIR); 
+
+    //Fourier transform of narrow band image:
+    var ft = fourier(numThetas, cosTheta, tuneBandIntens);
+    var numK = ft[0].length;
+
 
 //
 //
@@ -2737,8 +2830,8 @@ var jsonObj;
         var thisXAxisLength = 1200;
         var thisPanelWidth = 1350;
 //Triple wide:
-        var minXData = 1.0e7 * specSynLams[0];
-        var maxXData = 1.0e7 * specSynLams[numSpecSyn - 1];
+        var minXData = 1.0e7 * specSynLams2[0];
+        var maxXData = 1.0e7 * specSynLams2[numSpecSyn - 1];
 
         var xAxisName = "<em>&#955</em> (nm)";
         //now done above var norm = 1.0e15; // y-axis normalization
@@ -2813,8 +2906,8 @@ var jsonObj;
 //Does Guasian filter fall within spectrum synthesis region:
         var plotFilt = false;
         var numGauss = gaussFilter[0].length;
-        if ( ( (gaussFilter[0][0] > specSynLams[0]) && (gaussFilter[0][0] < specSynLams[numSpecSyn-1]) )
-          || ( (gaussFilter[0][numGauss-1] > specSynLams[0]) && (gaussFilter[0][numGauss-1] < specSynLams[numSpecSyn-1]) ) ){
+        if ( ( (gaussFilter[0][0] > specSynLams2[0]) && (gaussFilter[0][0] < specSynLams2[numSpecSyn-1]) )
+          || ( (gaussFilter[0][numGauss-1] > specSynLams2[0]) && (gaussFilter[0][numGauss-1] < specSynLams2[numSpecSyn-1]) ) ){
           //    console.log("plotFilt condition met");
               plotFilt = true;
         } 
@@ -2822,10 +2915,10 @@ var jsonObj;
 //grid for overplotting:
           var newFilter = [];
         if (plotFilt == true){ 
-           newFilter = interpolV(gaussFilter[1], gaussFilter[0], specSynLams);
+           newFilter = interpolV(gaussFilter[1], gaussFilter[0], specSynLams2);
         }
 
-        var lambdanm = 1.0e7 * specSynLams[0];
+        var lambdanm = 1.0e7 * specSynLams2[0];
         var xTickPosCnvs = thisXAxisLength * (lambdanm - minXData) / (rangeXData); // pixels
         var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
         var yTickPosCnvs = yAxisLength * ((specSynFlux[0][0] / norm) - minYData) / rangeYData;
@@ -2842,7 +2935,7 @@ var jsonObj;
         for (var i = 1; i < numSpecSyn; i++) {
 
 
-            lambdanm = 1.0e7 * specSynLams[i]; //cm to nm //linear
+            lambdanm = 1.0e7 * specSynLams2[i]; //cm to nm //linear
             ii = 1.0 * i;
             xTickPosCnvs = thisXAxisLength * (lambdanm - minXData) / (rangeXData); // pixels   //linear
 
@@ -2851,7 +2944,7 @@ var jsonObj;
             xShiftCnvs = Math.floor(xShiftCnvs);
 
             yTickPosCnvs = yAxisLength * (specSynFlux[0][i] - minYData) / rangeYData;
-            //console.log("i " + i + " 1.0e7 * specSynLams[i] " + 1.0e7 * specSynLams[i] + " specSynFlux[0][i] " + specSynFlux[0][i]);
+            //console.log("i " + i + " 1.0e7 * specSynLams2[i] " + 1.0e7 * specSynLams2[i] + " specSynFlux[0][i] " + specSynFlux[0][i]);
             // vertical position in pixels - data values increase upward:
             yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
             yShiftCnvs = Math.floor(yShiftCnvs);
@@ -3067,8 +3160,8 @@ var jsonObj;
                 titleOffsetX, titleOffsetY + 20, lineColor, plotTwelveId);
         txtPrint("<span style='font-size:normal; color:black'><em>&#952</em> = </span>",
                 270 + titleOffsetX, titleOffsetY + 20, lineColor, plotTwelveId);
-        var ilLam0 = lamPoint(numMaster, masterLams, 1.0e-7 * diskLambda);
-        var lambdanm = masterLams[ilLam0] * 1.0e7; //cm to nm
+        var ilLam0 = lamPoint(numMaster, masterLams2, 1.0e-7 * diskLambda);
+        var lambdanm = masterLams2[ilLam0] * 1.0e7; //cm to nm
         //console.log("PLOT TWELVE: ilLam0=" + ilLam0 + " lambdanm " + lambdanm);
         var minZData = 0.0;
         //var maxZData = masterIntens[ilLam0][0] / norm;
@@ -3158,8 +3251,8 @@ var jsonObj;
         //var minZData = 12.0;
         //var maxZData = logE * masterFlux[1][iLamMax];
         //Linear z:
-        var ilLam0 = lamPoint(numMaster, masterLams, 1.0e-7 * minXData);
-        var ilLam1 = lamPoint(numMaster, masterLams, 1.0e-7 * maxXData);
+        var ilLam0 = lamPoint(numMaster, masterLams2, 1.0e-7 * minXData);
+        var ilLam1 = lamPoint(numMaster, masterLams2, 1.0e-7 * maxXData);
         var minZData = 0.0;
         var maxZData = masterFlux[0][iLamMax] / norm;
         //Make sure spectrum is normalized to brightest displayed lambda haveing level =255
@@ -3209,22 +3302,22 @@ var jsonObj;
                 titleOffsetX, titleOffsetY, lineColor, plotTenId);
         var xShift, zShift, xShiftDum, zLevel;
         var RGBHex; //, r255, g255, b255;
-        var rangeXData = 1.0e7 * (masterLams[ilLam1] - masterLams[ilLam0]);
-        //console.log("minXData " + minXData + " ilLam0 " + ilLam0 + " masterLams[ilLam0] " + masterLams[ilLam0]);
+        var rangeXData = 1.0e7 * (masterLams2[ilLam1] - masterLams2[ilLam0]);
+        //console.log("minXData " + minXData + " ilLam0 " + ilLam0 + " masterLams2[ilLam0] " + masterLams2[ilLam0]);
 
         var barWidth, xBarShift0, xBarShift1, xPos, yPos, nameLbl, lamLbl, lamLblStr, lamLblNum;
         var barHeight = 75.0;
 
 //We can only palce vertical bars by setting marginleft, so search *AHEAD* in wavelength to find width
 // of *CURRENT* bar.
-        var lambdanm = masterLams[ilLam0] * 1.0e7; //cm to nm
+        var lambdanm = masterLams2[ilLam0] * 1.0e7; //cm to nm
         //console.log("ilLam0 " + ilLam0 + " ilLam1 " + ilLam1);
         yFinesse = -160;
         var thisYPos = xAxisYCnvs + yFinesse;
         for (var i = ilLam0 + 1; i < ilLam1; i++) {
 
-            var nextLambdanm = masterLams[i] * 1.0e7; //cm to nm
-            //logLambdanm = 7.0 + logTen(masterLams[i]);
+            var nextLambdanm = masterLams2[i] * 1.0e7; //cm to nm
+            //logLambdanm = 7.0 + logTen(masterLams2[i]);
 
             //barWidth = Math.max(1, Math.ceil(xRange * (lambdanm - lastLambdanm) / rangeXData));
             //barWidth = xRange * (nextLambdanm - lambdanm) / rangeXData;
@@ -3887,7 +3980,7 @@ var jsonObj;
 // 
     if (ifShowAtmos === true) {
 
-        var plotRow = 3;
+        var plotRow = 4;
         var plotCol = 0;
         var minXData = logE * tauRos[1][0];
         var maxXData = logE * tauRos[1][numDeps - 1];
@@ -4073,7 +4166,7 @@ var jsonObj;
 
     if (ifShowAtmos === true) {
 
-        var plotRow = 3;
+        var plotRow = 4;
         var plotCol = 1;
         var minXData = logE * tauRos[1][0];
         var maxXData = logE * tauRos[1][numDeps - 1];
@@ -4270,8 +4363,8 @@ var jsonObj;
  
    if (ifShowRad === true) {
 
-        var plotRow = 4;
-        var plotCol = 1;
+        var plotRow = 3;
+        var plotCol = 0;
 //
         var minXData = 180.0 * Math.acos(cosTheta[1][0]) / Math.PI;
         var maxXData = 180.0 * Math.acos(cosTheta[1][numThetas - 1]) / Math.PI;
@@ -4308,7 +4401,7 @@ var jsonObj;
 
         //var iLamMinMax = minMax2(masterFlux);
         //var iLamMax = iLamMinMax[1];
-        //var lamMax = (1.0e7 * masterLams[iLamMax]).toPrecision(3);
+        //var lamMax = (1.0e7 * masterLams2[iLamMax]).toPrecision(3);
 
         var diskLamLbl = diskLambda.toPrecision(3);
         var diskLamStr = diskLamLbl.toString(10);
@@ -4392,15 +4485,15 @@ var jsonObj;
 // 
     if (ifShowRad === true) {
 
-        var plotRow = 4;
-        var plotCol = 0;
+        var plotRow = 3;
+        var plotCol = 2;
 //
-        var minXData = 1.0e7 * masterLams[0];
-        var maxXData = 1.0e7 * masterLams[numMaster - 1];
+        var minXData = 1.0e7 * masterLams2[0];
+        var maxXData = 1.0e7 * masterLams2[numMaster - 1];
         var xAxisName = "<em>&#955</em> (nm)";
         //    ////Logarithmic x:
-        //var minXData = 7.0 + logTen(masterLams[0]);
-        //var maxXData = 7.0 + logTen(masterLams[numMaster - 1]);
+        //var minXData = 7.0 + logTen(masterLams2[0]);
+        //var maxXData = 7.0 + logTen(masterLams2[numMaster - 1]);
         //var maxXData = 3.0; //finesse - Log10(lambda) = 3.5 nm
         //var xAxisName = "Log<sub>10</sub> &#955 (nm)";
         //var numYTicks = 4;
@@ -4547,8 +4640,8 @@ var jsonObj;
 
         // Avoid upper boundary at i=0
 
-        //var logLambdanm = 7.0 + logTen(masterLams[0]);  //logarithmic
-        var lambdanm = 1.0e7 * masterLams[0];
+        //var logLambdanm = 7.0 + logTen(masterLams2[0]);  //logarithmic
+        var lambdanm = 1.0e7 * masterLams2[0];
         var xTickPosCnvs = xAxisLength * (lambdanm - minXData) / rangeXData; // pixels
         var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
 //Logarithmic y:
@@ -4562,8 +4655,8 @@ var jsonObj;
         var xShift, yShift;
         for (var i = 1; i < numMaster; i++) {
 
-            lambdanm = masterLams[i] * 1.0e7; //cm to nm //linear
-            //logLambdanm = 7.0 + logTen(masterLams[i]);  //logarithmic
+            lambdanm = masterLams2[i] * 1.0e7; //cm to nm //linear
+            //logLambdanm = 7.0 + logTen(masterLams2[i]);  //logarithmic
             ii = 1.0 * i;
             xTickPosCnvs = xAxisLength * (lambdanm - minXData) / rangeXData; // pixels   //linear
 
@@ -4663,8 +4756,8 @@ var jsonObj;
    // var chiU = chiL + Math.exp(logTransE);
     if (ifShowLogNums === true) {
 //
-        var plotRow = 4;
-        var plotCol = 2;
+        var plotRow = 5;
+        var plotCol = 1;
         // Determine which ionization stage gas the majority population and scale the axis 
         /// with that population
         // From function levelPops():
@@ -4825,7 +4918,7 @@ var jsonObj;
 
     if (ifShowAtmos === true) {
 //
-        var plotRow = 3;
+        var plotRow = 4;
         var plotCol = 2;
         var minXData = logE * tauRos[1][0] - 0.0;
         var maxXData = logE * tauRos[1][numDeps - 1];
@@ -4968,7 +5061,7 @@ var jsonObj;
 
    if ((ifShowRad === true)) {
 
-        var plotRow = 5;
+        var plotRow = 3;
         var plotCol = 1;
 //
         var minXData = ft[0][0];
@@ -5013,7 +5106,7 @@ var jsonObj;
 
         //var iLamMinMax = minMax2(masterFlux);
         //var iLamMax = iLamMinMax[1];
-        //var lamMax = (1.0e7 * masterLams[iLamMax]).toPrecision(3);
+        //var lamMax = (1.0e7 * masterLams2[iLamMax]).toPrecision(3);
 
 //
         lineColor = "#000000";
@@ -5053,11 +5146,11 @@ var jsonObj;
         var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
   //logarithmic      var yTickPosCnvs = yAxisLength * (logE*Math.log(ft[1][0]) - minYData) / rangeYData;  //logarithmic 
         var yTickPosCnvs = yAxisLength * (ft[1][0] - minYData) / rangeYData;
-        var yTickPos2Cnvs = yAxisLength * (ft[2][0] - minYData) / rangeYData;
+        //var yTickPos2Cnvs = yAxisLength * (ft[2][0] - minYData) / rangeYData;
 
         // vertical position in pixels - data values increase upward:
         var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-        var lastYShift2Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos2Cnvs;
+        //var lastYShift2Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos2Cnvs;
 //
         for (var i = 1; i < numK; i++) {
 
@@ -5068,42 +5161,43 @@ var jsonObj;
 
    //logarithmic         yTickPosCnvs = yAxisLength * (logE*Math.log(ft[1][i]) - minYData) / rangeYData;   //logarithmic
             yTickPosCnvs = yAxisLength * (ft[1][i] - minYData) / rangeYData;   
-            yTickPos2Cnvs = yAxisLength * (ft[2][i] - minYData) / rangeYData;   
+            //yTickPos2Cnvs = yAxisLength * (ft[2][i] - minYData) / rangeYData;   
 
             // vertical position in pixels - data values increase upward:
             var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-            var yShift2Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos2Cnvs;
+            //var yShift2Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos2Cnvs;
 
-//Plot points
-            cnvsFifteenCtx.beginPath();
-            cnvsFifteenCtx.arc(xShiftCnvs, yShiftCnvs, dSizeCnvs, 0, 2*Math.PI);
-            RGBHex = colHex(0, 0, 0);
-            cnvsFifteenCtx.strokeStyle = RGBHex;
-            cnvsFifteenCtx.stroke();
+////Plot points
+//            cnvsFifteenCtx.beginPath();
+//            cnvsFifteenCtx.arc(xShiftCnvs, yShiftCnvs, dSizeCnvs, 0, 2*Math.PI);
+//            RGBHex = colHex(0, 0, 0);
+//            cnvsFifteenCtx.strokeStyle = RGBHex;
+//            cnvsFifteenCtx.stroke();
 //line plot
             cnvsFifteenCtx.beginPath();
             cnvsFifteenCtx.strokeStyle = RGBHex;
+            RGBHex = colHex(0, 0, 0);
             cnvsFifteenCtx.moveTo(lastXShiftCnvs, lastYShiftCnvs);
             cnvsFifteenCtx.lineTo(xShiftCnvs, yShiftCnvs);
             cnvsFifteenCtx.stroke();
             //
 
-//Plot points
-            cnvsFifteenCtx.beginPath();
-            cnvsFifteenCtx.arc(xShiftCnvs, yShift2Cnvs, dSizeCnvs, 0, 2*Math.PI);
-            RGBHex = colHex(250, 0, 0);
-            cnvsFifteenCtx.strokeStyle = RGBHex;
-            cnvsFifteenCtx.stroke();
-//line plot
-            cnvsFifteenCtx.beginPath();
-            cnvsFifteenCtx.strokeStyle = RGBHex;
-            cnvsFifteenCtx.moveTo(lastXShiftCnvs, lastYShift2Cnvs);
-            cnvsFifteenCtx.lineTo(xShiftCnvs, yShift2Cnvs);
-            cnvsFifteenCtx.stroke();
+////Plot points
+//            cnvsFifteenCtx.beginPath();
+//            cnvsFifteenCtx.arc(xShiftCnvs, yShift2Cnvs, dSizeCnvs, 0, 2*Math.PI);
+//            RGBHex = colHex(250, 0, 0);
+//            cnvsFifteenCtx.strokeStyle = RGBHex;
+//            cnvsFifteenCtx.stroke();
+////line plot
+//            cnvsFifteenCtx.beginPath();
+//            cnvsFifteenCtx.strokeStyle = RGBHex;
+//            cnvsFifteenCtx.moveTo(lastXShiftCnvs, lastYShift2Cnvs);
+//            cnvsFifteenCtx.lineTo(xShiftCnvs, yShift2Cnvs);
+//            cnvsFifteenCtx.stroke();
 
             lastXShiftCnvs = xShiftCnvs;
             lastYShiftCnvs = yShiftCnvs;
-            lastYShift2Cnvs = yShift2Cnvs;
+//            lastYShift2Cnvs = yShift2Cnvs;
         }
     }
 
@@ -5232,7 +5326,7 @@ var jsonObj;
         txtPrint("log<sub>10</sub> <em>F</em><sub>&#955</sub> (ergs s<sup>-1</sup> cm<sup>-2</sup> cm<sup>-1</sup>)", 10 + xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         for (var i = 0; i < numMaster; i++) {
             yTab = yOffsetPrint + vOffset + i * lineHeight;
-            value = logE * Math.log(masterLams[i]);
+            value = logE * Math.log(masterLams2[i]);
             value = value.toPrecision(9);
             numPrint(value, 10, yTab, txtColor, printModelId);
             value = logE * masterFlux[1][i];
@@ -5258,7 +5352,7 @@ var jsonObj;
 
         for (var i = 0; i < numMaster; i++) {
             yTab = yOffsetPrint + vOffset + (i+1) * lineHeight;
-            value = logE * Math.log(masterLams[i]);
+            value = logE * Math.log(masterLams2[i]);
             value = value.toPrecision(9);
             numPrint(value, 10, yTab, txtColor, printModelId);
             for (var j = 0; j < numThetas; j += 2) {
@@ -5280,7 +5374,7 @@ var jsonObj;
         txtPrint("<em>F</em><sub>&#955</sub> / <em>F</em><sup>C</sup><sub>&#955</sub>", 10 + xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         for (var i = 0; i < numSpecSyn; i++) {
             yTab = yOffsetPrint + vOffset + i * lineHeight;
-            value = 1.0e7 * specSynLams[i];
+            value = 1.0e7 * specSynLams2[i];
             value = value.toPrecision(9);
             numPrint(value, 10, yTab, txtColor, printModelId);
             value = specSynFlux[0][i];

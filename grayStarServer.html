@@ -467,6 +467,12 @@
                                     <input id="lambdaStop" type="number" name="lambdaStop" value="592.0" min="382" max="900" step="0.1" size="7"/> 
                                 </span>
                             </td>
+                            <td>
+                                <span title="Star's radial (line-of-sight) velocity - affects wavelength of spectral lines">
+                                    <em>RV</em> (-200 to +200 km s<sup>-1</sup>) <br />
+                                    <input id="RV" type="number" name="RV" value=0.0 size="4"/>
+                                </span>
+                            </td>
                         </tr>
                         <tr>
                             <td>
@@ -485,6 +491,20 @@
                                 <span title="Rotational axis inclination wrt line-of-sight"> 
                                     <em>i</em><sub>Rot</sub> (0 - 90 <sup>o</sup>) <br />
                                     <input id="rotI" type="number" name="rotI" value="90.0" min="0.0" max="90.0" step="1.0" size="4"/> 
+                                </span>
+                            </td>
+
+                            <td>
+                               &#955-scale in vac/air:
+                            </td>
+                            <td>
+                                <span title="Wavelength scale in vacuum">
+                                    <input id="vacuum" type="radio" name="vacAir" value="vacuum" checked="checked"/>Vacuum
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Wavelength scale in air">
+                                    <input id="air" type="radio" name="vacAir" value="air" />Air
                                 </span>
                             </td>
                             <td>
@@ -867,10 +887,25 @@
         <div id="plotNine">
             <canvas id="plotNineCnvs" width="450" height="350"></canvas>
         </div> 
-
+i<!--
         <div id="plotOne" class="atmosPanel" style="display:none">
             <canvas id="plotOneCnvs" width="450" height="350"></canvas>
         </div>
+-->
+        <!-- Limb darkening: I_lambda(theta) -->
+        <div id="plotFour" class="radPanel" style="display:none">
+            <canvas id="plotFourCnvs" width="450" height="350"></canvas>
+        </div> 
+
+        <!-- Fourier transform of I(theta/(pi/2)) -->
+        <div id="plotFifteen">
+            <canvas id="plotFifteenCnvs" width="450" height="350"></canvas>
+        </div>
+
+        <!-- SED: I_lambda, F_lambda(lambda) -->
+        <div id="plotFive" class="radPanel" style="display:none">
+            <canvas id="plotFiveCnvs" width="450" height="350"></canvas>
+        </div>         
 
         <!-- Tkin vs log(Tau) -->
         <div id="plotTwo" class="atmosPanel"style=" display:none">
@@ -882,30 +917,15 @@
             <canvas id="plotThreeCnvs" width="450" height="350"></canvas>
         </div> 
 
-        <!-- Limb darkening: I_lambda(theta) -->
-        <div id="plotFour" class="radPanel" style="display:none">
-            <canvas id="plotFourCnvs" width="450" height="350"></canvas>
-        </div> 
-
-        <!-- SED: I_lambda, F_lambda(lambda) -->
-        <div id="plotFive" class="radPanel" style="display:none">
-            <canvas id="plotFiveCnvs" width="450" height="350"></canvas>
-        </div>         
-
-        <!-- Ionization equilibrium -->
-        <div id="plotEight" class="ionPanel" style="display:none">
-            <canvas id="plotEightCnvs" width="450" height="350"></canvas>
-        </div>         
-
         <!-- Opacity vs depth -->
         <div id="plotFourteen">
             <canvas id="plotFourteenCnvs" width="450" height="350"></canvas>
         </div>
 
-        <!-- Fourier transform of I(theta/(pi/2)) -->
-        <div id="plotFifteen">
-            <canvas id="plotFifteenCnvs" width="450" height="350"></canvas>
-        </div>
+        <!-- Ionization equilibrium -->
+        <div id="plotEight" class="ionPanel" style="display:none">
+            <canvas id="plotEightCnvs" width="450" height="350"></canvas>
+        </div>         
 
         <!-- Print-out panel -->
         <div id="printModel" style="display:block"></div>
