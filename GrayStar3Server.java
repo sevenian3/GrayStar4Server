@@ -231,6 +231,13 @@ public class GrayStar3Server {
             logKapFudgeStr = "2.0";
         }
 
+//
+// ************************ 
+//
+//  OPACITY  PROBLEM #1 - logFudgeTune:  late type star coninuous oapcity needs to have by multiplied 
+//  by 10.0^0.5 = 3.0 for T_kin(tau~1) to fall around Teff and SED to look like B_lmabda(Trad=Teff).
+//   - related to Opacity problem #2 in LineKappa.lineKap() - ??
+//
   double logFudgeTune = 0.0;
   //sigh - don't ask me - makes the Balmer lines show up around A0:
       if (teff <= F0Vtemp){
@@ -255,7 +262,7 @@ public class GrayStar3Server {
 
         //wavelength grid (cm):
         double[] lamSetup = new double[3];
-        lamSetup[0] = 200.0 * 1.0e-7;  // test Start wavelength, cm
+        lamSetup[0] = 300.0 * 1.0e-7;  // test Start wavelength, cm
         lamSetup[1] = 1000.0 * 1.0e-7; // test End wavelength, cm
         lamSetup[2] = 250;  // test number of lambda
         //int numLams = (int) (( lamSetup[1] - lamSetup[0] ) / lamSetup[2]) + 1;  
@@ -461,8 +468,8 @@ public class GrayStar3Server {
   cname[39]="Cs";
 
 //Diatomic molecules:
-  int nMols = 18;
-//  var nMols = 1;
+ // int nMols = 18;
+  int nMols = 1;
   String[] mname = new String[nMols];
   String[] mnameA = new String[nMols];
   String[] mnameB = new String[nMols];
@@ -474,7 +481,7 @@ public class GrayStar3Server {
 // For constituent atomic species, A and B, always designate as 'A' whichever element participates in the
 //  *fewest other* molecuels - we'll put A on the LHS of the molecular Saha equation
 
-  mname[0] = "H2";
+/*  mname[0] = "H2";
   mnameA[0] = "H";
   mnameB[0] = "H";
   mname[1] = "H2+";
@@ -521,13 +528,13 @@ public class GrayStar3Server {
   mnameB[14] = "O";
   mname[15] = "CaO";
   mnameA[15] = "Ca";
-  mnameB[15] = "O";
-  mname[16] = "TiO";
-  mnameA[16] = "Ti";
-  mnameB[16] = "O";
-  mname[17] = "VO";
+  mnameB[15] = "O"; */
+  mname[0] = "TiO";
+  mnameA[0] = "Ti";
+  mnameB[0] = "O";
+/*  mname[17] = "VO";
   mnameA[17] = "V";
-  mnameB[17] = "O";
+  mnameB[17] = "O"; */
 
   double ATot = 0.0;
   double thisAz;
@@ -626,6 +633,11 @@ public class GrayStar3Server {
             guessNe = ScaleT10000.phxRefNe(numDeps, temp, guessPe);
             //logKapFudge = -1.5;  //sigh - don't ask me - makes the Balmer lines show up around A0 
         }
+
+      //System.out.println("i     temp      guessPGas      guessPe      10^-9*guessNe");
+      //for (int i = 0; i < numDeps; i+=10){
+      //   System.out.format("%03d, %21.15f, %21.15f, %21.15f, %21.15f%n", i, temp[0][i], guessPGas[0][i], guessPe[0][i], (1.0e-9*guessNe[0][i]));
+      //}
         //
 
         // END initial guess for Sun section
@@ -696,9 +708,12 @@ public class GrayStar3Server {
        masterMolPops[i][j] = -49.0;  //these are logarithmic
     }
   }
+//We will interpolate in atomic partition fns tabulated at two temperatures
   double[] thisUwAV = new double[2];
   double[] thisUwBV = new double[2];
-  double thisQwAB, thisDissE;
+//We will interpolate in molecular partition fns tabulated at five temperatures
+  double[] thisQwAB = new double[5];
+  double thisDissE;
 
 //
   double[][] newNe = new double[2][numDeps]; 
@@ -737,6 +752,10 @@ public class GrayStar3Server {
     
 //Get mass density from chemical composition: 
      rho = State.massDensity2(numDeps, nelemAbnd, logNz, cname);
+      //System.out.println("i     rho");
+      //for (int i = 0; i < numDeps; i+=10){
+      //   System.out.format("%03d, %21.15f%n", i, rho[0][i]);
+      //}
      //for (int i = 0 ; i < numDeps; i++){
        //System.out.println("i " + i + " rho " + logE*rho[1][i]);
      //}
@@ -755,10 +774,12 @@ public class GrayStar3Server {
 
 //for diatomic molecules
        double[][] logNumBArr = new double[numAssocMols][numDeps];
-       double[][] log10UwBArr = new double[numAssocMols][2];
+//We will interpolate in atomic partition fns tabulated at two temperatures
+       double[][] log10UwBArr = new double[numAssocMols][2]; //base 10 log
 
        double[] dissEArr = new double[numAssocMols];
-       double[] log10QwABArr = new double[numAssocMols];
+//We will interpolate in molecular partition fns tabulated at five temperatures
+       double[][] logQwABArr = new double[numAssocMols][5]; //natural log
        double[] logMuABArr = new double[numAssocMols];
 
 // Arrays ofpointers into master molecule and element lists:
@@ -776,13 +797,15 @@ public class GrayStar3Server {
            log10UwBArr[i][0] = 0.0;
            log10UwBArr[i][1] = 0.0;
            dissEArr[i] = 29.0;  //eV
-           log10QwABArr[i] = 0.0;
+           for (int kk = 0; kk < 5; kk++){ 
+               logQwABArr[i][kk] = Math.log(300.0);
+           }
            logMuABArr[i] = Math.log(2.0) + Useful.logAmu();  //g
            mname_ptr[i] = 0;
            specB_ptr[i] = 0;
        }
 
-       double defaultQwAB = 0.0; //for now
+       double defaultQwAB = Math.log(300.0); //for now
     //default that applies to most cases - neutral stage (I) forms molecules
        int specBStage = 0; //default that applies to most cases
 
@@ -793,7 +816,10 @@ public class GrayStar3Server {
        nmrtrLog10UwB[0] = 0.0;
        nmrtrLog10UwB[1] = 0.0;
        double nmrtrLog10UwA = 0.0;
-       double nmrtrLog10QwAB = 0.0;
+       double[] nmrtrLogQwAB = new double[5];
+       for (int kk = 0; kk < 5; kk++){
+          nmrtrLogQwAB[kk] = Math.log(300.0);
+       }
        double nmrtrLogMuAB = Useful.logAmu();
        double[] nmrtrLogNumB = new double[numDeps];
        for (int i = 0; i < numDeps; i++){
@@ -807,7 +833,7 @@ public class GrayStar3Server {
 // Iteration *within* the outer Pe-Pgas iteration:
 //Iterate the electron densities and ionization fractions:
 //
- for (int neIter = 0; neIter < 3; neIter++){
+ for (int neIter = 0; neIter < 1; neIter++){
  
    for (int iElem = 0; iElem < nelemAbnd; iElem++){
        species = cname[iElem] + "I";
@@ -871,7 +897,8 @@ public class GrayStar3Server {
           dissEArr[iMol] = IonizationEnergy.getDissE(mname[mname_ptr[iMol]]);
           species = cname[specB_ptr[iMol]] + "I"; //neutral stage
           log10UwBArr[iMol] = PartitionFn.getPartFn(species); //base 10 log_10 U
-          log10QwABArr[iMol] = defaultQwAB;
+          //logQwABArr[iMol] = defaultQwAB;
+          logQwABArr[iMol] = PartitionFn.getMolPartFn(mname[mname_ptr[iMol]]);
           //Compute the reduced mass, muAB, in g:
           massA = AtomicMass.getMass(cname[iElem]);
           massB = AtomicMass.getMass(cname[specB_ptr[iMol]]);
@@ -883,14 +910,20 @@ public class GrayStar3Server {
     //         thisChiI2, thisChiI3, thisChiI4, thisUw1V, thisUw2V, thisUw3V, thisUw4V, 
     //         numDeps, temp);
        logNums = LevelPopsServer.stagePops2(logNz[iElem], guessNe, chiIArr, log10UwAArr,
-                     thisNumMols, logNumBArr, dissEArr, log10UwBArr, log10QwABArr, logMuABArr,
+                     thisNumMols, logNumBArr, dissEArr, log10UwBArr, logQwABArr, logMuABArr,
                      numDeps, temp);
-       //if (cname[iElem].equals("Na") == true){
-       //  System.out.println("iElem " + iElem + " logNz[iElem] " + logNz[iElem] + " thisNumMols " + thisNumMols);
-      // }
 
+     //System.out.println("Main: Elem       iTau      logNz      logNums[0]      ppNums[0]");
      for (int iStage = 0; iStage < numStages; iStage++){
           for (int iTau = 0; iTau < numDeps; iTau++){
+            //if ((cname[iElem].equals("O") == true) && (iStage == 0)){
+            //   System.out.format("O, %03d, %21.15f, %21.15f, %21.15f%n", iTau, logE*logNz[iElem][iTau], logE*logNums[iStage][iTau],
+            //     logE*(logNums[iStage][iTau]+Useful.logK()+temp[1][iTau]));
+            //}
+            //if ((cname[iElem].equals("Ti") == true) && (iStage == 0)){
+            //   System.out.format("Ti, %03d, %21.15f, %21.15f, %21.15f%n", iTau, logE*logNz[iElem][iTau], logE*logNums[iStage][iTau],
+            //     logE*(logNums[iStage][iTau]+Useful.logK()+temp[1][iTau]));
+            //}
             masterStagePops[iElem][iStage][iTau] = logNums[iStage][iTau];
  //save ion stage populations at tau = 1:
        } //iTau loop
@@ -998,7 +1031,8 @@ public class GrayStar3Server {
           dissEArr[im] = IonizationEnergy.getDissE(mname[mname_ptr[im]]);
           species = cname[specB_ptr[im]] + "I";
           log10UwBArr[im] = PartitionFn.getPartFn(species); //base 10 log_10 U
-          log10QwABArr[im] = defaultQwAB;
+          //logQwABArr[im] = defaultQwAB;
+          logQwABArr[im] = PartitionFn.getMolPartFn(mname[mname_ptr[im]]);
           //Compute the reduced mass, muAB, in g:
           massA = AtomicMass.getMass(cname[specA_ptr]);
           massB = AtomicMass.getMass(cname[specB_ptr[im]]);
@@ -1010,7 +1044,9 @@ public class GrayStar3Server {
  //console.log("Main: log10UwBArr[im][0] " + log10UwBArr[im][0] + " log10UwBArr[im][1] " + log10UwBArr[im][1]);
               nmrtrLog10UwB[0] = log10UwBArr[im][0];
               nmrtrLog10UwB[1] = log10UwBArr[im][1];
-              nmrtrLog10QwAB = log10QwABArr[im];
+              for (int kk = 0; kk < 5; kk++){
+                  nmrtrLogQwAB[kk] = logQwABArr[im][kk];
+              }
               nmrtrLogMuAB = logMuABArr[im];
  //console.log("Main: nmrtrDissE " + nmrtrDissE + " nmrtrLogMuAB " + nmrtrLogMuAB);
               for (int iTau = 0; iTau < numDeps; iTau++){
@@ -1023,6 +1059,7 @@ public class GrayStar3Server {
    } //if thisNumMols > 0 condition
    //Compute total population of particle in atomic ionic stages over number in ground ionization stage
    //for master denominator so we don't have to re-compue it:
+         //System.out.println("MAIN: iTau      nmrtrLogNumB      logNumBArr[0]      logGroundRatio");
          for (int iTau = 0; iTau < numDeps; iTau++){
            //initialization:
            totalIonic = 0.0;
@@ -1030,15 +1067,23 @@ public class GrayStar3Server {
               totalIonic = totalIonic + Math.exp(masterStagePops[specA_ptr][iStage][iTau]);
            }
            logGroundRatio[iTau] = Math.log(totalIonic) - masterStagePops[specA_ptr][0][iTau];
+           //System.out.format("%03d, %21.15f, %21.15f, %21.15f, %n", iTau, logE*nmrtrLogNumB[iTau], logE*logNumBArr[0][iTau], logE*logGroundRatio[iTau]);
          }
-       logNumFracAB = LevelPopsServer.molPops(nmrtrLogNumB, nmrtrDissE, log10UwA, nmrtrLog10UwB, nmrtrLog10QwAB, nmrtrLogMuAB,
-                     thisNumMols, logNumBArr, dissEArr, log10UwBArr, log10QwABArr, logMuABArr,
+       //System.out.println("MAIN: nmrtrDissE " + nmrtrDissE + " log10UwA " + log10UwA[0] + " " + log10UwA[1] + " nmrtrLog10UwB " +
+       //     nmrtrLog10UwB[0] + " " + nmrtrLog10UwB[1] + " nmrtrLog10QwAB[2] " + logE*nmrtrLogQwAB[2] + " nmrtrLogMuAB " + logE*nmrtrLogMuAB
+       //     + " thisNumMols " + thisNumMols + " dissEArr " + dissEArr[0] + " log10UwBArr " + log10UwBArr[0][0] + " " + log10UwBArr[0][1] + " log10QwABArr " +
+       //     logE*logQwABArr[0][2] + " logMuABArr " + logE*logMuABArr[0]);    
+       logNumFracAB = LevelPopsServer.molPops(nmrtrLogNumB, nmrtrDissE, log10UwA, nmrtrLog10UwB, nmrtrLogQwAB, nmrtrLogMuAB,
+                     thisNumMols, logNumBArr, dissEArr, log10UwBArr, logQwABArr, logMuABArr,
                      logGroundRatio, numDeps, temp);
 
 //Load molecules into master molecular population array:
+     // System.out.println("cname[specA_ptr] " + cname[specA_ptr]);
+      //System.out.println("iTau      temp     logNz[specA_ptr]      masterMolPops[iMol]      ppMol");
       for (int iTau = 0; iTau < numDeps; iTau++){
          masterMolPops[iMol][iTau] = logNz[specA_ptr][iTau] + logNumFracAB[iTau];
-         //System.out.println(" " + iTau + " masterMolPops " + logE*masterMolPops[iMol][iTau]);
+         //System.out.format("%03d, %21.15f, %21.15f, %21.15f, %21.15f%n", iTau, temp[0][iTau], logE*logNz[specA_ptr][iTau], logE*masterMolPops[iMol][iTau],
+         // logE*(masterMolPops[iMol][iTau]+Useful.logK()+temp[1][iTau]) );
       }
   } //master iMol loop
 //
@@ -1064,6 +1109,10 @@ public class GrayStar3Server {
         newPe[0][iTau] = Math.exp(newPe[1][iTau]);
        //System.out.println("iTau " + iTau + " newNe " + logE*newNe[1][iTau] + " newPe " + logE*newPe[1][iTau]);
      }
+      //System.out.println("i     guessPe      newPe      10^-9*newNe");
+      //for (int i = 0; i < numDeps; i+=10){
+      //   System.out.format("%03d, %21.15f, %21.15f, %21.15f%n", i, guessPe[0][i], newPe[0][i], (1.0e-9*newNe[0][i]));
+      //}
 
   } //end Ne - ionzation fraction iteration
 
@@ -1083,6 +1132,10 @@ public class GrayStar3Server {
      mmw[i] = Math.exp(logMmw); 
        //System.out.println("i " + i + " Ng " + Math.log10(Ng[i]) + " mmw " + (mmw[i]/Useful.amu));
     }
+      //System.out.println("i     10^-9*Ng     mmw");
+      //for (int i = 0; i < numDeps; i+=10){
+      //   System.out.format("%03d, %21.15f, %21.15f%n", i, (1.0e-9*Ng[i]), (mmw[i]/Useful.amu));
+      //}
 
 
       logKappa = Kappas.kappas2(numDeps, newPe, zScale, temp, rho,
@@ -1090,6 +1143,13 @@ public class GrayStar3Server {
                      masterStagePops[0][0], masterStagePops[0][1], 
                      masterStagePops[1][0], masterStagePops[1][1], newNe, 
                      teff, logTotalFudge);
+
+      //System.out.println("i     tauRos      l      lamb     kappa");
+      //for (int i = 0; i < numDeps; i+=10){
+      //   for (int l = 0; l < numLams; l+=20){
+      //      System.out.format("%03d, %21.15f, %03d, %21.15f, %21.15f%n", i, tauRos[0][i], l, lambdaScale[l], logKappa[l][i]);
+      //   }
+      //}
 
       kappaRos = Kappas.kapRos(numDeps, numLams, lambdaScale, logKappa, temp); 
 
@@ -1104,6 +1164,10 @@ public class GrayStar3Server {
         //press = Hydrostat.hydrostatic(numDeps, grav, tauRos, kappaRos, temp);
         //pGas = Hydrostat.hydroFormalSoln(numDeps, grav, tauRos, kappaRos, temp, guessPGas);
         pGas = Hydrostat.hydroFormalSoln(numDeps, grav, tauRos, kappa500, temp, guessPGas);
+      //System.out.println("i     guessPGas      pGas");
+      //for (int i = 0; i < numDeps; i+=10){
+      //   System.out.format("%03d, %21.15f, %21.15f%n", i, guessPGas[0][i], pGas[0][i]);
+      //}
         pRad = Hydrostat.radPress(numDeps, temp);
 
 //Update Pgas and Pe guesses for iteration:
@@ -1759,9 +1823,10 @@ if (ifMolLines == true){
         boolean isMolFirstLine = true; //initialization
         int firstMolLine = 0; //default initialization
 // This holds 2-element temperature-dependent base 10 logarithmic molecular parition fn:
-        double[] thisQwABv = new double[2];
-        thisQwABv[0] = 0.0; //default initialization //base 10 log_10 Q
-        thisQwABv[1] = 0.0;
+        double[] thisQwABv = new double[5];
+        for (int kk = 0; kk < 5; kk++){
+            thisQwABv[kk] = Math.log(300.0); //default initialization //base e log Q
+        }
         for (int iMolLine = 0; iMolLine < numMolLines2; iMolLine++) {
 
           molList2Lam0[iMolLine] = molList2Lam0[iMolLine] * 1.0e-7;  // nm to cm
@@ -1771,9 +1836,7 @@ if (ifMolLines == true){
           for (int jj = 0; jj < nMols; jj++){
              //System.out.println("jj " + jj + " mname[jj]" + mname[jj]+"!");
              if (molList2Name[iMolLine].equals(mname[jj])){
-//Fake molecular parition fn for now...
-                thisQwABv[0] = 0.0;  //base 10 log_10 Q
-                thisQwABv[1] = 0.0;  //base 10 log_10 Q
+                thisQwABv = PartitionFn.getMolPartFn(mname[jj]);  //base 10 log_10 Q
                  break;   //we found it
              }
              iMol++;
@@ -2071,9 +2134,10 @@ if (ifMolLines == true){
 
 //
 //Now the same for molecular lines:
-// This holds 2-element temperature-dependent base 10 logarithmic parition fn:
-        thisQwABv[0] = 0.0; //default initialization
-        thisQwABv[1] = 0.0;
+// This holds 5-element temperature-dependent base e logarithmic parition fn:
+        for (int kk = 0; kk < 5; kk++){
+           thisQwABv[kk] = Math.log(300.0); //default initialization
+        }
 
         double[][] molListLineProf = new double[molListNumPoints][numDeps];
 
@@ -2088,9 +2152,9 @@ if (ifMolLines == true){
           for (int jj = 0; jj < nMols; jj++){
              if (molList2Name[molGaussLine_ptr[iMolLine]].equals(mname[jj])){
                   logMolNums_ptr = 0;  //may not be necessary - inherited from atom/ion treatment
-//Fake molecular partition fns for now...
-                thisQwABv[0] = 0.0; //base 10 log_10 Q
-                thisQwABv[1] = 0.0; //base 10 log_10 Q
+                for (int kk = 0; kk < 5; kk++){
+                   thisQwABv = PartitionFn.getMolPartFn(mname[jj]); //base e log Q
+                }
                  break;   //we found it
                  }
              iMol++;
@@ -2143,8 +2207,6 @@ if (ifMolLines == true){
                 listLineLambdas[il] = listLinePoints[0][il] + molList2Lam0[molGaussLine_ptr[iMolLine]];
             }
 
-            for (int ll = 0; ll < molListNumPoints; ll++){
-             }  
             double[] masterLamsOut = SpecSyn.masterLambda(numLams, numMaster, numNow, masterLams, molListNumPoints, listLineLambdas);
             double[][] logMasterKapsOut = SpecSyn.masterKappa(numDeps, numLams, numMaster, numNow, masterLams, masterLamsOut, logMasterKaps, molListNumPoints, listLineLambdas, listLogKappaL);
             numNow = numNow + molListNumPoints;

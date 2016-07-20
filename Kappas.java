@@ -677,7 +677,9 @@ public class Kappas {
  // }
           logKapHmbf =  -99.0; //initialize default
           //if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 10000.0) ){
-          if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 8000.0) ){
+          //if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 8000.0) ){
+          //Try lowering lower Teff limit to avoid oapcity collapse in outer layers of late-type stars
+          if ( (temp[0][iTau] > 1000.0) && (temp[0][iTau] < 10000.0) ){
              if ((lambdanm > 225.0) && (lambdanm < 1500.0) ){ //nm 
 //if (iTau == 36 && iLam == 142){
  //              System.out.println("In KapHmbf condition...");
@@ -719,7 +721,9 @@ public class Kappas {
 // H^- f-f:
           logKapHmff = -99.0; //initialize default
           //if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 10000.0) ){
-          if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 8000.0) ){
+          //Try lowering lower Teff limit to avoid oapcity collapse in outer layers of late-type stars
+          //if ( (temp[0][iTau] > 2500.0) && (temp[0][iTau] < 8000.0) ){
+          if ( (temp[0][iTau] > 1000.0) && (temp[0][iTau] < 10000.0) ){
              if ((lambdanm > 260.0) && (lambdanm < 11390.0) ){ //nm 
                  //construct "f_n" polynomials in log(lambda)
                  for (int j = 0; j < 3; j++){

@@ -90,8 +90,8 @@ public class LevelPopsServer{
             thisLogUw = logUw[1];
         }
         if (Ttheta > 0.5 && Ttheta < 1.0){
-            thisLogUw = 0.5 * (Ttheta - 0.5) * logUw[1]
-                + 0.5 * (1.0 - Ttheta) * logUw[0];
+            thisLogUw = ( 0.5 * logUw[1] * (Ttheta - 0.5)/(1.0 - 0.5) )
+                      + ( 0.5 * logUw[0] * (1.0 - Ttheta)/(1.0 - 0.5) );
         }
 
                 //System.out.println("LevPops: ionized branch taken, ionized =  " + ionized);
@@ -333,7 +333,7 @@ public class LevelPopsServer{
 //  Element "B" refers to array of other species with which A forms molecules "AB" 
 
     public static double[][] stagePops2(double[] logNum, double[][] Ne, double[] chiIArr, double[][] log10UwAArr,  //species A data - ionization equilibrium of A
-                 int numMols, double[][] logNumB, double[] dissEArr, double[][] log10UwBArr, double[] log10QwABArr, double[] logMuABArr,  //data for set of species "B" - molecular equlibrium for set {AB}
+                 int numMols, double[][] logNumB, double[] dissEArr, double[][] log10UwBArr, double[][] logQwABArr, double[] logMuABArr,  //data for set of species "B" - molecular equlibrium for set {AB}
                  int numDeps, double[][] temp) {
 
 
@@ -349,7 +349,7 @@ public class LevelPopsServer{
 
 // Parition functions passed in are 2-element vectore with remperature-dependent base 10 log Us
 // Convert to natural logs:
-        double Ttheta;
+        double Ttheta, thisTemp;
   //Default initializations:
 //We need one more stage in size of saha factor than number of stages we're actualy populating
         double[] thisLogUw = new double[numStages+1];
@@ -419,6 +419,7 @@ public class LevelPopsServer{
           thisLogUwB[iMol] = 0.0; // variable for temp-dependent computed partn fn of array element B 
        }
          double thisLogUwA = 0.0; // element A 
+         double thisLogQwAB = Math.log(300.0); 
 
 //For clarity: neutral stage of atom whose ionization equilibrium is being computed is element A
 // for molecule formation:
@@ -435,12 +436,12 @@ public class LevelPopsServer{
            logUwB[iMol][1] = logE10*log10UwBArr[iMol][1];
         }
       //}
-// Molecular partition functions:
-       double[] logQwAB = new double[numMols];
-      //if (numMols > 0){
-       for (int iMol = 0; iMol < numMols; iMol++){
-          logQwAB[iMol] = logE10*log10QwABArr[iMol];
-       }
+//// Molecular partition functions:
+//       double[] logQwAB = new double[numMols];
+//      //if (numMols > 0){
+//       for (int iMol = 0; iMol < numMols; iMol++){
+//          logQwAB[iMol] = logE10*log10QwABArr[iMol];
+//       }
       //}
 //Molecular dissociation Boltzmann factors:
         double[] boltzFacIAB = new double[numMols];
@@ -467,7 +468,9 @@ public class LevelPopsServer{
             logNe = Ne[1][id];
 
 //Determine temeprature dependenet aprtition functions Uw:
-            Ttheta = 5040.0 / temp[0][id];
+            thisTemp = temp[0][id];
+            Ttheta = 5040.0 / thisTemp;
+         
 
        if (Ttheta >= 1.0){
            for (int iStg = 0; iStg < numStages; iStg++){
@@ -487,15 +490,30 @@ public class LevelPopsServer{
        }
        if (Ttheta > 0.5 && Ttheta < 1.0){
            for (int iStg = 0; iStg < numStages; iStg++){
-              thisLogUw[iStg] = 0.5 * (Ttheta - 0.5) * logUw[iStg][1]
-                + 0.5 * (1.0 - Ttheta) * logUw[iStg][0];
+              thisLogUw[iStg] = ( 0.5 * logUw[iStg][1] * (Ttheta - 0.5)/(1.0 - 0.5) )
+                              + ( 0.5 * logUw[iStg][0] * (1.0 - Ttheta)/(1.0 - 0.5) );
            }
            for (int iMol = 0; iMol < numMols; iMol++){
-              thisLogUwB[iMol] = 0.5 * (Ttheta - 0.5) * logUwB[iMol][1]
-                + 0.5 * (1.0 - Ttheta) * logUwB[iMol][0];
+              thisLogUwB[iMol] = ( 0.5 * logUwB[iMol][1] * (Ttheta - 0.5)/(1.0 - 0.5) )
+                               + ( 0.5 * logUwB[iMol][0] * (1.0 - Ttheta)/(1.0 - 0.5) );
            }
        }
          thisLogUw[numStages] = 0.0;
+      for (int iMol = 0; iMol < numMols; iMol++){
+         if (thisTemp < 3000.0){
+            thisLogQwAB = ( 0.5 * logQwABArr[iMol][1] * (3000.0 - thisTemp)/(3000.0 - 500.0) )
+                        + ( 0.5 * logQwABArr[iMol][2] * (thisTemp - 500.0)/(3000.0 - 500.0) ); 
+         }
+         if ( (thisTemp >= 3000.0) && (thisTemp <= 8000.0) ){
+            thisLogQwAB = ( 0.5 * logQwABArr[iMol][2] * (8000.0 - thisTemp)/(8000.0 - 3000.0) )
+                        + ( 0.5 * logQwABArr[iMol][3] * (thisTemp - 3000.0)/(8000.0 - 3000.0) ); 
+         }
+         if ( thisTemp > 8000.0 ){
+            thisLogQwAB = ( 0.5 * logQwABArr[iMol][3] * (10000.0 - thisTemp)/(10000.0 - 8000.0) )
+                        + ( 0.5 * logQwABArr[iMol][4] * (thisTemp - 8000.0)/(10000.0 - 8000.0) ); 
+         }
+      } // iMol loop 
+            
 //For clarity: neutral stage of atom whose ionization equilibrium is being computed is element A
 // for molecule formation:
      thisLogUwA = thisLogUw[0];
@@ -513,7 +531,7 @@ public class LevelPopsServer{
 
 //Molecular Saha factors:
          for (int iMol = 0; iMol < numMols; iMol++){
-             logSahaMol[iMol] = logMolSahaFac[iMol] - logNumB[iMol][id] - (boltzFacIAB[iMol] / temp[0][id]) + (3.0 * temp[1][id] / 2.0) + thisLogUwB[iMol] + thisLogUwA - logQwAB[iMol];
+             logSahaMol[iMol] = logMolSahaFac[iMol] - logNumB[iMol][id] - (boltzFacIAB[iMol] / temp[0][id]) + (3.0 * temp[1][id] / 2.0) + thisLogUwB[iMol] + thisLogUwA - thisLogQwAB;
 //For denominator of ionization fraction, we need *inverse* molecular Saha factors (N_AB/NI):
              logSahaMol[iMol] = -1.0 * logSahaMol[iMol];
              invSahaMol[iMol] = Math.exp(logSahaMol[iMol]);
@@ -603,21 +621,26 @@ public class LevelPopsServer{
 //   in the denominator of the master fraction
 //  Element "B" refers to array of other sintpecies with which A forms molecules "AB" 
 
-    public static double[] molPops(double[] nmrtrLogNumB, double nmrtrDissE, double[] log10UwA, double[] nmrtrLog10UwB, double nmrtrLog10QwAB, double nmrtrLogMuAB,  //species A data - ionization equilibrium of A
-                 int numMolsB, double[][] logNumB, double[] dissEArr, double[][] log10UwBArr, double[] log10QwABArr, double[] logMuABArr,  //data for set of species "B" - molecular equlibrium for set {AB}
+    public static double[] molPops(double[] nmrtrLogNumB, double nmrtrDissE, double[] log10UwA, double[] nmrtrLog10UwB, double[] nmrtrLogQwAB, double nmrtrLogMuAB,  //species A data - ionization equilibrium of A
+                 int numMolsB, double[][] logNumB, double[] dissEArr, double[][] log10UwBArr, double[][] logQwABArr, double[] logMuABArr,  //data for set of species "B" - molecular equlibrium for set {AB}
                  double[] logGroundRatio, int numDeps, double[][] temp) {
 
+
+        double logE = Math.log10(Math.E); // for debug output
+       //System.out.println("molPops: nmrtrDissE " + nmrtrDissE + " log10UwA " + log10UwA[0] + " " + log10UwA[1] + " nmrtrLog10UwB " +
+       //     nmrtrLog10UwB[0] + " " + nmrtrLog10UwB[1] + " nmrtrLog10QwAB " + logE*nmrtrLogQwAB[2] + " nmrtrLogMuAB " + logE*nmrtrLogMuAB
+       //     + " numMolsB " + numMolsB + " dissEArr " + dissEArr[0] + " log10UwBArr " + log10UwBArr[0][0] + " " + log10UwBArr[0][1] + " log10QwABArr " +
+       //     logE*logQwABArr[0][2] + " logMuABArr " + logE*logMuABArr[0]);
 
  //console.log("Line: nmrtrLog10UwB[0] " + nmrtrLog10UwB[0] + " nmrtrLog10UwB[1] " + nmrtrLog10UwB[1]);
 
         double ln10 = Math.log(10.0);
-        double logE = Math.log10(Math.E); // for debug output
         double log2pi = Math.log(2.0 * Math.PI);
         double log2 = Math.log(2.0);
 
         double logE10 = Math.log(10.0);
 // Convert to natural logs:
-        double Ttheta;
+        double Ttheta, thisTemp;
 
 //Treat at least one molecule - if there are really no molecules for an atomic species, 
 //there will be one phantom molecule in the denominator of the ionization fraction
@@ -636,6 +659,8 @@ public class LevelPopsServer{
        }
          double thisLogUwA = 0.0; // element A 
          double nmrtrThisLogUwB = 0.0; // element A 
+         double thisLogQwAB = Math.log(300.0);
+         double nmrtrThisLogQwAB = Math.log(300.0);
 
 //For clarity: neutral stage of atom whose ionization equilibrium is being computed is element A
 // for molecule formation:
@@ -654,20 +679,23 @@ public class LevelPopsServer{
         }
       //}
 // Molecular partition functions:
-       double nmrtrLogQwAB = logE10*nmrtrLog10QwAB;
-       double[] logQwAB = new double[numMolsB];
-      //if (numMolsB > 0){
-       for (int iMol = 0; iMol < numMolsB; iMol++){
-          logQwAB[iMol] = logE10*log10QwABArr[iMol];
-       }
+//       double nmrtrLogQwAB = logE10*nmrtrLog10QwAB;
+//       double[] logQwAB = new double[numMolsB];
+//      //if (numMolsB > 0){
+//       for (int iMol = 0; iMol < numMolsB; iMol++){
+//          logQwAB[iMol] = logE10*log10QwABArr[iMol];
+//       }
       //}
 //Molecular dissociation Boltzmann factors:
         double nmrtrBoltzFacIAB = 0.0;
         double nmrtrLogMolSahaFac = 0.0;
         double logDissE = Math.log(nmrtrDissE)  + Useful.logEv();
+  //System.out.println("logDissE " + logE*logDissE);
         double logBoltzFacIAB = logDissE  - Useful.logK();
+  //System.out.println("logBoltzFacIAB " + logE*logBoltzFacIAB);
         nmrtrBoltzFacIAB = Math.exp(logBoltzFacIAB);
         nmrtrLogMolSahaFac = (3.0 / 2.0) * (log2pi + nmrtrLogMuAB  + Useful.logK() - 2.0 * Useful.logH());
+  //System.out.println("nmrtrLogMolSahaFac " + logE*nmrtrLogMolSahaFac);
   //console.log("nmrtrDissE " + nmrtrDissE + " logDissE " + logE*logDissE + " logBoltzFacIAB " + logE*logBoltzFacIAB + " nmrtrBoltzFacIAB " + nmrtrBoltzFacIAB + " nmrtrLogMuAB " + logE*nmrtrLogMuAB + " nmrtrLogMolSahaFac " + logE*nmrtrLogMolSahaFac);
         double[] boltzFacIAB = new double[numMolsB];
         double[] logMolSahaFac = new double[numMolsB];
@@ -677,6 +705,7 @@ public class LevelPopsServer{
            logBoltzFacIAB = logDissE  - Useful.logK();
            boltzFacIAB[iMol] = Math.exp(logBoltzFacIAB);
            logMolSahaFac[iMol] = (3.0 / 2.0) * (log2pi + logMuABArr[iMol] + Useful.logK() - 2.0 * Useful.logH());
+  //System.out.println("logMolSahaFac[iMol] " + logE*logMolSahaFac[iMol]);
   //console.log("iMol " + iMol + " dissEArr[iMol] " + dissEArr[iMol] + " logDissE " + logE*logDissE + " logBoltzFacIAB " + logE*logBoltzFacIAB + " boltzFacIAB[iMol] " + boltzFacIAB[iMol] + " logMuABArr " + logE*logMuABArr[iMol] + " logMolSahaFac " + logE*logMolSahaFac[iMol]);
         }
        
@@ -688,13 +717,18 @@ public class LevelPopsServer{
         double[] logMolFrac = new double[numDeps];
         double[] logSahaMol = new double[numMolsB]; 
         double[] invSahaMol = new double[numMolsB];
-
+//
+//
+       //  System.out.println("molPops: id      nmrtrLogNumB      logNumBArr[0]      logGroundRatio");
         for (int id = 0; id < numDeps; id++) {
+
+        //   System.out.format("%03d, %21.15f, %21.15f, %21.15f, %n", id, logE*nmrtrLogNumB[id], logE*logNumB[0][id], logE*logGroundRatio[id]);
 
             //// reduce or enhance number density by over-all Rosseland opcity scale parameter
 
 //Determine temeprature dependenet aprtition functions Uw:
-            Ttheta = 5040.0 / temp[0][id];
+            thisTemp = temp[0][id];
+            Ttheta = 5040.0 / thisTemp;
 
        if (Ttheta >= 1.0){
            thisLogUwA = logUwA[0];
@@ -711,22 +745,50 @@ public class LevelPopsServer{
            }
        }
        if (Ttheta > 0.5 && Ttheta < 1.0){
-           thisLogUwA = 0.5 * (Ttheta - 0.5) * logUwA[1]
-                + 0.5 * (1.0 - Ttheta) * logUwA[0];
-           nmrtrThisLogUwB = 0.5 * (Ttheta - 0.5) * nmrtrLogUwB[1]
-                + 0.5 * (1.0 - Ttheta) * nmrtrLogUwB[0];
+           thisLogUwA = ( 0.5 * logUwA[1] * ((Ttheta - 0.5)/(1.0 - 0.5)) )
+                      + ( 0.5 * logUwA[0] * ((1.0 - Ttheta)/(1.0 - 0.5)) );
+           nmrtrThisLogUwB = ( 0.5 * nmrtrLogUwB[1] * ((Ttheta - 0.5)/(1.0 - 0.5)) )
+                           + ( 0.5 * nmrtrLogUwB[0] * ((1.0 - Ttheta)/(1.0 - 0.5)) );
            for (int iMol = 0; iMol < numMolsB; iMol++){
-              thisLogUwB[iMol] = 0.5 * (Ttheta - 0.5) * logUwB[iMol][1]
-                + 0.5 * (1.0 - Ttheta) * logUwB[iMol][0];
+              thisLogUwB[iMol] = ( 0.5 * logUwB[iMol][1] * ((Ttheta - 0.5)/(1.0 - 0.5)) )
+                               + ( 0.5 * logUwB[iMol][0] * ((1.0 - Ttheta)/(1.0 - 0.5)) );
            }
        }
+      for (int iMol = 0; iMol < numMolsB; iMol++){
+         if (thisTemp < 3000.0){
+            thisLogQwAB = ( 0.5 * logQwABArr[iMol][1] * (3000.0 - thisTemp)/(3000.0 - 500.0) )
+                        + ( 0.5 * logQwABArr[iMol][2] * (thisTemp - 500.0)/(3000.0 - 500.0) ); 
+         }
+         if ( (thisTemp >= 3000.0) && (thisTemp <= 8000.0) ){
+            thisLogQwAB = ( 0.5 * logQwABArr[iMol][2] * (8000.0 - thisTemp)/(8000.0 - 3000.0) )
+                        + ( 0.5 * logQwABArr[iMol][3] * (thisTemp - 3000.0)/(8000.0 - 3000.0) ); 
+         }
+         if ( thisTemp > 8000.0 ){
+            thisLogQwAB = ( 0.5 * logQwABArr[iMol][3] * (10000.0 - thisTemp)/(10000.0 - 8000.0) )
+                        + ( 0.5 * logQwABArr[iMol][4] * (thisTemp - 8000.0)/(10000.0 - 8000.0) ); 
+         }
+         if (thisTemp < 3000.0){
+            nmrtrThisLogQwAB = ( 0.5 * nmrtrLogQwAB[1] * (3000.0 - thisTemp)/(3000.0 - 500.0) )
+                             + ( 0.5 * nmrtrLogQwAB[2] * (thisTemp - 500.0)/(3000.0 - 500.0) ); 
+         }
+         if ( (thisTemp >= 3000.0) && (thisTemp <= 8000.0) ){
+            nmrtrThisLogQwAB = ( 0.5 * nmrtrLogQwAB[2] * (8000.0 - thisTemp)/(8000.0 - 3000.0) )
+                             + ( 0.5 * nmrtrLogQwAB[3] * (thisTemp - 3000.0)/(8000.0 - 3000.0) ); 
+         }
+         if ( thisTemp > 8000.0 ){
+            nmrtrThisLogQwAB = ( 0.5 * nmrtrLogQwAB[3] * (10000.0 - thisTemp)/(10000.0 - 8000.0) )
+                             + ( 0.5 * nmrtrLogQwAB[4] * (thisTemp - 8000.0)/(10000.0 - 8000.0) ); 
+         }
+      } //iMol loop 
 //For clarity: neutral stage of atom whose ionization equilibrium is being computed is element A
 // for molecule formation:
 
    //Ionization stage Saha factors: 
 //console.log("id " + id + " nmrtrLogNumB[id] " + logE*nmrtrLogNumB[id]);             
-               nmrtrLogSahaMol = nmrtrLogMolSahaFac - nmrtrLogNumB[id] - (nmrtrBoltzFacIAB / temp[0][id]) + (3.0 * temp[1][id] / 2.0) + nmrtrThisLogUwB + thisLogUwA - nmrtrLogQwAB;
+   //System.out.println("nmrtrThisLogUwB " + logE*nmrtrThisLogUwB + " thisLogUwA " + logE*thisLogUwA + " nmrtrThisLogQwAB " + logE*nmrtrThisLogQwAB);
+               nmrtrLogSahaMol = nmrtrLogMolSahaFac - nmrtrLogNumB[id] - (nmrtrBoltzFacIAB / temp[0][id]) + (3.0 * temp[1][id] / 2.0) + nmrtrThisLogUwB + thisLogUwA - nmrtrThisLogQwAB;
                nmrtrLogInvSahaMol = -1.0 * nmrtrLogSahaMol;
+               //System.out.println("nmrtrLogInvSahaMol " + logE*nmrtrLogInvSahaMol);
                //nmrtrInvSahaMol = Math.exp(nmrtrLogSahaMol);
 
           //if (id == 36){
@@ -737,7 +799,8 @@ public class LevelPopsServer{
 //Molecular Saha factors:
          for (int iMol = 0; iMol < numMolsB; iMol++){
 //console.log("iMol " + iMol + " id " + id + " logNumB[iMol][id] " + logE*nmrtrLogNumB[id]);             
-             logSahaMol[iMol] = logMolSahaFac[iMol] - logNumB[iMol][id] - (boltzFacIAB[iMol] / temp[0][id]) + (3.0 * temp[1][id] / 2.0) + thisLogUwB[iMol] + thisLogUwA - logQwAB[iMol];
+   //System.out.println("iMol " + iMol + " thisLogUwB[iMol] " + logE*thisLogUwB[iMol] + " thisLogUwA " + logE*thisLogUwA + " thisLogQwAB " + logE*thisLogQwAB);
+             logSahaMol[iMol] = logMolSahaFac[iMol] - logNumB[iMol][id] - (boltzFacIAB[iMol] / temp[0][id]) + (3.0 * temp[1][id] / 2.0) + thisLogUwB[iMol] + thisLogUwA - thisLogQwAB;
 //For denominator of ionization fraction, we need *inverse* molecular Saha factors (N_AB/NI):
              logSahaMol[iMol] = -1.0 * logSahaMol[iMol];
              invSahaMol[iMol] = Math.exp(logSahaMol[iMol]);
@@ -754,10 +817,12 @@ public class LevelPopsServer{
             double denominator = Math.exp(logGroundRatio[id]); //default initialization - ratio of total atomic particles in all ionization stages to number in ground state 
 //molecular contribution
            for (int iMol = 0; iMol < numMolsB; iMol++){
+              //System.out.println("invSahaMol[iMol] " + invSahaMol[iMol]);
               denominator = denominator + invSahaMol[iMol];
            }
 // 
             double logDenominator = Math.log(denominator); 
+           //System.out.println("logGroundRatio[id] " + logE*logGroundRatio[id] + " logDenominator " + logE*logDenominator);
             //console.log("id " + id + " logGroundRatio " + logGroundRatio[id] + " logDenominator " + logDenominator);
             
           //if (id == 36){
