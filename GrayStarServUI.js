@@ -991,7 +991,7 @@ var gsDuplex = function(num, logVector){
     flagArr[0] = false;
 //
     var F0Vtemp = 7300.0;  // Teff of F0 V star (K)
-    var minTeff = 500.0;
+    var minTeff = 3200.0;
     var maxTeff = 50000.0;
     if (teff === null || teff == "") {
         alert("Teff must be filled out");
@@ -1380,12 +1380,12 @@ var gsDuplex = function(num, logVector){
         return;
     }
     flagArr[16] = false;
-    if (diskSigma < 0.01) {
+    if (diskSigma < 0.005) {
         flagArr[16] = true;
-        diskSigma = 0.01;
-        var diskSigmaStr = "0.01";
-        settingsId[16].value = 0.01;
-        $("#diskSigma").val(0.01);
+        diskSigma = 0.005;
+        var diskSigmaStr = "0.005";
+        settingsId[16].value = 0.005;
+        $("#diskSigma").val(0.005);
     }
     if (diskSigma > 10.0) {
         flagArr[16] = true;
@@ -3127,7 +3127,7 @@ var jsonObj;
 //
 //
 
-// Plot twelve - image of limb-darkened and limb-colored TUNABLE MONOCHROMATIC stellar disk
+// Plot twelve - image of limb-darkened and limb-colored TUNABLE NARROW-BAND stellar disk
 
 
         var plotRow = 1;
@@ -4403,12 +4403,12 @@ var jsonObj;
         //var iLamMax = iLamMinMax[1];
         //var lamMax = (1.0e7 * masterLams2[iLamMax]).toPrecision(3);
 
-        var diskLamLbl = diskLambda.toPrecision(3);
-        var diskLamStr = diskLamLbl.toString(10);
+        //var diskLamLbl = diskLambda.toPrecision(3);
+        //var diskLamStr = diskLamLbl.toString(10);
 //
         titleX = panelX + titleOffsetX;
         titleY = panelY + titleOffsetY;
-        txtPrint("<span style='font-size:small'><span style='color:#000000'><em>&#955</em><sub>Filter</sub> = " + diskLamStr + "nm</span><br /> ",
+        txtPrint("<span style='font-size:small'><span style='color:#000000'><em>&#955</em><sub>Filter</sub> = " + diskLambda + "nm</span><br /> ",
                 xAxisXCnvs+10, titleOffsetY+20, lineColor, plotFourId);
         // Add title annotation:
 
@@ -5072,8 +5072,12 @@ var jsonObj;
 // console.log("iFtMinMax[1] " + iFtMinMax[1] + " ft[1][iFtMinMax[1]] " + ft[1][iFtMinMax[1]]);
 //logarithmic        var minYData = -2.0;   //logarithmic
 //logarithmic        var maxYData = logE*Math.log(ft[1][iFtMinMax[1]]);   //logarithmic
-        var minYData = ft[1][iFtMinMax[0]];   //logarithmic
-        var maxYData = ft[1][iFtMinMax[1]];   //logarithmic
+//General setting:
+        //var minYData = ft[1][iFtMinMax[0]];   //logarithmic
+        //var maxYData = ft[1][iFtMinMax[1]];   //logarithmic
+        //Special settings for MgIbScan in Sun:
+        var minYData = -40.0;   //logarithmic
+        var maxYData = 100.0;   //logarithmic
         //var maxYData = tuneBandIntens[0] / norm;
         var yAxisName = "<span title='Monochromatic surface specific intensity'><a href='http://en.wikipedia.org/wiki/Specific_radiative_intensity' target='_blank'><em>I</em><sub>&#955</sub>(<em>k</em>)/<br /><em>I</em><sub>&#955</sub>(0)</a></span>";
 
@@ -5110,11 +5114,11 @@ var jsonObj;
 
 //
         lineColor = "#000000";
-        var diskLamLbl = diskLambda.toPrecision(3);
-        var diskLamStr = diskLamLbl.toString(10);
+        //var diskLamLbl = diskLambda.toPrecision(3);
+        //var diskLamStr = diskLamLbl.toString(10);
         titleX = panelX + titleOffsetX;
         titleY = panelY + titleOffsetY;
-        txtPrint("<span style='font-size:small'><span style='color:#000000'><em>&#955</em><sub>Filter</sub> = " + diskLamStr + "nm</span><br /> ",
+        txtPrint("<span style='font-size:small'><span style='color:#000000'><em>&#955</em><sub>Filter</sub> = " + diskLambda + "nm</span><br /> ",
                 xAxisXCnvs+10, titleOffsetY+20, lineColor, plotFifteenId);
         // Add title annotation:
 

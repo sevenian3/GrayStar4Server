@@ -132,7 +132,7 @@
                     handleShape: "round",
                     sliderType: "min-range",
                     value: "5780",
-                    min: "500",
+                    min: "3200",
                     max: "50000",
                     step: "5",
                     showTooltip: "true",
@@ -317,7 +317,7 @@
                             <td>
                                 <span title="Surface temperature of spherical blackbody radiation emitter of equivalent bolometric surface flux, in Kelvins (K)"> 
                                     <a href="http://en.wikipedia.org/wiki/Effective_temperature" target="_blank">Effective temperature, <em>T</em><sub>eff</sub></a> <br />
-                                    (500-50000)</span> 
+                                    (3700-50000)</span> 
                                     <a href="http://en.wikipedia.org/wiki/Kelvin" target="_blank">K</a>) <br />
                                     <!-- <input id="Teff" type="number" name="Teff" value=5800 size="5" min="3500" max="25000" step="25"/> -->
                                     <!-- <input id="Teff" type="range" name="Teff" value="5800" min="3500" max="25000" step="10" onchange="displayTeff()"/> -->
@@ -776,8 +776,8 @@
                 <input id="diskLam" type="number" name="diskLambda" value=500.0 size="4" min="360.0" max="900.0" step="0.01"/>
             </span>
             <span title="RMS deviation (&#963) (nm) (especially useful near spectral lines)"> 
-                 <em>&#963</em>, (0.01 - 10 nm) 
-                <input id="diskSigma" type="number" name="diskSigma" value=0.01 size="4" min="0.01" max="10.0" step="0.01"/>
+                 <em>&#963</em>, (0.005 - 10 nm) 
+                <input id="diskSigma" type="number" name="diskSigma" value=0.01 size="4" min="0.005" max="10.0" step="0.005"/>
             </span>
             </fieldset>
             <fieldset>
