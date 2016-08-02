@@ -643,26 +643,41 @@ public class GrayStar3Server {
         // END initial guess for Sun section
         //
         // *********************
-   //Apr 2016: Replace the following procedure for model building with the following PSEUDOCODE:
+   //Jul 2016: Replace the following procedure for model building with the following PSEUDOCODE:
    //
    // 1st guess Tk(tau), Pe(tau), Pg(tau) from rescaling reference hot or cool model above
-   // 1) fI(tau), fII, fIII, fIV, fV(tau) from Saha(Tk(tau), Pe(tau))
-   //    - needed for spectrum synthesis anyway LevelPops.stagePops() 
-   // 2) A_Tot = Sigma_z(A_z) 
-   //    -> N_H(tau) = (Pg(tau)-Pe(tau))/{kTk(tau)A_Tot}
-   //    -> N_z(tau) = A_z * N_H(tau)
-   //    -> rho(tau) = Sigma_z(m_z*N_z(tau))
-   // 3) Ne(tau) from Sigma_z{fI(tau) .... 5*fV(tau) * N_z}
-   //    --> New Pe(tau) = Ne(tau)kTk(tau)
-   // 4) N(tau) = Sigma_z(N_z(tau)) + Ne(tau)
-   //    mu(tau) = rho(tau) / N(tau)
-   //
-   // 5) kappa(tau) from Gray Ch. 8 sources
-   // 6) P_Tot(tau) from HSE on tau scale with kappa from 5)
+   // 1) Converge Pg-Pe relation for Az abundance distribution and  T_Kin(Tau)
+   //   assuming all free e^-s from single ionizations - *inner* convergence
+   // 2) Compute N_H from converged Pg-Pe relation 
+   //    A_Tot = Sigma_z(A_z)
+   //         -> N_H(tau) = (Pg(tau)-Pe(tau))/{kTk(tau)A_Tot}
+   //         -> N_z(tau) = A_z * N_H(tau) 
+   // 3) Obtain N_HI, N_HII, N_HeI, and N_HeII at all depths
+   // 4)Get rho(tau) = Sigma_z(m_z*N_z(tau)) and mu(tau) = rho(tau) / N(tau)
+   //    - needed for kappa in cm^2/g 
+   // 5) kappa(tau) from Gray Ch. 8 sources - H, He, and e^- oapcity sources only
+   // 6) P_Tot(tau) from HSE on tau scale with kappa from 4)
    //    - PRad(tau) from Tk(tau)
    //    - New Pg(tau) from P_Tot(tau)-PRad(tau)
-   // 7) Iterate with updated Pg(tau) & Pe(tau)??
-   // 8) Temp correction??   
+   // 7) Iterate Pg - kappa relation to convergence - *outer* convergence
+   // 8)Get rho(tau) = Sigma_z(m_z*N_z(tau)) and mu(tau) = rho(tau) / N(tau)
+   //   and depth scale
+   //
+   //  ** Atmospheric structure converged **
+   //
+   // THEN for spectrum synthesis:
+   //
+   // 1) Separate iteration of Ne against ionization fractions fI(tau), fII, fIII, fIV, fV(tau) 
+   // from Saha(Tk(tau), Pe(tau))
+   //   AND coupled molecualr equilibrium 
+   //    -  LevelPops.stagePops2() 
+   // 2) new Ne(tau) from Sigma_z{fI(tau) .... 5*fV(tau) * N_z}
+   // 3) Iterate
+   // 4) Temp correction??   
+
+
+//    **** STOP ****  No - do we *really* need N_HI, ... for kappa if we use rho in HSE? - Yes - needed even if kappa
+//    is in cm^-1 instead of cm^2/g - sigh
 
         //
         // mean molecular weight and Ne for Star & Sun
@@ -736,51 +751,17 @@ public class GrayStar3Server {
   double[] depths = new double[numDeps];
   double[][] newTemp = new double[2][numDeps];
 
-//
-//
-//
-//Begin Pgas/Pe iteration
-    for (int pIter = 0; pIter < 1; pIter++){
-//
-//
-//Get the number densities of the chemical elements at all depths  
-     logNz = State.getNz(numDeps, temp, guessPGas, guessPe, ATot, nelemAbnd, logAz);
-     for (int i = 0 ; i < numDeps; i++){ 
-        logNH[i] = logNz[0][i];
-        //System.out.println("i " + i + " logNH[i] " + logE*logNH[i]);
-     } 
-    
-//Get mass density from chemical composition: 
-     rho = State.massDensity2(numDeps, nelemAbnd, logNz, cname);
-      //System.out.println("i     rho");
-      //for (int i = 0; i < numDeps; i+=10){
-      //   System.out.format("%03d, %21.15f%n", i, rho[0][i]);
-      //}
-     //for (int i = 0 ; i < numDeps; i++){
-       //System.out.println("i " + i + " rho " + logE*rho[1][i]);
-     //}
 
-
-//
-//  Compute ionization fractions for Ne calculation 
-//  AND
-// Populate the ionization stages of all the species for spectrum synthesis:
-//stuff to save ion stage pops at tau=1:
-  int iTauOne = ToolBox.tauPoint(numDeps, tauRos, unity);
-//
-//  Default inializations:
-       zScaleList = 1.0; //initialization   
-       //these 2-element temperature-dependent partition fns are logarithmic  
-
+//Variables for ionization/molecular equilibrium treatment:
 //for diatomic molecules
-       double[][] logNumBArr = new double[numAssocMols][numDeps];
+  double[][] logNumBArr = new double[numAssocMols][numDeps];
 //We will interpolate in atomic partition fns tabulated at two temperatures
-       double[][] log10UwBArr = new double[numAssocMols][2]; //base 10 log
+  double[][] log10UwBArr = new double[numAssocMols][2]; //base 10 log
 
-       double[] dissEArr = new double[numAssocMols];
+  double[] dissEArr = new double[numAssocMols];
 //We will interpolate in molecular partition fns tabulated at five temperatures
-       double[][] logQwABArr = new double[numAssocMols][5]; //natural log
-       double[] logMuABArr = new double[numAssocMols];
+  double[][] logQwABArr = new double[numAssocMols][5]; //natural log
+  double[] logMuABArr = new double[numAssocMols];
 
 // Arrays ofpointers into master molecule and element lists:
    int[] mname_ptr = new int[numAssocMols];
@@ -788,6 +769,77 @@ public class GrayStar3Server {
    int specA_ptr = 0;
    int specB2_ptr = 0;
    String mnameBtemplate = " ";
+
+//
+//
+//We converge the Pgas - Pe relation first under the assumption that all free e^-s are from single ionizations
+// a la David Gray Ch. 9.  
+// This approach separates converging ionization fractions and Ne for spectrum synthesis purposes from
+// converging the Pgas-Pe-N_H-N_He relation for computing the mean opacity for HSE
+//
+double[] thisTemp = new double[2];
+double[] log10UwUArr = new double[2];
+double[] log10UwLArr = new double[2];
+double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOverPe, logPeNumerTerm, logPeDenomTerm;
+//Begin Pgas-kapp iteration
+    for (int pIter = 0; pIter < 5; pIter++){
+//
+       //System.out.println("pIter " + pIter);
+
+//  Converge Pg-Pe relation starting from intital guesses at Pg and Pe
+//  - assumes all free electrons are from single ionizations
+//  - David Gray 3rd Ed. Eq. 9.8:
+
+  for (int neIter = 0; neIter < 5; neIter++){
+    //System.out.println("iD    logE*newPe[1][iD]     logE*guessPe[1]     logE*guessPGas[1]");
+    for (int iD = 0; iD < numDeps; iD++){
+    //re-initialize accumulators:
+       thisTemp[0] = temp[0][iD];
+       thisTemp[1] = temp[1][iD];
+       peNumerator = 0.0; 
+       peDenominator = 0.0;
+       for (int iElem = 0; iElem < nelemAbnd; iElem++){
+           species = cname[iElem] + "I";
+           chiI = IonizationEnergy.getIonE(species);
+    //THe following is a 2-element vector of temperature-dependent partitio fns, U, 
+    // that are base 10 log_10 U
+           log10UwLArr = PartitionFn.getPartFn(species); //base 10 log_10 U
+           species = cname[iElem] + "II";
+           log10UwUArr = PartitionFn.getPartFn(species); //base 10 log_10 U
+           logPhi = LevelPopsServer.sahaRHS(chiI, log10UwUArr, log10UwLArr, thisTemp);
+           logPhiOverPe = logPhi - guessPe[1][iD];
+           logOnePlusPhiOverPe = Math.log(1.0 + Math.exp(logPhiOverPe)); 
+           logPeNumerTerm = logAz[iElem] + logPhiOverPe - logOnePlusPhiOverPe;
+           peNumerator = peNumerator + Math.exp(logPeNumerTerm);
+           logPeDenomTerm = logAz[iElem] + Math.log(1.0 + Math.exp(logPeNumerTerm));
+           peDenominator = peDenominator + Math.exp(logPeDenomTerm);
+       } //iElem chemical element loop
+       newPe[1][iD] = guessPGas[1][iD] + Math.log(peNumerator) - Math.log(peDenominator); 
+       //System.out.format("%03d, %21.15f, %21.15f, %21.15f%n", iD, logE*newPe[1][iD], logE*guessPe[1][iD], logE*guessPGas[1][iD]);
+       guessPe[1][iD] = newPe[1][iD];
+       guessPe[0][iD] = Math.exp(guessPe[1][iD]);
+    } //iD depth loop
+
+} //end Pg_Pe iteration neIter
+
+    for (int iD = 0; iD < numDeps; iD++){
+       newNe[1][iD] = newPe[1][iD] - temp[1][iD] - Useful.logK();
+    }
+
+//
+//Get the number densities of the chemical elements at all depths  
+     logNz = State.getNz(numDeps, temp, guessPGas, guessPe, ATot, nelemAbnd, logAz);
+     for (int i = 0 ; i < numDeps; i++){ 
+        logNH[i] = logNz[0][i];
+        //System.out.println("i " + i + " logNH[i] " + logE*logNH[i]);
+     } 
+
+//
+//  Compute ionization fractions of H & He for kappa calculation 
+//
+//  Default inializations:
+       zScaleList = 1.0; //initialization   
+       //these 2-element temperature-dependent partition fns are logarithmic  
 
 //Default initialization:
        for (int i = 0; i < numAssocMols; i++){
@@ -830,12 +882,9 @@ public class GrayStar3Server {
      double[] logGroundRatio = new double[numDeps];
 
 
-// Iteration *within* the outer Pe-Pgas iteration:
-//Iterate the electron densities and ionization fractions:
 //
- for (int neIter = 0; neIter < 1; neIter++){
- 
-   for (int iElem = 0; iElem < nelemAbnd; iElem++){
+//H & He only for now... we only compute H, He, and e^- opacity sources: 
+   for (int iElem = 0; iElem < 2; iElem++){
        species = cname[iElem] + "I";
        chiIArr[0] = IonizationEnergy.getIonE(species);
     //THe following is a 2-element vector of temperature-dependent partitio fns, U, 
@@ -847,9 +896,6 @@ public class GrayStar3Server {
        species = cname[iElem] + "III";
        chiIArr[2] = IonizationEnergy.getIonE(species);
        log10UwAArr[2] = PartitionFn.getPartFn(species); //base 10 log_10 U
-       species = cname[iElem] + "IV";
-       chiIArr[3] = IonizationEnergy.getIonE(species);
-       log10UwAArr[3]= PartitionFn.getPartFn(species); //base 10 log_10 U
        //double logN = (eheu[iElem] - 12.0) + logNH;
 
        int thisNumMols = 0; //default initialization
@@ -927,7 +973,6 @@ public class GrayStar3Server {
             masterStagePops[iElem][iStage][iTau] = logNums[iStage][iTau];
  //save ion stage populations at tau = 1:
        } //iTau loop
-       tauOneStagePops[iElem][iStage] = logNums[iStage][iTauOne];
     } //iStage loop
             //System.out.println("iElem " + iElem);
             //if (iElem == 1){
@@ -937,6 +982,292 @@ public class GrayStar3Server {
             // }
   } //iElem loop
 
+    
+//Get mass density from chemical composition: 
+     rho = State.massDensity2(numDeps, nelemAbnd, logNz, cname);
+      //System.out.println("i      logNz[0]      rho[1]");
+      //for (int i = 0; i < numDeps; i+=10){
+      //   System.out.format("%03d, %21.15f, %21.15f%n", i, logE*logNz[0][i], logE*rho[1][i]);
+      //}
+     //for (int i = 0 ; i < numDeps; i++){
+       //System.out.println("i " + i + " rho " + logE*rho[1][i]);
+     //}
+
+//Total number density of gas particles: nuclear species + free electrons:
+//AND
+ //Compute mean molecular weight, mmw ("mu"):
+    for (int i = 0; i < numDeps; i++){
+      Ng[i] =  newNe[0][i]; //initialize accumulation with Ne 
+    }
+    for (int i = 0; i < numDeps; i++){
+      for (int j = 0; j < nelemAbnd; j++){
+         Ng[i] =  Ng[i] + Math.exp(logNz[j][i]); //initialize accumulation 
+      }
+     logMmw = rho[1][i] - Math.log(Ng[i]);  // in g
+     mmw[i] = Math.exp(logMmw); 
+       //System.out.println("i " + i + " Ng " + Math.log10(Ng[i]) + " mmw " + (mmw[i]/Useful.amu));
+    }
+      //System.out.println("i     10^-9*Ng     mmw");
+      //for (int i = 0; i < numDeps; i+=10){
+      //   System.out.format("%03d, %21.15f, %21.15f%n", i, (1.0e-9*Ng[i]), (mmw[i]/Useful.amu));
+      //}
+
+
+//H & He only for now... we only compute H, He, and e^- opacity sources: 
+      logKappa = Kappas.kappas2(numDeps, newPe, zScale, temp, rho,
+                     numLams, lambdaScale, logAz[1],
+                     masterStagePops[0][0], masterStagePops[0][1], 
+                     masterStagePops[1][0], masterStagePops[1][1], newNe, 
+                     teff, logTotalFudge);
+
+      //System.out.println("i     tauRos      l      lamb     kappa");
+      //for (int i = 0; i < numDeps; i+=10){
+      //   for (int l = 0; l < numLams; l+=20){
+      //      System.out.format("%03d, %21.15f, %03d, %21.15f, %21.15f%n", i, tauRos[0][i], l, lambdaScale[l], logKappa[l][i]);
+      //   }
+      //}
+
+      kappaRos = Kappas.kapRos(numDeps, numLams, lambdaScale, logKappa, temp); 
+      //System.out.println("i     tauRos      logNH      kappa");
+      //for (int i = 0; i < numDeps; i+=10){
+      //      System.out.format("%03d, %21.15f, %21.15f, %21.15f%n", i, tauRos[0][i], logE*masterStagePops[0][0][i], logE*kappaRos[1][i]);
+      //}
+
+//Extract the "kappa_500" monochroamtic continuum oapcity scale
+// - this means we'll try interpreting the prescribed tau grid (still called "tauRos")as the "tau500" scale
+      int it500 = ToolBox.lamPoint(numLams, lambdaScale, 500.0e-7);
+      //System.out.println("i         tauRos[1]        kap500");
+    //  System.out.println("i         tauRos[1]        kapRos");
+      for (int i = 0; i < numDeps; i++){
+         kappa500[1][i] = logKappa[it500][i];
+         kappa500[0][i] = Math.exp(kappa500[1][i]);
+     //  if (i%10 == 0){
+         //System.out.format("%03d, %21.15f, %21.15f%n", i, logE*tauRos[1][i], logE*kappa500[1][i]);
+        // System.out.format("%03d, %21.15f, %21.15f%n", i, logE*tauRos[1][i], logE*kappaRos[1][i]);
+      //               }
+      }
+
+        //press = Hydrostat.hydrostatic(numDeps, grav, tauRos, kappaRos, temp);
+        pGas = Hydrostat.hydroFormalSoln(numDeps, grav, tauRos, kappaRos, temp, guessPGas);
+        //pGas = Hydrostat.hydroFormalSoln(numDeps, grav, tauRos, kappa500, temp, guessPGas);
+      //System.out.println("i        guessPGas         pGas");
+     // for (int i = 0; i < numDeps; i+=10){
+     //    System.out.format("%03d, %21.15f, %21.15f%n", i, logE*guessPGas[1][i], logE*pGas[1][i]);
+     // }
+        pRad = Hydrostat.radPress(numDeps, temp);
+
+//Update Pgas guess for iteration:
+    //  System.out.println("i        guessPe         newPe");
+        for (int iTau = 0; iTau < numDeps; iTau++){
+// Now we can update guessPGas:
+            guessPGas[0][iTau] = pGas[0][iTau];
+            guessPGas[1][iTau] = pGas[1][iTau];
+            //System.out.println("iTau " + iTau + " pGas[0][iTau] " + logE*pGas[1][iTau] + " newPe[0][iTau] " + logE*newPe[1][iTau]);
+        } 
+
+ } //end Pgas-kappa iteration
+
+        // Then construct geometric depth scale from tau, kappa and rho
+        depths = DepthScale.depthScale(numDeps, tauRos, kappaRos, rho);
+        //depths = DepthScale.depthScale(numDeps, tauRos, kappa500, rho);
+
+        //int numTCorr = 10;  //test
+        int numTCorr = 0;
+        for (int i = 0; i < numTCorr; i++) {
+            //newTemp = TCorr.tCorr(numDeps, tauRos, temp);
+            newTemp = MulGrayTCorr.mgTCorr(numDeps, teff, tauRos, temp, rho, kappaRos);
+            //newTemp = MulGrayTCorr.mgTCorr(numDeps, teff, tauRos, temp, rho, kappa500);
+            for (int iTau = 0; iTau < numDeps; iTau++) {
+                temp[1][iTau] = newTemp[1][iTau];
+                temp[0][iTau] = newTemp[0][iTau];
+            }
+        }
+
+        /*
+         //Convection:
+         // Teff below which stars are convective.  
+         //  - has to be finessed because Convec.convec() does not work well :-(
+         double convTeff = 6500.0;
+         double[][] convTemp = new double[2][numDeps];
+         if (teff < convTeff) {
+         convTemp = Convec.convec(numDeps, tauRos, depths, temp, press, rho, kappaRos, kappaSun, zScale, teff, logg);
+
+         for (int iTau = 0; iTau < numDeps; iTau++) {
+         temp[1][iTau] = convTemp[1][iTau];
+         temp[0][iTau] = convTemp[0][iTau];
+         }
+         }
+         */
+        boolean ifTcorr = false;
+        boolean ifConvec = false;
+        if ((ifTcorr == true) || (ifConvec == true)) {
+            //Recall hydrostat with updates temps            
+            //Recall state withupdated Press                    
+            //recall kappas withupdates rhos
+            //Recall depths with re-updated kappas
+        }
+
+//
+// Now that the atmospheric structure is settled: 
+// Separately converge the Ne-ionization-fractions-molecular equilibrium for
+// all elements and populate the ionization stages of all the species for spectrum synthesis:
+//
+//stuff to save ion stage pops at tau=1:
+  int iTauOne = ToolBox.tauPoint(numDeps, tauRos, unity);
+
+//
+//  Default inializations:
+       zScaleList = 1.0; //initialization
+       //these 2-element temperature-dependent partition fns are logarithmic
+
+//Default initialization:
+       for (int i = 0; i < numAssocMols; i++){
+           for (int j = 0; j < numDeps; j++){
+               logNumBArr[i][j] = -49.0;
+           }
+           log10UwBArr[i][0] = 0.0;
+           log10UwBArr[i][1] = 0.0;
+           dissEArr[i] = 29.0;  //eV
+           for (int kk = 0; kk < 5; kk++){
+               logQwABArr[i][kk] = Math.log(300.0);
+           }
+           logMuABArr[i] = Math.log(2.0) + Useful.logAmu();  //g
+           mname_ptr[i] = 0;
+           specB_ptr[i] = 0;
+       }
+
+       double defaultQwAB = Math.log(300.0); //for now
+    //default that applies to most cases - neutral stage (I) forms molecules
+       int specBStage = 0; //default that applies to most cases
+
+   //For element A of main molecule being treated in *molecular* equilibrium:
+   //For safety, assign default values where possible
+       double nmrtrDissE = 15.0; //prohitively high by default
+       double[] nmrtrLog10UwB = new double[2];
+       nmrtrLog10UwB[0] = 0.0;
+       nmrtrLog10UwB[1] = 0.0;
+       double nmrtrLog10UwA = 0.0;
+       double[] nmrtrLogQwAB = new double[5];
+       for (int kk = 0; kk < 5; kk++){
+          nmrtrLogQwAB[kk] = Math.log(300.0);
+       }
+       double nmrtrLogMuAB = Useful.logAmu();
+       double[] nmrtrLogNumB = new double[numDeps];
+       for (int i = 0; i < numDeps; i++){
+          nmrtrLogNumB[i] = 0.0;
+       }
+
+     double totalIonic;
+     double[] logGroundRatio = new double[numDeps];
+
+
+//Iterate the electron densities, ionization fractions, and molecular densities:
+//
+ for (int neIter2 = 0; neIter2 < 5; neIter2++){
+
+   //System.out.println("neIter2 " + neIter2);
+
+   for (int iElem = 0; iElem < nelemAbnd; iElem++){
+       species = cname[iElem] + "I";
+       chiIArr[0] = IonizationEnergy.getIonE(species);
+    //THe following is a 2-element vector of temperature-dependent partitio fns, U,
+    // that are base 10 log_10 U
+       log10UwAArr[0] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       species = cname[iElem] + "II";
+       chiIArr[1] = IonizationEnergy.getIonE(species);
+       log10UwAArr[1] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       species = cname[iElem] + "III";
+       chiIArr[2] = IonizationEnergy.getIonE(species);
+       log10UwAArr[2] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       species = cname[iElem] + "IV";
+       chiIArr[3] = IonizationEnergy.getIonE(species);
+       log10UwAArr[3]= PartitionFn.getPartFn(species); //base 10 log_10 U
+       //double logN = (eheu[iElem] - 12.0) + logNH;
+
+       int thisNumMols = 0; //default initialization
+       for (int iMol = 0; iMol < numAssocMols; iMol++){
+          //console.log("iMol " + iMol + " cnameMols " + cnameMols[iElem][iMol]);
+          if (cnameMols[iElem][iMol] == "None"){
+            break;
+          }
+          thisNumMols++;
+       }
+     //console.log("thisNumMols " + thisNumMols);
+     if (thisNumMols > 0){
+       //Find pointer to molecule in master mname list for each associated molecule:
+       for (int iMol = 0; iMol < thisNumMols; iMol++){
+          for (int jj = 0; jj < nMols; jj++){
+             if (cnameMols[iElem][iMol] == mname[jj]){
+                mname_ptr[iMol] = jj; //Found it!
+                break;
+             }
+          } //jj loop in master mnames list
+       } //iMol loop in associated molecules
+//Now find pointer to atomic species B in master cname list for each associated molecule found in master mname list!
+       for (int iMol = 0; iMol < thisNumMols; iMol++){
+          for (int jj = 0; jj < nelemAbnd; jj++){
+             if (mnameB[mname_ptr[iMol]] == cname[jj]){
+                specB_ptr[iMol] = jj; //Found it!
+                break;
+             }
+          } //jj loop in master cnames list
+       } //iMol loop in associated molecules
+
+//Now load arrays with molecular species AB and atomic species B data for method stagePops2()
+       for (int iMol = 0; iMol < thisNumMols; iMol++){
+  //special fix for H^+_2:
+         if (mnameB[mname_ptr[iMol]] == "H2+"){
+            specBStage = 1;
+         } else {
+            specBStage = 0;
+         }
+          for (int iTau = 0; iTau < numDeps; iTau++){
+             //console.log("iMol " + iMol + " iTau " + iTau + " specB_ptr[iMol] " + specB_ptr[iMol]);
+//Note: Here's one place where ionization equilibrium iteratively couples to molecular equilibrium!
+             logNumBArr[iMol][iTau] = masterStagePops[specB_ptr[iMol]][specBStage][iTau];
+          }
+          dissEArr[iMol] = IonizationEnergy.getDissE(mname[mname_ptr[iMol]]);
+          species = cname[specB_ptr[iMol]] + "I"; //neutral stage
+          log10UwBArr[iMol] = PartitionFn.getPartFn(species); //base 10 log_10 U
+          //logQwABArr[iMol] = defaultQwAB;
+          logQwABArr[iMol] = PartitionFn.getMolPartFn(mname[mname_ptr[iMol]]);
+          //Compute the reduced mass, muAB, in g:
+          massA = AtomicMass.getMass(cname[iElem]);
+          massB = AtomicMass.getMass(cname[specB_ptr[iMol]]);
+          logMuABArr[iMol] = Math.log(massA) + Math.log(massB) - Math.log(massA + massB) + Useful.logAmu();
+       }
+   } //if thisNumMols > 0 condition
+
+    //   logNums = LevelPopsServer.stagePops(logNz[iElem], guessNe, thisChiI1,
+    //         thisChiI2, thisChiI3, thisChiI4, thisUw1V, thisUw2V, thisUw3V, thisUw4V,
+    //         numDeps, temp);
+       logNums = LevelPopsServer.stagePops2(logNz[iElem], guessNe, chiIArr, log10UwAArr,
+                     thisNumMols, logNumBArr, dissEArr, log10UwBArr, logQwABArr, logMuABArr,
+                     numDeps, temp);
+
+     //System.out.println("Main: Elem       iTau      logNz      logNums[0]      ppNums[0]");
+     for (int iStage = 0; iStage < numStages; iStage++){
+          for (int iTau = 0; iTau < numDeps; iTau++){
+            //if ((cname[iElem].equals("O") == true) && (iStage == 0)){
+            //   System.out.format("O, %03d, %21.15f, %21.15f, %21.15f%n", iTau, logE*logNz[iElem][iTau], logE*logNums[iStage][iTau],
+            //     logE*(logNums[iStage][iTau]+Useful.logK()+temp[1][iTau]));
+            //}
+            //if ((cname[iElem].equals("Ti") == true) && (iStage == 0)){
+            //   System.out.format("Ti, %03d, %21.15f, %21.15f, %21.15f%n", iTau, logE*logNz[iElem][iTau], logE*logNums[iStage][iTau],
+            //     logE*(logNums[iStage][iTau]+Useful.logK()+temp[1][iTau]));
+            //}
+            masterStagePops[iElem][iStage][iTau] = logNums[iStage][iTau];
+ //save ion stage populations at tau = 1:
+       } //iTau loop
+       tauOneStagePops[iElem][iStage] = logNums[iStage][iTauOne];
+    } //iStage loop
+            //System.out.println("iElem " + iElem);
+            //if (iElem == 1){
+            //  for (int iTau = 0; iTau < numDeps; iTau++){
+            //   System.out.println("cname: " + cname[iElem] + " " + logE*list2LogNums[0][iTau] + " " + logE*list2LogNums[1][iTau]);
+            //  }
+            // }
+  } //iElem loop
 
 // Compute all molecular populations:
 //
@@ -1072,7 +1403,7 @@ public class GrayStar3Server {
        //System.out.println("MAIN: nmrtrDissE " + nmrtrDissE + " log10UwA " + log10UwA[0] + " " + log10UwA[1] + " nmrtrLog10UwB " +
        //     nmrtrLog10UwB[0] + " " + nmrtrLog10UwB[1] + " nmrtrLog10QwAB[2] " + logE*nmrtrLogQwAB[2] + " nmrtrLogMuAB " + logE*nmrtrLogMuAB
        //     + " thisNumMols " + thisNumMols + " dissEArr " + dissEArr[0] + " log10UwBArr " + log10UwBArr[0][0] + " " + log10UwBArr[0][1] + " log10QwABArr " +
-       //     logE*logQwABArr[0][2] + " logMuABArr " + logE*logMuABArr[0]);    
+       //     logE*logQwABArr[0][2] + " logMuABArr " + logE*logMuABArr[0]);
        logNumFracAB = LevelPopsServer.molPops(nmrtrLogNumB, nmrtrDissE, log10UwA, nmrtrLog10UwB, nmrtrLogQwAB, nmrtrLogMuAB,
                      thisNumMols, logNumBArr, dissEArr, log10UwBArr, logQwABArr, logMuABArr,
                      logGroundRatio, numDeps, temp);
@@ -1082,31 +1413,40 @@ public class GrayStar3Server {
       //System.out.println("iTau      temp     logNz[specA_ptr]      masterMolPops[iMol]      ppMol");
       for (int iTau = 0; iTau < numDeps; iTau++){
          masterMolPops[iMol][iTau] = logNz[specA_ptr][iTau] + logNumFracAB[iTau];
+       //if (iTau%10 == 0){
          //System.out.format("%03d, %21.15f, %21.15f, %21.15f, %21.15f%n", iTau, temp[0][iTau], logE*logNz[specA_ptr][iTau], logE*masterMolPops[iMol][iTau],
-         // logE*(masterMolPops[iMol][iTau]+Useful.logK()+temp[1][iTau]) );
+          //logE*(masterMolPops[iMol][iTau]+Useful.logK()+temp[1][iTau]) );
+           //             }
       }
   } //master iMol loop
 //
-
 //Compute updated Ne & Pe:
      //initialize accumulation of electrons at all depths
      for (int iTau = 0; iTau < numDeps; iTau++){
-       newNe[0][iTau] = 0.0; 
+       newNe[0][iTau] = 0.0;
      }
      for (int iTau = 0; iTau < numDeps; iTau++){
+     //  if (iTau%10 == 0){
+     //System.out.println("iTau, iElem, masterStagePops[iElem][0], masterStagePops[iElem][1], masterStagePops[iElem][2]");
+     //System.out.println("iTau, guessNe[1], newNe[1]");
+     //                   }
         for (int iElem = 0; iElem < nelemAbnd; iElem++){
-          newNe[0][iTau] = newNe[0][iTau] 
+          newNe[0][iTau] = newNe[0][iTau]
                    + Math.exp(masterStagePops[iElem][1][iTau])   //1 e^- per ion
                    + 2.0 * Math.exp(masterStagePops[iElem][2][iTau]);   //2 e^- per ion
                    //+ 3.0 * Math.exp(masterStagePops[iElem][3][iTau])   //3 e^- per ion
                    //+ 4.0 * Math.exp(masterStagePops[iElem][4][iTau]);   //3 e^- per ion
+        // if (iTau%10 == 0){
+        //  System.out.format("%03d, %03d, %21.15f, %21.15f, %21.15f %n", iTau, iElem, logE*masterStagePops[iElem][0][iTau], logE*masterStagePops[iElem][1][iTau], logE*masterStagePops[iElem][2][iTau] );
+         //     }
         }
         newNe[1][iTau] = Math.log(newNe[0][iTau]);
+      // if (iTau%10 == 0){
+      //  System.out.format("%03d, %21.15f, %21.15f %n", iTau, logE*guessNe[1][iTau], logE*newNe[1][iTau]);
+      //                 }
 // Update guess for iteration:
-        guessNe[0][iTau] = newNe[0][iTau]; 
-        guessNe[1][iTau] = newNe[1][iTau]; 
-        newPe[1][iTau] = newNe[1][iTau] + Useful.logK() + temp[1][iTau];
-        newPe[0][iTau] = Math.exp(newPe[1][iTau]);
+        guessNe[0][iTau] = newNe[0][iTau];
+        guessNe[1][iTau] = newNe[1][iTau];
        //System.out.println("iTau " + iTau + " newNe " + logE*newNe[1][iTau] + " newPe " + logE*newPe[1][iTau]);
      }
       //System.out.println("i     guessPe      newPe      10^-9*newNe");
@@ -1114,115 +1454,10 @@ public class GrayStar3Server {
       //   System.out.format("%03d, %21.15f, %21.15f, %21.15f%n", i, guessPe[0][i], newPe[0][i], (1.0e-9*newNe[0][i]));
       //}
 
-  } //end Ne - ionzation fraction iteration
+  } //end Ne - ionzation fraction -molecular equilibrium iteration neIter2
 
 
-
-//Total number density of gas particles: nuclear species + free electrons:
-//AND
- //Compute mean molecular weight, mmw ("mu"):
-    for (int i = 0; i < numDeps; i++){
-      Ng[i] =  newNe[0][i]; //initialize accumulation with Ne 
-    }
-    for (int i = 0; i < numDeps; i++){
-      for (int j = 0; j < nelemAbnd; j++){
-         Ng[i] =  Ng[i] + Math.exp(logNz[j][i]); //initialize accumulation 
-      }
-     logMmw = rho[1][i] - Math.log(Ng[i]);  // in g
-     mmw[i] = Math.exp(logMmw); 
-       //System.out.println("i " + i + " Ng " + Math.log10(Ng[i]) + " mmw " + (mmw[i]/Useful.amu));
-    }
-      //System.out.println("i     10^-9*Ng     mmw");
-      //for (int i = 0; i < numDeps; i+=10){
-      //   System.out.format("%03d, %21.15f, %21.15f%n", i, (1.0e-9*Ng[i]), (mmw[i]/Useful.amu));
-      //}
-
-
-      logKappa = Kappas.kappas2(numDeps, newPe, zScale, temp, rho,
-                     numLams, lambdaScale, logAz[1],
-                     masterStagePops[0][0], masterStagePops[0][1], 
-                     masterStagePops[1][0], masterStagePops[1][1], newNe, 
-                     teff, logTotalFudge);
-
-      //System.out.println("i     tauRos      l      lamb     kappa");
-      //for (int i = 0; i < numDeps; i+=10){
-      //   for (int l = 0; l < numLams; l+=20){
-      //      System.out.format("%03d, %21.15f, %03d, %21.15f, %21.15f%n", i, tauRos[0][i], l, lambdaScale[l], logKappa[l][i]);
-      //   }
-      //}
-
-      kappaRos = Kappas.kapRos(numDeps, numLams, lambdaScale, logKappa, temp); 
-
-//Extract the "kappa_500" monochroamtic continuum oapcity scale
-// - this means we'll try interpreting the prescribed tau grid (still called "tauRos")as the "tau500" scale
-      int it500 = ToolBox.lamPoint(numLams, lambdaScale, 500.0e-7);
-      for (int i = 0; i < numDeps; i++){
-         kappa500[1][i] = logKappa[it500][i];
-         kappa500[0][i] = Math.exp(kappa500[1][i]);
-      }
-
-        //press = Hydrostat.hydrostatic(numDeps, grav, tauRos, kappaRos, temp);
-        //pGas = Hydrostat.hydroFormalSoln(numDeps, grav, tauRos, kappaRos, temp, guessPGas);
-        pGas = Hydrostat.hydroFormalSoln(numDeps, grav, tauRos, kappa500, temp, guessPGas);
-      //System.out.println("i     guessPGas      pGas");
-      //for (int i = 0; i < numDeps; i+=10){
-      //   System.out.format("%03d, %21.15f, %21.15f%n", i, guessPGas[0][i], pGas[0][i]);
-      //}
-        pRad = Hydrostat.radPress(numDeps, temp);
-
-//Update Pgas and Pe guesses for iteration:
-        for (int iTau = 0; iTau < numDeps; iTau++){
-//CHEAT to accelrate self-consistency: Scale the new Pe's by pGas/guessPGas
-//  - also helps avoid negative Nz and NH values.
-            guessPe[1][iTau] = newPe[1][iTau] + pGas[1][iTau] - guessPGas[1][iTau]; //logarithmic
-            guessPe[0][iTau] = Math.exp(guessPe[1][iTau]);
-// Now we can update guessPGas:
-            guessPGas[0][iTau] = pGas[0][iTau];
-            guessPGas[1][iTau] = pGas[1][iTau];
-            //System.out.println("iTau " + iTau + " pGas[0][iTau] " + logE*pGas[1][iTau] + " newPe[0][iTau] " + logE*newPe[1][iTau]);
-        } 
-
- } //end Pgas/Pe iteration
-
-        // Then construct geometric depth scale from tau, kappa and rho
-        //depths = DepthScale.depthScale(numDeps, tauRos, kappaRos, rho);
-        depths = DepthScale.depthScale(numDeps, tauRos, kappa500, rho);
-
-        //int numTCorr = 10;  //test
-        int numTCorr = 0;
-        for (int i = 0; i < numTCorr; i++) {
-            //newTemp = TCorr.tCorr(numDeps, tauRos, temp);
-            //newTemp = MulGrayTCorr.mgTCorr(numDeps, teff, tauRos, temp, rho, kappaRos);
-            newTemp = MulGrayTCorr.mgTCorr(numDeps, teff, tauRos, temp, rho, kappa500);
-            for (int iTau = 0; iTau < numDeps; iTau++) {
-                temp[1][iTau] = newTemp[1][iTau];
-                temp[0][iTau] = newTemp[0][iTau];
-            }
-        }
-
-        /*
-         //Convection:
-         // Teff below which stars are convective.  
-         //  - has to be finessed because Convec.convec() does not work well :-(
-         double convTeff = 6500.0;
-         double[][] convTemp = new double[2][numDeps];
-         if (teff < convTeff) {
-         convTemp = Convec.convec(numDeps, tauRos, depths, temp, press, rho, kappaRos, kappaSun, zScale, teff, logg);
-
-         for (int iTau = 0; iTau < numDeps; iTau++) {
-         temp[1][iTau] = convTemp[1][iTau];
-         temp[0][iTau] = convTemp[0][iTau];
-         }
-         }
-         */
-        boolean ifTcorr = false;
-        boolean ifConvec = false;
-        if ((ifTcorr == true) || (ifConvec == true)) {
-            //Recall hydrostat with updates temps            
-            //Recall state withupdated Press                    
-            //recall kappas withupdates rhos
-            //Recall depths with re-updated kappas
-        }
+//
 
 
         //Okay - Now all the emergent radiation stuff:

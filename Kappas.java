@@ -248,7 +248,7 @@ public class Kappas {
      double Rydberg = 1.0968e-2;  // "R" in nm^-1
      //Generate threshold wavelengths and b-f Gaunt (g_bf) helper factors up to n=10:
      double n; //principle quantum number of Bohr atom E-level
-     int numHlevs = 30;
+     int numHlevs = 10;
      double[] invThresh = new double[numHlevs]; //also serves as g_bf helper factor
      double[] threshLambs = new double[numHlevs];
      double[] chiHlev = new double[numHlevs];

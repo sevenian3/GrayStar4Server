@@ -858,10 +858,25 @@
         elements in the javaScript code (the js panelWidth & panelHeight parameters)
         for the scaling between CSS and JS canvas coordinates to be 1:1 -->
 
-        <!-- Stellar disk -->
-        <div id="plotThirteen">
-            <canvas id="plotThirteenCnvs" width="1350" height="350"></canvas>
-        </div> 
+ <!--
+// PLOT GRID PLAN as of 20 Jul 2016:
+//     Cell entries:  Plot number Plot contents
+//
+//   Col           0                 |  1                |  2
+//
+//   Row: 0        7 Whte Lght Img   |  10 Spctrm Img    |  11 Life Zn
+//
+//        1       12 Gauss Filt      |   9 HRD           |
+//
+//        2       13 Synth Spec    <==> 13 Synth Spec  <==> 13 Synth Spec
+//
+//        3        4 Limb darkng     |  15 Four trnsfrm  |   5 SED
+//
+//        4        2 T_kin(tau)      |   3 P(tau)        |  14 kap(tau)
+//
+//        5                          |   8 Grotrn Diag   |
+//
+--> 
 
         <!-- Stellar disk -->
         <div id="plotSeven">
@@ -887,11 +902,12 @@
         <div id="plotNine">
             <canvas id="plotNineCnvs" width="450" height="350"></canvas>
         </div> 
-i<!--
-        <div id="plotOne" class="atmosPanel" style="display:none">
-            <canvas id="plotOneCnvs" width="450" height="350"></canvas>
-        </div>
--->
+
+        <!-- Synthetic spectrum -->
+        <div id="plotThirteen">
+            <canvas id="plotThirteenCnvs" width="1350" height="350"></canvas>
+        </div> 
+
         <!-- Limb darkening: I_lambda(theta) -->
         <div id="plotFour" class="radPanel" style="display:none">
             <canvas id="plotFourCnvs" width="450" height="350"></canvas>
@@ -926,6 +942,12 @@ i<!--
         <div id="plotEight" class="ionPanel" style="display:none">
             <canvas id="plotEightCnvs" width="450" height="350"></canvas>
         </div>         
+
+<!--
+        <div id="plotOne" class="atmosPanel" style="display:none">
+            <canvas id="plotOneCnvs" width="450" height="350"></canvas>
+        </div>
+-->
 
         <!-- Print-out panel -->
         <div id="printModel" style="display:block"></div>

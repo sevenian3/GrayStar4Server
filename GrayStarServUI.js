@@ -2817,6 +2817,23 @@ var jsonObj;
 
     //
 
+// PLOT GRID PLAN as of 20 Jul 2016:
+//     Cell entries:  Plot number Plot contents
+// 
+//   Col           0                 |  1                |  2
+// 
+//   Row: 0        7 Whte Lght Img   |  10 Spctrm Img    |  11 Life Zn
+// 
+//        1       12 Gauss Filt      |   9 HRD           |   
+// 
+//        2       13 Synth Spec    <==> 13 Synth Spec  <==> 13 Synth Spec  
+// 
+//        3        4 Limb darkng     |  15 Four trnsfrm  |   5 SED
+// 
+//        4        2 T_kin(tau)      |   3 P(tau)        |  14 kap(tau)
+// 
+//        5                          |   8 Grotrn Diag   |              
+//
 //
 //
 //  *****   PLOT THIRTEEN / PLOT 13 
@@ -3982,6 +3999,7 @@ var jsonObj;
 
         var plotRow = 4;
         var plotCol = 0;
+//
         var minXData = logE * tauRos[1][0];
         var maxXData = logE * tauRos[1][numDeps - 1];
         var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> <em>&#964</em><sub>Ros</sub></a></span>";
@@ -4168,6 +4186,7 @@ var jsonObj;
 
         var plotRow = 4;
         var plotCol = 1;
+//
         var minXData = logE * tauRos[1][0];
         var maxXData = logE * tauRos[1][numDeps - 1];
         var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> <em>&#964</em><sub>Ros</sub></a></span>";
@@ -4920,6 +4939,7 @@ var jsonObj;
 //
         var plotRow = 4;
         var plotCol = 2;
+//
         var minXData = logE * tauRos[1][0] - 0.0;
         var maxXData = logE * tauRos[1][numDeps - 1];
         var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> <em>&#964</em><sub>Ros</sub></a></span>";

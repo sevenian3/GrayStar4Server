@@ -161,17 +161,20 @@ public class Hydrostat {
         double logEg = Math.log(grav); //Natural log g!! 
         // no needed if integrating in natural log?? //double logLogE = Math.log(Math.log10(Math.E));
         double log1p5 = Math.log(1.5);
+        double logE = Math.log10(Math.E);
 
 //Compute radiation pressure for this temperature structure and add it to Pgas 
 //
        double pT, pRad;
        double[] logPRad = new double[numDeps];
        double[] logPTot = new double[numDeps];
+     //  System.out.println("hydroFormalSoln: ");
        for (int i = 0; i < numDeps; i++){
            logPRad[i] = radFac + 4.0 * temp[1][i];
            pRad = Math.exp(logPRad[i]);
       //System.out.println("i " + i + " pRad " + pRad);
            pT = guessPGas[0][i] + pRad;
+    //       System.out.println("i " + i + " guessPGas[1] " + logE*guessPGas[1][i]);
            logPTot[i] = Math.log(pT);
        }
 
@@ -184,9 +187,11 @@ public class Hydrostat {
 //Carefull here - P at upper boundary can be an underestimate, but it must not be greater than value at next depth in!
 //  press[1][0] = logPTot[0];
 //  press[1][0] = guessPGas[1][0];
-   press[1][0] = Math.log(1.0e-4); //try same upper boundary as Phoenix
+//   press[1][0] = Math.log(1.0e-4); //try same upper boundary as Phoenix
 //
-   press[0][0] = Math.exp(press[1][0]);
+//   press[0][0] = Math.exp(press[1][0]);
+     press[0][0] = 0.1 * guessPGas[0][0];
+     press[1][0] = Math.log(press[0][0]);
 //Corresponding value of basic integrated quantity at top of atmosphere:
   logSum = 1.5 * press[1][0] + Math.log(0.666667) - logEg;
   sum[0] = Math.exp(logSum); 
@@ -216,6 +221,7 @@ public class Hydrostat {
 
     } 
 
+    //System.out.println("hydroFormalSoln: ");
     for (int i = 1; i < numDeps; i++){
 //Evaluate total pressures from basic integrated quantity at edach depth 
 // our integration variable is the natural log, so I don't think we need the 1/log(e) factor
@@ -228,6 +234,7 @@ public class Hydrostat {
           help = 0.5;
        }
        press[1][i] = logPress + Math.log(1.0 - help);
+       //System.out.println("i " + i + " guessPGas[1] " + logE*guessPGas[1][i] + " press[1] " + logE*press[1][i]);
        press[0][i] = Math.exp(press[1][i]);
     }
 
