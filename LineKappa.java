@@ -111,6 +111,14 @@ public class LineKappa {
                 // This direct approach won't work - is not consistent with fake Kramer's law scaling of Kapp_Ros with g instead of rho
                 logKappaL[il][id] = logKappaL[il][id] - rho[1][id];
 //Try something:
+//
+// **********************
+//  Opacity problem #2 
+//
+//Line opacity needs to be multipied by fudge factor ~e^4.0 = 55 for Fraunhofer lines in Sun to have even
+//approximately the right strength - actually W_lambda is *still* to small!
+//  - related to Opacity problem #1 (logFudgeTune in GrayStarServer3.java) - ??
+//
                 logKappaL[il][id] = logKappaL[il][id] + Math.log(4.0);
 
                  //if (id == 12) {

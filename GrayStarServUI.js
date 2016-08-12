@@ -1339,12 +1339,12 @@ var gsDuplex = function(num, logVector){
         return;
     }
     flagArr[14] = false;
-    if (rotV < 2.0) {
+    if (rotV < 0.0) {
         flagArr[14] = true;
-        rotV = 2.0;
-        var rotVStr = "2.0";
-        settingsId[14].value = 2.0;
-        $("#rotV").val(2.0);
+        rotV = 0.0;
+        var rotVStr = "0.0";
+        settingsId[14].value = 0.0;
+        $("#rotV").val(0.0);
     }
     if (rotV > 350.0) {
         flagArr[14] = true;
@@ -1360,12 +1360,12 @@ var gsDuplex = function(num, logVector){
         return;
     }
     flagArr[15] = false;
-    if (rotI < 30.0) {
+    if (rotI < 0.0) {
         flagArr[15] = true;
-        rotI = 30.0;
-        var rotIStr = "30.0";
-        settingsId[15].value = 30.0;
-        $("#rotI").val(30.0);
+        rotI = 0.0;
+        var rotIStr = "0.0";
+        settingsId[15].value = 0.0;
+        $("#rotI").val(0.0);
     }
     if (rotI > 90.0) {
         flagArr[15] = true;
@@ -1763,6 +1763,7 @@ var jsonObj;
  //var inclntn = 90.0; //test
 
   var inclntn = Math.PI * rotI / 180;  //degrees to radians
+  var vsini = rotV * Math.sin(inclntn);
 
   //Quality control:
       var tiny = 1.0e-19;
@@ -1778,20 +1779,23 @@ var jsonObj;
    var rotLDC = ldc[iMidCont]; 
    //console.log("iStart, iStop " + iStart + " " + iStop + " masterLams(iStart), masterLams(iStop) " + masterLams[iStart] + " " + masterLams[iStop]);
      var masterFluxBroad = [];
-     masterFluxBroad.length = 2;
+     masterFluxBroad.length = 3;
      masterFluxBroad[0] = [];
      masterFluxBroad[1] = [];
+     masterFluxBroad[2] = [];
      masterFluxBroad[0].length = numMaster;
      masterFluxBroad[1].length = numMaster;
+     masterFluxBroad[2].length = numMaster;
 //
 //Default initialization
      for (var i = 0; i < numMaster; i++){
          masterFluxBroad[0][i] = masterFlux[0][i];
          masterFluxBroad[1][i] = masterFlux[1][i];
+         masterFluxBroad[2][i] = masterLams[i];
      }
 
 
-    if ( (macroV > 1.0) || (rotV > 1.0) ) {
+    if ( (macroV > 2.0) || (vsini > 2.0) ) {
      //console.log("Calling macroRot()");
         masterFluxBroad = macroRot(masterFlux, masterLams, numMaster, iStart, iStop, macroV, 
                     rotV, inclntn, rotLDC);
@@ -1799,6 +1803,7 @@ var jsonObj;
 
 //Unpack the structure returned by macroRot():
    var numBroad = masterFluxBroad[0].length;
+   //console.log("numBroad " + numBroad + " masterFluxBroad[2][numBroad-1] " + masterFluxBroad[2][numBroad-1]);
 //Find spectrum synthesis region in SED again:
    iStart = lamPoint(numBroad, masterFluxBroad[2], 1.0e-7*lambdaStart);
    iStop = lamPoint(numBroad, masterFluxBroad[2], 1.0e-7*lambdaStop);
@@ -1843,8 +1848,19 @@ var jsonObj;
          }
 
 //
+//Interpolate the overall SED with the broadened segment back onto the original coarser lambda grid for plotting and rendering
+   var logFluxBroad2 = interpolV(masterFluxBroad[1], masterFluxBroad[2], masterLams);
+   var masterFluxBroad2 = [];
+   masterFluxBroad2.length = 2;
+   masterFluxBroad2[0] = [];
+   masterFluxBroad2[1] = [];
+   masterFluxBroad2[0].length = numLams;
+   masterFluxBroad2[1].length = numLams;
+   for (var ii = 0; ii < numMaster; ii++){
+      masterFluxBroad2[1][ii] = logFluxBroad2[ii];
+      masterFluxBroad2[0][ii] = Math.exp(masterFluxBroad2[1][ii]); 
+   }
 //
-
 
 //
 // * eqWidthSynth will try to return the equivalenth width of EVERYTHING in the synthesis region
@@ -2393,7 +2409,9 @@ var jsonObj;
     // Will need this in some if blocks below:
     var tTau1 = tauPoint(numDeps, tauRos, 1.0);
     var iLamMinMax = minMax2(masterFlux);
+    var iLamMinMaxBroad = minMax2(masterFluxBroad2);
     var iLamMax = iLamMinMax[1];
+    var iLamMaxBroad = iLamMinMaxBroad[1];
     var norm = 1.0e15; // y-axis normalization
     var wien = 2.8977721E-1; // Wien's displacement law constant in cm K
     var lamMax = 1.0e7 * (wien / teff);
@@ -2938,7 +2956,7 @@ var jsonObj;
         var lambdanm = 1.0e7 * specSynLams2[0];
         var xTickPosCnvs = thisXAxisLength * (lambdanm - minXData) / (rangeXData); // pixels
         var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-        var yTickPosCnvs = yAxisLength * ((specSynFlux[0][0] / norm) - minYData) / rangeYData;
+        var yTickPosCnvs = yAxisLength * (specSynFlux[0][0] - minYData) / rangeYData;
         // vertical position in pixels - data values increase upward:
         var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
         var xShiftCnvs, yShiftCnvs, yShiftFiltCnvs;
@@ -3244,7 +3262,6 @@ var jsonObj;
     //
     // Plot Ten: Spectrum image
 
-
         var plotRow = 0;
         var plotCol = 1;
 
@@ -3270,15 +3287,20 @@ var jsonObj;
         //Linear z:
         var ilLam0 = lamPoint(numMaster, masterLams2, 1.0e-7 * minXData);
         var ilLam1 = lamPoint(numMaster, masterLams2, 1.0e-7 * maxXData);
+        //var ilLam0 = lamPoint(numBroad, masterFluxBroad[2], 1.0e-7 * minXData);
+        //var ilLam1 = lamPoint(numBroad, masterFluxBroad[2], 1.0e-7 * maxXData);
         var minZData = 0.0;
-        var maxZData = masterFlux[0][iLamMax] / norm;
+        //var maxZData = masterFlux[0][iLamMax] / norm;
+        var maxZData = masterFluxBroad2[0][iLamMaxBroad] / norm;
         //Make sure spectrum is normalized to brightest displayed lambda haveing level =255
         // even when lambda_Max is outside displayed lambda range:
-        if (iLamMax < ilLam0) {
-            maxZData = masterFlux[0][ilLam0] / norm;
+        //if (iLamMax < ilLam0) {
+        if (iLamMaxBroad < ilLam0) {
+            maxZData = masterFluxBroad2[0][ilLam0] / norm;
         }
-        if (iLamMax > ilLam1) {
-            maxZData = masterFlux[0][ilLam1] / norm;
+        //if (iLamMax > ilLam1) {
+        if (iLamMaxBroad > ilLam1) {
+            maxZData = masterFluxBroad2[0][ilLam1] / norm;
         }
         var rangeZData = maxZData - minZData;
         //var yAxisName = "<span title='Monochromatic surface flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'>Log<sub>10</sub> <em>F</em><sub>&#955</sub> <br /> ergs s<sup>-1</sup> cm<sup>-3</sup></a></span>";
@@ -3320,6 +3342,7 @@ var jsonObj;
         var xShift, zShift, xShiftDum, zLevel;
         var RGBHex; //, r255, g255, b255;
         var rangeXData = 1.0e7 * (masterLams2[ilLam1] - masterLams2[ilLam0]);
+        //var rangeXData = 1.0e7 * (masterFluxBroad[2][ilLam1] - masterFluxBroad[2][ilLam0]);
         //console.log("minXData " + minXData + " ilLam0 " + ilLam0 + " masterLams2[ilLam0] " + masterLams2[ilLam0]);
 
         var barWidth, xBarShift0, xBarShift1, xPos, yPos, nameLbl, lamLbl, lamLblStr, lamLblNum;
@@ -3328,12 +3351,14 @@ var jsonObj;
 //We can only palce vertical bars by setting marginleft, so search *AHEAD* in wavelength to find width
 // of *CURRENT* bar.
         var lambdanm = masterLams2[ilLam0] * 1.0e7; //cm to nm
+        //var lambdanm = masterFluxBroad[2][ilLam0] * 1.0e7; //cm to nm
         //console.log("ilLam0 " + ilLam0 + " ilLam1 " + ilLam1);
         yFinesse = -160;
         var thisYPos = xAxisYCnvs + yFinesse;
         for (var i = ilLam0 + 1; i < ilLam1; i++) {
 
             var nextLambdanm = masterLams2[i] * 1.0e7; //cm to nm
+            //var nextLambdanm = masterFluxBroad[2][i] * 1.0e7; //cm to nm
             //logLambdanm = 7.0 + logTen(masterLams2[i]);
 
             //barWidth = Math.max(1, Math.ceil(xRange * (lambdanm - lastLambdanm) / rangeXData));
@@ -3353,7 +3378,7 @@ var jsonObj;
 //linear z:
 
 
-                zLevel = ((masterFlux[0][i] / norm) - minZData) / rangeZData;
+                zLevel = ((masterFluxBroad2[0][i] / norm) - minZData) / rangeZData;
                 //console.log("lambdanm " + lambdanm + " zLevel " + zLevel);
 
             var nextRGBHex = lambdaToRGB(lambdanm, zLevel);
@@ -4509,6 +4534,9 @@ var jsonObj;
 //
         var minXData = 1.0e7 * masterLams2[0];
         var maxXData = 1.0e7 * masterLams2[numMaster - 1];
+        //var minXData = 1.0e7 * masterFluxBroad[2][0];
+        //var maxXData = 1.0e7 * masterFluxBroad[2][numBroad - 1];
+//console.log("minXData " + minXData + " maxXData " + maxXData);
         var xAxisName = "<em>&#955</em> (nm)";
         //    ////Logarithmic x:
         //var minXData = 7.0 + logTen(masterLams2[0]);
@@ -4519,11 +4547,11 @@ var jsonObj;
         //now done above var norm = 1.0e15; // y-axis normalization
         var minYData = 0.0;
         // iLamMax established in PLOT TWO above:
-        var maxYData = masterFlux[0][iLamMax] / norm;
+        var maxYData = masterFluxBroad2[0][iLamMax] / norm;
         var yAxisName = "<span title='Monochromatic surface flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'> <em>F</em><sub>&#955</sub> x 10<sup>15</sup><br />ergs s<sup>-1</sup> <br />cm<sup>-3</sup></a></span>";
         ////Logarithmic y:
         //var minYData = 12.0;
-        //var maxYData = logE * masterFlux[1][iLamMax];
+        //var maxYData = logE * masterFluxBroad[1][iLamMax];
         //var yAxisName = "<span title='Monochromatic surface flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'>Log<sub>10</sub> <em>F</em><sub>&#955</sub> <br /> ergs s<sup>-1</sup> cm<sup>-3</sup></a></span>";
         //(xRange, xOffset, yRange, yOffset, wColor, plotFiveId);
 
@@ -4553,6 +4581,7 @@ var jsonObj;
         minYData = yAxisParams[6]; //updated value
         maxXData = xAxisParams[7]; //updated value
         maxYData = yAxisParams[7]; //updated value        
+//console.log("2: minXData " + minXData + " maxXData " + maxXData);
         //
         // Add legend annotation:
 
@@ -4569,9 +4598,9 @@ var jsonObj;
      Spectral energy distribution (SED)</a></span>",
                 titleOffsetX, titleOffsetY, lineColor, plotFiveId);
         txtPrint("<span style='font-size:small'>"
-                + "<span><em>F</em><sub>&#955</sub> (<em>&#955</em><sub>Max</sub> = " + lamMaxStr + " nm)</span>, "
-                + " <span><em>I</em><sub>&#955</sub>,</span> <span style='color:#444444'> <em>&#952</em> = " + thet0Str + "<sup>o</sup></span>,  "
-                + " <span style='color:#444444'><em>&#952</em> = " + thetNStr + "<sup>o</sup></span></span>",
+                + "<span><em>F</em><sub>&#955</sub> (<em>&#955</em><sub>Max</sub> = " + lamMaxStr + " nm)</span>",
+                //+ " <span><em>I</em><sub>&#955</sub>,</span> <span style='color:#444444'> <em>&#952</em> = " + thet0Str + "<sup>o</sup></span>,  "
+                //+ " <span style='color:#444444'><em>&#952</em> = " + thetNStr + "<sup>o</sup></span></span>",
                 titleOffsetX, titleOffsetY+35, lineColor, plotFiveId);
 //
         // Photometric bands centers
@@ -4661,20 +4690,22 @@ var jsonObj;
 
         //var logLambdanm = 7.0 + logTen(masterLams2[0]);  //logarithmic
         var lambdanm = 1.0e7 * masterLams2[0];
+        //var lambdanm = 1.0e7 * masterFluxBroad[2][0];
         var xTickPosCnvs = xAxisLength * (lambdanm - minXData) / rangeXData; // pixels
         var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
 //Logarithmic y:
-        var yTickPosCnvs = yAxisLength * ((masterFlux[0][0] / norm) - minYData) / rangeYData;
-        var yTickPos0Cnvs = yAxisLength * ((masterIntens[0][0] / norm) - minYData) / rangeYData;
-        var yTickPosNCnvs = yAxisLength * ((masterIntens[0][numThetas - 2] / norm) - minYData) / rangeYData;
+        var yTickPosCnvs = yAxisLength * ((masterFluxBroad2[0][0] / norm) - minYData) / rangeYData;
+        //var yTickPos0Cnvs = yAxisLength * ((masterIntens[0][0] / norm) - minYData) / rangeYData;
+        //var yTickPosNCnvs = yAxisLength * ((masterIntens[0][numThetas - 2] / norm) - minYData) / rangeYData;
         // vertical position in pixels - data values increase upward:
         var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-        var lastYShift0Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos0Cnvs;
-        var lastYShiftNCnvs = (yAxisYCnvs + yAxisLength) - yTickPosNCnvs;
+        //var lastYShift0Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos0Cnvs;
+        //var lastYShiftNCnvs = (yAxisYCnvs + yAxisLength) - yTickPosNCnvs;
         var xShift, yShift;
         for (var i = 1; i < numMaster; i++) {
 
             lambdanm = masterLams2[i] * 1.0e7; //cm to nm //linear
+            //lambdanm = masterFluxBroad[2][i] * 1.0e7; //cm to nm //linear
             //logLambdanm = 7.0 + logTen(masterLams2[i]);  //logarithmic
             ii = 1.0 * i;
             xTickPosCnvs = xAxisLength * (lambdanm - minXData) / rangeXData; // pixels   //linear
@@ -4684,16 +4715,16 @@ var jsonObj;
             xShiftCnvs = Math.floor(xShiftCnvs);
 
 //logarithmic y:
-            yTickPosCnvs = yAxisLength * ((masterFlux[0][i] / norm) - minYData) / rangeYData;
-            yTickPos0Cnvs = yAxisLength * ((masterIntens[i][0] / norm) - minYData) / rangeYData;
-            yTickPosNCnvs = yAxisLength * ((masterIntens[i][numThetas - 2] / norm) - minYData) / rangeYData;
+            yTickPosCnvs = yAxisLength * ((masterFluxBroad2[0][i] / norm) - minYData) / rangeYData;
+            //yTickPos0Cnvs = yAxisLength * ((masterIntens[i][0] / norm) - minYData) / rangeYData;
+            //yTickPosNCnvs = yAxisLength * ((masterIntens[i][numThetas - 2] / norm) - minYData) / rangeYData;
             // vertical position in pixels - data values increase upward:
             yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
             yShiftCnvs = Math.floor(yShiftCnvs);
-            var yShift0Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos0Cnvs;
-            yShift0Cnvs = Math.floor(yShift0Cnvs);
-            var yShiftNCnvs = (yAxisYCnvs + yAxisLength) - yTickPosNCnvs;
-            yShiftNCnvs = Math.floor(yShiftNCnvs);
+           // var yShift0Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos0Cnvs;
+           // yShift0Cnvs = Math.floor(yShift0Cnvs);
+           // var yShiftNCnvs = (yAxisYCnvs + yAxisLength) - yTickPosNCnvs;
+           // yShiftNCnvs = Math.floor(yShiftNCnvs);
 
 //plot points
             //cnvsFiveCtx.beginPath();
@@ -4713,28 +4744,28 @@ var jsonObj;
             //RGBHex = colHex(r2550, g2550, b2550);
             //cnvsFiveCtx.strokeStyle = RGBHex;
             //cnvsFiveCtx.stroke();
-            cnvsFiveCtx.beginPath();
-            RGBHex = colHex(r2550, g2550, b2550);
-            cnvsFiveCtx.strokeStyle=RGBHex; 
-            cnvsFiveCtx.moveTo(lastXShiftCnvs, lastYShift0Cnvs);
-            cnvsFiveCtx.lineTo(xShiftCnvs, yShift0Cnvs);
-            cnvsFiveCtx.stroke();  
             //cnvsFiveCtx.beginPath();
-            //cnvsFiveCtx.arc(xShiftCnvs, yShiftNCnvs, dSize0Cnvs, 0, 2*Math.PI);
+            //RGBHex = colHex(r2550, g2550, b2550);
+            //cnvsFiveCtx.strokeStyle=RGBHex; 
+            //cnvsFiveCtx.moveTo(lastXShiftCnvs, lastYShift0Cnvs);
+            //cnvsFiveCtx.lineTo(xShiftCnvs, yShift0Cnvs);
+            //cnvsFiveCtx.stroke();  
+            ////cnvsFiveCtx.beginPath();
+            ////cnvsFiveCtx.arc(xShiftCnvs, yShiftNCnvs, dSize0Cnvs, 0, 2*Math.PI);
+            ////RGBHex = colHex(r255N, g255N, b255N);
+            ////cnvsFiveCtx.strokeStyle = RGBHex;
+            ////cnvsFiveCtx.stroke();
+            //cnvsFiveCtx.beginPath();
             //RGBHex = colHex(r255N, g255N, b255N);
-            //cnvsFiveCtx.strokeStyle = RGBHex;
-            //cnvsFiveCtx.stroke();
-            cnvsFiveCtx.beginPath();
-            RGBHex = colHex(r255N, g255N, b255N);
-            cnvsFiveCtx.strokeStyle=RGBHex; 
-            cnvsFiveCtx.moveTo(lastXShiftCnvs, lastYShiftNCnvs);
-            cnvsFiveCtx.lineTo(xShiftCnvs, yShiftNCnvs);
-            cnvsFiveCtx.stroke();  
+            //cnvsFiveCtx.strokeStyle=RGBHex; 
+            //cnvsFiveCtx.moveTo(lastXShiftCnvs, lastYShiftNCnvs);
+            //cnvsFiveCtx.lineTo(xShiftCnvs, yShiftNCnvs);
+            //cnvsFiveCtx.stroke();  
 
             lastXShiftCnvs = xShiftCnvs;
             lastYShiftCnvs = yShiftCnvs;
-            lastYShift0Cnvs = yShift0Cnvs;
-            lastYShiftNCnvs = yShiftNCnvs;
+            //lastYShift0Cnvs = yShift0Cnvs;
+            //lastYShiftNCnvs = yShiftNCnvs;
         }
            //monochromatic disk lambda
                 yFinesse = 0.0;

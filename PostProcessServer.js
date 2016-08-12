@@ -877,6 +877,7 @@ var eqWidth = function(flux, linePoints, lam0) { //, fluxCont) {
 */
 //wavelength sampling interval in nm for interpolation 
     var deltaLam = 0.002;  //nm
+    //var deltaLam = 0.008;  //nm  //debug
 
 // Leave convolution margin around spectrum synthesis region:
    iStart = iStart - 1;
@@ -892,7 +893,7 @@ var eqWidth = function(flux, linePoints, lam0) { //, fluxCont) {
      var numFine = Math.floor((lamStop - lamStart) / deltaLam); 
 
 //data structure to be returned
-   var numTot = (iStart+1) + numFine + ((numLams-1) - iStop);
+   var numTot = (iStart+1) + numFine + ((numLams-1) - iStop) - 1;
    var fluxBroad = [];
    fluxBroad.length = 3;
    fluxBroad[0] = [];
@@ -911,12 +912,15 @@ var eqWidth = function(flux, linePoints, lam0) { //, fluxCont) {
 //     System.out.println("numSpecSyn " + numSpecSyn + " numFine " + numFine);
 //
 //Create uniformly finely sampled wavelenth vector covering specrum synthesis region of SED:
-     var fineLam = [];
-     fineLam.length = numFine;
+     var fineLam = [];   //nm
+     fineLam.length = numFine;   //nm
+     var fineLamCm = [];  //cm
+     fineLamCm.length = numFine;  //cm
      var ii;
      for (var i = 0; i < numFine; i++){
          ii = 1.0*i;
-         fineLam[i] = lamStart + (ii * deltaLam); 
+         fineLam[i] = lamStart + (ii * deltaLam);  //nm
+         fineLamCm[i] = 1.0e-7 * fineLam[i];    //cm
          //console.log("i " + i + " fineLam[i] " + fineLam[i]);
          } 
 
@@ -944,7 +948,7 @@ var eqWidth = function(flux, linePoints, lam0) { //, fluxCont) {
   for (var i = 0; i < numFine; i++){
      fineFlux[i] = Math.exp(fineFlux[i]);
      ////console.log("i " + i + " fineLam[i] " + fineLam[i] + " fineFlux[i] " + Math.log10(fineFlux[i]));
-     fineFluxConv[i] = fineFlux[i];
+     fineFluxConv[i] = fineFlux[i];  //initial default
   }
 
 
@@ -997,7 +1001,7 @@ var eqWidth = function(flux, linePoints, lam0) { //, fluxCont) {
        //
 //Convolution
 //
-     fineFluxConv = convol(fineFlux, gauss);
+     fineFluxConv = convol(fineLamCm, fineFlux, gauss);
      //var fineFluxConv = [];   //test only
      //fineFluxConv.length = numFine;    //test only
      //for (var i = 0; i < numFine; i++){    //test only
@@ -1010,8 +1014,14 @@ var eqWidth = function(flux, linePoints, lam0) { //, fluxCont) {
 
 //
 //
+    var vsini = surfEquRotV * Math.sin(inclntn); 
 
-if (surfEquRotV > 1.0){
+if (vsini > 2.5){
+
+
+//PROBLEM: This rotational broadening kernel is asymmetric and does not come out area normalized
+//  - something's wrong
+
 
     //surfEquRotV = 20.0; //tst
 
@@ -1023,7 +1033,6 @@ if (surfEquRotV > 1.0){
      //console.log("reNorm1 " + reNorm1);
 
 //Avoid un-sample-ably narrow kernels:
-    var vsini = surfEquRotV * Math.sin(inclntn); 
     if (vsini < 1.5){
       vsini = 1.5;
    }
@@ -1050,6 +1059,7 @@ if (surfEquRotV > 1.0){
     rotKernel.length = numRotKern;
 
     var ii;
+       var sum = 0.0;  //test
     for (var i = 0; i < numRotKern; i++){
 
        ii = 1.0 * i;
@@ -1069,9 +1079,18 @@ if (surfEquRotV > 1.0){
        } 
        //console.log("rotKernel[i] " + rotKernel[i]);
 
+          sum+= rotKernel[i];   //test
+          //console.log("i " + i + " rotKernel[i] " + rotKernel[i]);  //test
     } 
+       //console.log("Rotation Kernel area: " + sum);
 
-     fineFluxConv = convol(fineFluxConv, rotKernel);
+//Force area normalization - sigh:
+
+    for (var i = 0; i < numRotKern; i++){
+      rotKernel[i] = rotKernel[i] / sum;
+    }  
+
+     fineFluxConv = convol(fineLamCm, fineFluxConv, rotKernel);
 
 //Sigh - this kernel is NOT area normalized  (!!??) Force normalization (ugly!)
      var minMaxSpec = minMax(fineFluxConv);
@@ -1086,23 +1105,42 @@ if (surfEquRotV > 1.0){
 
 
 //Put broadened  spectrum synthesis region back into overall SED:
+//
+// Lambda block 1: lambda less than the finely sampled and broadened region:
+// i refers to BOTH the original coarse, unbroadened input spectrum AND the output spectrum
    for (var i = 0; i < iStart; i++){
+    //  console.log("Block 1: i " + i);
           fluxBroad[0][i] = flux[0][i]; //original value
           fluxBroad[1][i] = Math.log(fluxBroad[0][i]);
           fluxBroad[2][i] = lambda[i]; //original value
       }
+//
+// Lambda block 2: the finely sampled, broadened region:
+// i refers to the finely sampled, broadened region
    for (var i = 0; i < numFine; i++){
+    //  console.log("Block 2: i " + i + " iStart+i " + (iStart+i));
           //fluxBroad[0][i] = coarseFlux[(i-iStart)-1];
           fluxBroad[0][iStart+i] = fineFluxConv[i];
           fluxBroad[1][iStart+i] = Math.log(fluxBroad[0][iStart+i]);
           fluxBroad[2][iStart+i] = 1.0e-7 * fineLam[i];
           //console.log("i " + i + " (iStart+i) " + (iStart+1) + " fineFlux[iStart+1] " + Math.log10(fineFlux[iStart+1]));
       }
+//
+// Lambda block 3: lambda greater  than the finely sampled and broadened region: 
+// i refers to the original coarse, unbroadened input spectrum
+// count refers to the output spectrum 
+//   console.log("macroRot: iStop " + iStop + " numLams " + numLams + " numTot " + numTot);
    var count = 0; 
    for (var i = iStop+1; i < numLams; i++){
+    //  console.log("Block 3: i " + i + " iStart+numFine+count " + (iStart+numFine+count));
           fluxBroad[0][iStart+numFine+count] = flux[0][i]; //original value
-          fluxBroad[1][iStart+numFine+count] = Math.log(fluxBroad[0][i]);
+          fluxBroad[1][iStart+numFine+count] = Math.log(fluxBroad[0][iStart+numFine+count]);
           fluxBroad[2][iStart+numFine+count] = lambda[i]; //original value
+//          console.log("i " + i + " count " + count + " iStart+numFine+count " + iStart+numFine+count 
+//  + " fluxBroad[0][iStart+numFine+count] " + 1.0e-15*fluxBroad[0][iStart+numFine+count] + " flux[0][i] " + 1.0e-15*flux[0][i]
+//  + " fluxBroad[2][iStart+numFine+count] " + fluxBroad[2][iStart+numFine+count] + " lambda[i] " + lambda[i]);
+//          console.log("i " + i + " count " + count + " iStart+numFine+count " + (iStart+numFine+count) 
+//  + " fluxBroad[2][iStart+numFine+count] " + fluxBroad[2][iStart+numFine+count] + " lambda[i] " + lambda[i]);
           count++;
       }
 
@@ -1122,7 +1160,7 @@ if (surfEquRotV > 1.0){
 // ***** Function to be convolved and kernel function are expected to *already* be 
 // interpolated onto same abssica grid!
 //
-   var convol = function(yFunction, kernel) {
+   var convol = function(x, yFunction, kernel) {
 
       var ySize = yFunction.length;
       var kernelSize = kernel.length;
@@ -1130,19 +1168,28 @@ if (surfEquRotV > 1.0){
   
       var yFuncConv = [];
       yFuncConv.length = ySize;
+      var deltaX;
 
 //First kernelSize/2 elements of yFunction cannot be convolved
       for (var i = 0; i < halfKernelSize; i++){
          yFuncConv[i] = yFunction[i];
+         //console.log("Part 1: i " + i + " yFuncConv[i] " + yFuncConv[i]);
         }
 //Convolution:
+//We are effectively integrating in pixel space, not physical wavelength space, so deltaX is always unity - ??
+// Conserves power if kernel area-normalized - ??
       var offset = 0; //initialization
       for (var i = halfKernelSize; i < ySize - (halfKernelSize); i++){
          var accum = 0; //accumulator
          for (var j = 0; j < kernelSize; j++){ 
-            accum = accum + (kernel[j] * yFunction[j+offset]); 
+            //console.log("Part 2: i " + i + " j " + j + " offset " + offset);
+            //deltaX = x[j] - x[j-1]; 
+            //console.log("x[j] " + x[j] + " x[j-1] " + x[j-1] + " deltaX " + deltaX 
+            // + " yFunction[j+offset] " + yFunction[j+offset] + " kernel[j] " + kernel[j]);
+            accum = accum + ( (kernel[j] * yFunction[j+offset]) ); //* deltaX ); 
          }  //inner loop, j	
          yFuncConv[i] = accum;
+         //console.log("yFuncConv[i] " + yFuncConv[i]);
          offset++;
        } //outer loop, i
 //Last kernelSize/2 elements of yFunction cannot be convolved
