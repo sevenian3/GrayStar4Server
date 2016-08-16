@@ -53,7 +53,7 @@ public class GrayStar3Server {
         // mimics "metallicity" parameter - ??  (unitless)
         String logZStr = args[2];
         //String logKappaStr = "0.0"; //test
-        double logZScale = (Double.valueOf(logZStr)).doubleValue();
+        double log10ZScale = (Double.valueOf(logZStr)).doubleValue();
 
         //Argument 3: Stellar mass, M, in solar masses
         String massStarStr = args[3];
@@ -100,12 +100,12 @@ public class GrayStar3Server {
             logg = 7.0;
             loggStr = "7.0";
         }
-        if (logZScale < -3.0) {
-            logZScale = -3.0;
+        if (log10ZScale < -3.0) {
+            log10ZScale = -3.0;
             logZStr = "-3.0";
         }
-        if (logZScale > 1.0) {
-            logZScale = 1.0;
+        if (log10ZScale > 1.0) {
+            log10ZScale = 1.0;
             logZStr = "1.0";
         }
         if (massStar < 0.1) {
@@ -118,7 +118,7 @@ public class GrayStar3Server {
         }
 
         double grav = Math.pow(10.0, logg);
-        double zScale = Math.pow(10.0, logZScale);
+        double zScale = Math.pow(10.0, log10ZScale);
 
         // Argument 5: microturbulence, xi_T, in km/s:
            String xitStr = args[4];
@@ -275,8 +275,8 @@ public class GrayStar3Server {
         double teffSun = 5778.0;
         double loggSun = 4.44;
         double gravSun = Math.pow(10.0, loggSun);
-        double logZScaleSun = 0.0;
-        double zScaleSun = Math.exp(logZScaleSun);
+        double log10ZScaleSun = 0.0;
+        double zScaleSun = Math.exp(log10ZScaleSun);
 
 //Solar units:
         double massSun = 1.0;
@@ -537,9 +537,14 @@ public class GrayStar3Server {
   mnameB[17] = "O"; */
 
   double ATot = 0.0;
-  double thisAz;
+  double thisAz, eheuScale;
   for (int i = 0; i < nelemAbnd; i++){
-     logAz[i] = logE10 * (eheu[i] - 12.0); //natural log
+     eheuScale = eheu[i];  //default initialization //still base 10
+     if (i > 1){ //if not H or He
+        eheuScale = eheu[i] + log10ZScale; //still base 10  
+     }
+     //logAz[i] = logE10 * (eheu[i] - 12.0); //natural log
+     logAz[i] = logE10 * (eheuScale - 12.0); //natural log
      thisAz = Math.exp(logAz[i]);
      ATot = ATot + thisAz;
      //System.out.println("i " + i + " logAz " + logE*logAz[i]);
