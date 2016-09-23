@@ -2334,7 +2334,7 @@ if (ifMolLines == true){
             // Gaussian + Lorentzian approximation to profile (voigt()):
             double[][] listLinePoints = LineGrid.lineGridVoigt(list2Lam0[gaussLine_ptr[iLine]], list2Mass[gaussLine_ptr[iLine]], xiT, numDeps, teff, listNumCore, listNumWing);
             if (species.equals("HI")){
-// System.out.println("Calling Stark...");
+ //System.out.println("Calling Stark...");
                  listLineProf = LineProf.stark(listLinePoints, list2Lam0[gaussLine_ptr[iLine]], list2LogAij[gaussLine_ptr[iLine]],
                     list2LogGammaCol[gaussLine_ptr[iLine]],
                     numDeps, teff, tauRos, temp, pGas, newNe, tempSun, pGasSun, hjertComp);
@@ -2429,16 +2429,9 @@ if (ifMolLines == true){
 //                    numDeps, teff, tauRos, temp, tempSun);
             // Gaussian + Lorentzian approximation to profile (voigt()):
             double[][] listLinePoints = LineGrid.lineGridVoigt(molList2Lam0[molGaussLine_ptr[iMolLine]], molList2Mass[molGaussLine_ptr[iMolLine]], xiT, numDeps, teff, molListNumCore, molListNumWing);
-            if (species.equals("HI")){
-// System.out.println("Calling Stark...");
-                 listLineProf = LineProf.stark(listLinePoints, molList2Lam0[molGaussLine_ptr[iMolLine]], molList2LogGammaRad[molGaussLine_ptr[iMolLine]],
-                    molList2LogGammaCol,
-                    numDeps, teff, tauRos, temp, pGas, newNe, tempSun, pGasSun, hjertComp);
-            } else {
                  listLineProf = LineProf.voigt(listLinePoints, molList2Lam0[molGaussLine_ptr[iMolLine]], molList2LogGammaRad[molGaussLine_ptr[iMolLine]],
                     molList2LogGammaCol,
                     numDeps, teff, tauRos, temp, pGas, tempSun, pGasSun, hjertComp);
-            } 
             double[][] listLogKappaL = LineKappa.lineKap(molList2Lam0[molGaussLine_ptr[iMolLine]], molList2LogNums[1], molList2Log10gf[molGaussLine_ptr[iMolLine]], listLinePoints, listLineProf,
                     numDeps, zScaleList, tauRos, temp, rho);
             double[] listLineLambdas = new double[molListNumPoints];

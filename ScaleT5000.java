@@ -158,23 +158,42 @@ public class ScaleT5000{
 // factor for scaling with A_He:
         double logHeDenom = 0.666667 * Math.log(1.0 + 4.0*refAHe);
         for (int i = 0; i < numDeps; i++) {
+            //if (i%10 == 0){
+            //System.out.println("i " + i);
+            //}
             logPhxRefPGas[i] = ToolBox.interpol(ScaleT5000.logPhxRefTau64(), logPhxRefPGas64, tauRos[1][i]);
-            //System.out.println("After tau interpolation: pGas " + logPhxRefPGas[i]);
+            //if (i%10 == 0){
+            //System.out.println("After tau interpolation: pGas " + logE*logPhxRefPGas[i]);
+            //}
             thisGexp = gexpTop + gexpRange * (tauRos[1][i] - tauRos[1][0]) / tauLogRange;
             //scaling with g 
+            //if (i%10 == 0){
             //System.out.println("thisGexp " + thisGexp);
+            //}
             scalePGas[1][i] = thisGexp*logEg + logPhxRefPGas[i] - thisGexp*ScaleT5000.phxRefLogEg;
-            //System.out.println("After scaling with g: pGas " + scalePGas[1][i]);
+            //if (i%10 == 0){
+            //System.out.println("After scaling with g: pGas " + logE*scalePGas[1][i]);
+            //}
             //scaling with zscl:
+            //if (i%10 == 0){
             //System.out.println("logZScale " + logZScale);
+            //}
             scalePGas[1][i] = -0.333333*logZScale + scalePGas[1][i];
-            //System.out.println("After scaling with z: pGas " + scalePGas[1][i]);
+            //if (i%10 == 0){
+            //System.out.println("After scaling with z: pGas " + logE*scalePGas[1][i]);
+            //}
             //scaling with A_He:
+            //if (i%10 == 0){
             //System.out.println("Math.log(1.0 + 4.0*AHe) - logHeDenom " + (0.666667*Math.log(1.0 + 4.0*AHe) - logHeDenom));
+            //}
             scalePGas[1][i] = 0.666667 * Math.log(1.0 + 4.0*AHe) + scalePGas[1][i] - logHeDenom;
-            //System.out.println("After scaling with AHe: pGas " + scalePGas[1][i]);
+            //if (i%10 == 0){
+            //System.out.println("After scaling with AHe: pGas " + logE*scalePGas[1][i]);
+            //}
             scalePGas[0][i] = Math.exp(scalePGas[1][i]);
-            //System.out.println("scalePGas[1][i] " + logE * scalePGas[1][i]);
+            //if (i%10 == 0){
+            //System.out.println("logPhxRefPGas " + logE*logPhxRefPGas[i] + " scalePGas[1][i] " + logE * scalePGas[1][i]);
+            //}
         }
 
         return scalePGas;
@@ -241,6 +260,9 @@ public class ScaleT5000{
         double logHeDenom = 0.333333 * Math.log(1.0 + 4.0*refAHe);
 
         for (int i = 0; i < numDeps; i++) {
+            //if (i%10 == 0){
+            //System.out.println("i " + i);
+            //}
             logPhxRefPe[i] = ToolBox.interpol(ScaleT5000.logPhxRefTau64(), logPhxRefPe64, tauRos[1][i]);
             thisGexp = gexpTop + gexpRange * (tauRos[1][i] - tauRos[1][0]) / tauLogRange;
             if (tauRos[0][i] < 0.1){
@@ -252,19 +274,29 @@ public class ScaleT5000{
             if ( (tauRos[0][i] >= 0.1) && (tauRos[0][i] <= 10.0) ){
                 thisOmega = omegaTaum1 + omegaRange * (tauRos[1][i] - lonOfM1) / tauLogRange;
             }
+            //if (i%10 == 0){
             //System.out.println("thisGexp " + thisGexp + " thisOmega " + thisOmega);
+            //}
             //scaling with g 
             scalePe[1][i] = thisGexp*logEg + logPhxRefPe[i] - thisGexp*ScaleT5000.phxRefLogEg;
+            //if (i%10 == 0){
             //System.out.println("After g scaling: pe " + logE*scalePe[1][i]);
+            //}
             //scale with Teff:
             scalePe[1][i] = thisOmega*teff + scalePe[1][i] - thisOmega*ScaleT5000.phxRefTeff;
+            //if (i%10 == 0){
             //System.out.println("After Teff scaling: pe " + logE*scalePe[1][i]);
+            //}
             //scaling with zscl:
             scalePe[1][i] = 0.333333*logZScale + scalePe[1][i];
+            //if (i%10 == 0){
             //System.out.println("After z scaling: pe " + logE*scalePe[1][i]);
+            //}
             //scaling with A_He:
             scalePe[1][i] = 0.333333 * Math.log(1.0 + 4.0*AHe) + scalePe[1][i] - logHeDenom;
-            //System.out.println("After A_He scaling: pe " + logE*scalePe[1][i]);
+            //if (i%10 == 0){
+            //System.out.println(" logPhxRefPe " + logE*logPhxRefPe[i] + " After A_He scaling: pe " + logE*scalePe[1][i]);
+            //}
 //
             scalePe[0][i] = Math.exp(scalePe[1][i]);
         }

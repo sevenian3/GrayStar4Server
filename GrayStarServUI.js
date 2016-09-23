@@ -209,9 +209,9 @@ var gsDuplex = function(num, logVector){
     var lambdaStart = 1.0 * $("#lambdaStart").val(); // nm 
     var lambdaStop = 1.0 * $("#lambdaStop").val(); // nm
     var logGammaCol = 1.0 * $("#gammaCol").val(); // log Lorentzian enhancement 
-    var macroV = 1.0 * $("#macroV").val(); // nm
-    var rotV = 1.0 * $("#rotV").val(); // nm
-    var rotI = 1.0 * $("#rotI").val(); // nm
+    var macroV = 1.0 * $("#macroV").val(); // km/s 
+    var rotV = 1.0 * $("#rotV").val(); // km/s 
+    var rotI = 1.0 * $("#rotI").val(); // degrees 
     //
     //console.log("lineThresh " + lineThresh);
     var diskLambda = 1.0 * $("#diskLam").val(); //nm
@@ -222,7 +222,7 @@ var gsDuplex = function(num, logVector){
 //    
     settingsId[0] = new setId("<em>T</em><sub>eff</sub>", teff);
     settingsId[1] = new setId("log <em>g</em>", logg);
-    settingsId[2] = new setId("<em>&#954</em>", logZScale);
+    settingsId[2] = new setId("[M/H]", logZScale);
     settingsId[3] = new setId("<em>M</em>", massStar);
 
     settingsId[4] = new setId("<span style='color:green'>GHEff</span>", greenHouse);
@@ -2084,15 +2084,15 @@ var jsonObj;
             + " <a href='http://en.wikipedia.org/wiki/UBV_photometric_system' title='Johnson-Cousins B-V photometric color index' target='_blank'>\n\
 <span style='color:blue'>B\n\
 </span>-" +
-            "<span style='color:#00FF88'>V</span></a>: " + roundNum1
+            "<span style='color:#00AA00'>V</span></a>: " + roundNum1
             + " <a href='http://en.wikipedia.org/wiki/UBV_photometric_system' title='Johnson-Cousins V-R photometric color index' target='_blank'>\n\
-<span style='color:#00FF88'>V\n\
+<span style='color:#00AA00'>V\n\
 </span>-" +
             "<span style='color:red'>R\n\
 </span>\n\
 </a>: " + roundNum2
             + " <a href='http://en.wikipedia.org/wiki/UBV_photometric_system' title='Johnson-Cousins V-I photometric color index' target='_blank'>\n\
-<span style='color:#00FF88'>V\n\
+<span style='color:#00AA00'>V\n\
 </span>-" +
             "<span style='color:red'>I\n\
 </span>\n\

@@ -860,6 +860,32 @@ if ("HII".equals(species)){
     logPartFn[4] = Math.log(1.00000e+00);
        }
 
+//dummy
+if ("HIII".equals(species)){  
+    logPartFn[0] = Math.log(1.00000e+00);  
+    logPartFn[1] = Math.log(1.00000e+00);  
+    logPartFn[2] = Math.log(1.00000e+00);  
+    logPartFn[3] = Math.log(1.00000e+00);  
+    logPartFn[4] = Math.log(1.00000e+00);
+       }
+
+//dummy
+if ("HIV".equals(species)){  
+    logPartFn[0] = Math.log(1.00000e+00);  
+    logPartFn[1] = Math.log(1.00000e+00);  
+    logPartFn[2] = Math.log(1.00000e+00);  
+    logPartFn[3] = Math.log(1.00000e+00);  
+    logPartFn[4] = Math.log(1.00000e+00);
+       }
+
+if ("HII".equals(species)){  
+    logPartFn[0] = Math.log(1.00000e+00);  
+    logPartFn[1] = Math.log(1.00000e+00);  
+    logPartFn[2] = Math.log(1.00000e+00);  
+    logPartFn[3] = Math.log(1.00000e+00);  
+    logPartFn[4] = Math.log(1.00000e+00);
+       }
+
 if ("DI".equals(species)){  
     logPartFn[0] = Math.log(2.00000e+00);  
     logPartFn[1] = Math.log(2.00000e+00);  
@@ -869,6 +895,24 @@ if ("DI".equals(species)){
        }
 
 if ("DII".equals(species)){  
+    logPartFn[0] = Math.log(1.00000e+00);  
+    logPartFn[1] = Math.log(1.00000e+00);  
+    logPartFn[2] = Math.log(1.00000e+00);  
+    logPartFn[3] = Math.log(1.00000e+00);  
+    logPartFn[4] = Math.log(1.00000e+00);
+       }
+
+//dummy
+if ("DIII".equals(species)){  
+    logPartFn[0] = Math.log(1.00000e+00);  
+    logPartFn[1] = Math.log(1.00000e+00);  
+    logPartFn[2] = Math.log(1.00000e+00);  
+    logPartFn[3] = Math.log(1.00000e+00);  
+    logPartFn[4] = Math.log(1.00000e+00);
+       }
+
+//dummy
+if ("DIV".equals(species)){  
     logPartFn[0] = Math.log(1.00000e+00);  
     logPartFn[1] = Math.log(1.00000e+00);  
     logPartFn[2] = Math.log(1.00000e+00);  
@@ -900,6 +944,15 @@ if ("HeIII".equals(species)){
     logPartFn[4] = Math.log(1.00000e+00);
        }
 
+//dummy
+if ("HeIV".equals(species)){  
+    logPartFn[0] = Math.log(1.00000e+00);  
+    logPartFn[1] = Math.log(1.00000e+00);  
+    logPartFn[2] = Math.log(1.00000e+00);  
+    logPartFn[3] = Math.log(1.00000e+00);  
+    logPartFn[4] = Math.log(1.00000e+00);
+       }
+
 if ("LiI".equals(species)){  
     logPartFn[0] = Math.log(2.00000e+00);  
     logPartFn[1] = Math.log(2.00000e+00);  
@@ -922,6 +975,15 @@ if ("LiIII".equals(species)){
     logPartFn[2] = Math.log(2.00000e+00);  
     logPartFn[3] = Math.log(2.00000e+00);  
     logPartFn[4] = Math.log(2.00000e+00);
+       }
+
+//dummy
+if ("LiIV".equals(species)){  
+    logPartFn[0] = Math.log(1.00000e+00);  
+    logPartFn[1] = Math.log(1.00000e+00);  
+    logPartFn[2] = Math.log(1.00000e+00);  
+    logPartFn[3] = Math.log(1.00000e+00);  
+    logPartFn[4] = Math.log(1.00000e+00);
        }
 
 if ("BeI".equals(species)){  

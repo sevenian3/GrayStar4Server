@@ -32,7 +32,8 @@ var UBVRI = function(lambdaScale, flux, numDeps, tauRos, temp) {
     //var vegaColors = [0.289244, -0.400324, 0.222397, -0.288568, -0.510965];
     //var vegaColors = [0.163003, -0.491341, 0.161940, -0.464265, -0.626204];
     //With Balmer line linear Stark broadening wings:
-    vegaColors = [0.321691, -0.248000, 0.061419, -0.463083, -0.524502];
+    //vegaColors = [0.321691, -0.248000, 0.061419, -0.463083, -0.524502];
+    vegaColors = [0.53, -0.66, 0.11, -0.51, -0.62];
 
     var deltaLam, newY, product;
 

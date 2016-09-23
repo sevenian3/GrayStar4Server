@@ -9,5 +9,5 @@ java -cp ./graystar3server -jar GrayStar3Server.jar   10000.0 4.0 0.0 1.0  1.0 -
 //Test spectrum synthesis in key lambda regions:
 java -cp ./graystar3server -jar GrayStar3Server.jar   5000.0 4.5 0.0 1.0  1.0 -2.0 1.0 390.0 400.0 "fine" 0.5 0.0 > test5000g45.spec390.400
 //java -cp ./graystar3server -jar GrayStar3Server.jar   10000.0 4.0 0.0 1.0  1.0 -2.0 1.0 445.0 450.0 "fine" 0.5 0.0 > test10000g40.spec445.450
-java -cp ./graystar3server -jar GrayStar3Server.jar   10000.0 4.0 0.0 1.0  1.0 -2.0 1.0 410.0 420.0 "fine" 0.5 0.0 > test10000g40.specHdelta
+java -cp ./graystar3server -jar GrayStar3Server.jar   10000.0 4.0 0.0 1.0  1.0 -2.0 1.0 405.0 415.0 "fine" 0.5 0.0 > test10000g40.specHdelta
 

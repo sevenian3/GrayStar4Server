@@ -403,7 +403,7 @@ public class LineProf {
 
         double lam0 = lam0In; // * 1.0E-7; //nm to cm
         double logLam0 = Math.log(lam0);
-        double logLam0A = Math.log(lam0) + Math.log(8.0); //cm to A
+        double logLam0A = Math.log(lam0) + 8.0*Math.log(10.0); //cm to A
 
         double ln10 = Math.log(10.0);
         double ln2 = Math.log(2.0);
@@ -455,12 +455,16 @@ public class LineProf {
    //Parameters for linear Stark broadening:
    //Assymptotic ("far wing") "K" parameters
    //Stehle & Hutcheon, 1999, A&A Supp Ser, 140, 93 and CDS data table
+   //Assume K has something to do with "S" and proceed as in Observation and Analysis of
+   // Stellar Photosphere, 3rd Ed. (D. Gray), Eq. 11.50,
+   //
+   double logTuneStark = Math.log(1.0e9); //convert DeltaI K parameters to deltaS STark profile parameters
    double[] logKStark = new double[5];
-   logKStark[0] = Math.log(2.56e-03);  //Halpha
-   logKStark[1] = Math.log(7.06e-03);   //Hbeta
-   logKStark[2] = Math.log(1.19e-02);  //Hgamma
-   logKStark[3] = Math.log(1.94e-02);  //Hdelta
-   logKStark[4] = Math.log(2.95e-02);  //Hepsilon
+   logKStark[0] = Math.log(2.56e-03) + logTuneStark;  //Halpha
+   logKStark[1] = Math.log(7.06e-03) + logTuneStark;   //Hbeta
+   logKStark[2] = Math.log(1.19e-02) + logTuneStark;  //Hgamma
+   logKStark[3] = Math.log(1.94e-02) + logTuneStark;  //Hdelta
+   logKStark[4] = Math.log(2.95e-02) + logTuneStark;  //Hepsilon
    double thisLogK = logKStark[4]; //default initialization
    //which Balmer line are we?  crude but effective:
    if (lam0In > 650.0e-7){
@@ -489,7 +493,7 @@ public class LineProf {
    double deltaAlpha, logDeltaAlpha, logStark, logStarkTerm; //reduced wavelength de-tuning parameter (Angstroms/e.s.u.)
    double logF0Fac = Math.log(1.249e-9);
 // log wavelength de-tunings in A:
-   double logLinePoints, thisPoint;
+   double logThisPoint, thisPoint;
 
         //System.out.println("il0 " + il0 + " temp[il] " + temp[0][il0] + " press[il] " + logE*press[1][il0]);
         for (int id = 0; id < numDeps; id++) {
@@ -557,64 +561,47 @@ public class LineProf {
 //Approximate Hjerting fn with power expansion in Voigt "a" parameter
 // "Observation & Analysis of Stellar Photospeheres" (D. Gray), 3rd Ed., p. 258:
           hjertFn = Hjert0 + a*Hjert1 + a2*Hjert2 + a3*Hjert3 + a4*Hjert4;
+          logStark = -49.0; //re-initialize
 
             if (vAbs > 2.0) {
 
                //System.out.println("Adding in Stark wing");
 
                thisPoint = 1.0e8 * Math.abs(linePoints[0][il]); //cm to A
-               logLinePoints = Math.log(thisPoint);
-               logDeltaAlpha = logLinePoints - logF0;
+               logThisPoint = Math.log(thisPoint);
+               logDeltaAlpha = logThisPoint - logF0;
                deltaAlpha = Math.exp(logDeltaAlpha);
-               logStarkTerm = 0.5 * ( Math.log(lamOverF0 + deltaAlpha) - logDeltaAlpha );
-               logStark = thisLogK + logStarkTerm - 2.5*logDeltaAlpha;
+               logStarkTerm = ( Math.log(lamOverF0 + deltaAlpha) - logLamOverF0 );
+               logStark = thisLogK + 0.5*logStarkTerm - 2.5*logDeltaAlpha;
 
  //System.out.println("il " + il + " logDeltaAlpha " + logE*logDeltaAlpha + " logStarkTerm " + logE*logStarkTerm  + " logStark " + logE*logStark);
                //console.log("il " + il + " logDeltaAlpha " + logE*logDeltaAlpha + " logStarkTerm " + logE*logStarkTerm  + " logStark " + logE*logStark);
 
                //System.out.println("id " + id + " il " + il + " v[il] " + v[il] 
                //  + " hjertFn " + hjertFn + " Math.exp(logStark) " + Math.exp(logStark));
-               hjertFn = hjertFn + Math.exp(logStark);
+               //not here! hjertFn = hjertFn + Math.exp(logStark);
             }
 
-/* Gaussian + Lorentzian approximation:
-                //if (il <= numCore) {
-                if (v[il] <= 2.0 && v[il] >= -2.0) {
-
-                    // - Gaussian ONLY - at line centre Lorentzian will diverge!
-                    core = Math.exp(-1.0 * (v[il] * v[il]));
-                    voigt = core;
-                    //System.out.println("LINEGRID- CORE: core: " + core);
-
-                } else {
-
-                    logV = Math.log(Math.abs(v[il]));
-
-                    //Gaussian core:
-                    core = Math.exp(-1.0 * (v[il] * v[il]));
-               // if (id == 12) {
-                //    System.out.println("LINEGRID- WING: core: " + core);
-                 //   }
-                    //Lorentzian wing:
-                    logWing = logA - lnSqRtPi - (2.0 * logV);
-                    wing = Math.exp(logWing);
-
-                    voigt = core + wing;
-               // if (id == 12) {
-                //    System.out.println("LINEGRID- WING: wing: " + wing + " logV " + logV);
-                 //     }
-                } // end else
-*/
                 //System.out.println("LINEGRID: il, v[il]: " + il + " " + v[il] + " lineProf[0][il]: " + lineProf[0][il]);
                 //System.out.println("LINEGRID: il, Voigt, H(): " + il + " " + voigt);
                 //Convert from H(a,v) in dimensionless Voigt units to physical phi((Delta lambda) profile:
                 //logVoigt = Math.log(voigt) + 2.0 * logLam0 - lnSqRtPi - logDopp - logC;
                 //System.out.println("stark: Before log... id " + id + " il " + il + " hjertFn " + hjertFn);
-                logVoigt = Math.log(hjertFn) + 2.0 * logLam0 - lnSqRtPi - logDopp - logC;
+                logVoigt = Math.log(hjertFn) - lnSqRtPi - logDopp;
+                logStark = logStark - logF0;
+                if (vAbs > 2.0){
+                //if (id == 24) {
+                //   System.out.println("il " + il + " v[il] " + v[il] + " logVoigt " + logE*logVoigt + " logStark " + logE*logStark);
+                //}
+                   voigt = Math.exp(logVoigt) + Math.exp(logStark);
+                   logVoigt = Math.log(voigt);
+                }
+                logVoigt = logVoigt + 2.0 * logLam0 - logC;
                 lineProf[il][id] = Math.exp(logVoigt);
-               // if (id == 12) {
+                //if (id == 24) {
+                //    System.out.println("lam0In " + lam0In);
                 //    System.out.println("il " + il + " linePoints " + 1.0e7 * linePoints[0][il] + " id " + id + " lineProf[il][id] " + lineProf[il][id]);
-               // }
+                //}
 
                 //System.out.println("LineProf: il, id, lineProf[il][id]: " + il + " " + id + " " + lineProf[il][id]);
             } // il lambda loop
