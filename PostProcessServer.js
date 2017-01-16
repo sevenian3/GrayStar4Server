@@ -855,6 +855,7 @@ var eqWidth = function(flux, linePoints, lam0) { //, fluxCont) {
  * and open the template in the editor.
  */
 
+/* ROUTINE COMMENTED OUT
     //Do macroturbulent and rotational broadening together because they both require
     //same interpolation onto finer wavelength scals 
     // Input parameters:
@@ -867,15 +868,15 @@ var eqWidth = function(flux, linePoints, lam0) { //, fluxCont) {
     var macroRot = function(flux, lambda, numLams, iStart, iStop, macroV,
              surfEquRotV, inclntn, rotLDC) {
 
-/*
-//data structure to be returned
-   double[][] fluxBroad = new double[3][numLams];
-//Default initialization
-   for (int i = 0; i < numLams; i++){
-      fluxBroad[0][i] = flux[0][i];
-      fluxBroad[1][i] = flux[1][i];
-   }
-*/
+//
+////data structure to be returned
+//   double[][] fluxBroad = new double[3][numLams];
+////Default initialization
+//   for (int i = 0; i < numLams; i++){
+//      fluxBroad[0][i] = flux[0][i];
+//      fluxBroad[1][i] = flux[1][i];
+//   }
+//
 //wavelength sampling interval in nm for interpolation 
     var deltaLam = 0.002;  //nm
     //var deltaLam = 0.008;  //nm  //debug
@@ -1154,7 +1155,7 @@ if (vsini > 2.5){
         return fluxBroad;
 
  }; //end method macroRot
-
+*/
 
 
 //General convolution method

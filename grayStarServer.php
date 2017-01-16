@@ -14,6 +14,9 @@ $lambdaStop = "";
 $sampling = "";
 $logGammaCol = "";
 $logKapFudge = "";
+$macroV = "";
+$rotV = "";
+$rotI = "";
 
 
 $teff = $_POST['teff'];
@@ -28,6 +31,9 @@ $lambdaStop = $_POST['lambdaStop'];
 $sampling = $_POST['sampling'];
 $logGammaCol = $_POST['logGammaCol'];
 $logKapFudge = $_POST['logKapFudge'];
+$macroV = $_POST['macroV'];
+$rotV = $_POST['rotV'];
+$rotI = $_POST['rotI'];
 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -42,6 +48,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
    $lambdaStop = test_input($_POST['lambdaStop']);
    $logGammaCol = test_input($_POST['logGammaCol']);
    $logKapFudge = test_input($_POST['logKapFudge']);
+   $macroV = test_input($_POST['macroV']);
+   $rotV = test_input($_POST['rotV']);
+   $rotI = test_input($_POST['rotI']);
 }
 
 //validation and sanitization
@@ -53,11 +62,11 @@ function test_input($data) {
 }
 
 
-
+/*
 // WARNING: Must be consistent with value on GrayStar!
 
 
-/*
+
 ////hard-wired values for testing:
 //Sun:
 $teff = "5780.0";
@@ -72,10 +81,14 @@ $lambdaStop = "592.0";
 $sampling = "fine";
 $logGammaCol = "0.0";
 $logKapFudge = "0.0";
+$macroV = "2.0";
+$rotV = "2.0";
+$rotI = "90.0";
+
 */
 
 //echo $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh  . ' ' . $lambdaStart  . ' ' . $lambdaStop;
-$argLine = 'java -cp ./graystar3server -jar GrayStar3Server.jar ' . ' ' . $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh . ' ' . $lambdaStart . ' ' . $lambdaStop  . ' ' . $sampling . ' ' . $logGammaCol  . ' ' . $logKapFudge; 
+$argLine = 'java -cp ./graystar3server -jar GrayStar3Server.jar ' . ' ' . $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh . ' ' . $lambdaStart . ' ' . $lambdaStop  . ' ' . $sampling . ' ' . $logGammaCol  . ' ' . $logKapFudge . ' ' . $macroV . ' ' . $rotV . ' ' . $rotI; 
 
 //print_r($argLine);
 exec($argLine, $outArray, $returnVar);

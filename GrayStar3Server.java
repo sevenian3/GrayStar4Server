@@ -231,6 +231,55 @@ public class GrayStar3Server {
             logKapFudgeStr = "2.0";
         }
 
+// Argument 13: macroturbulent velocity broadening parameter (sigma) (km/s) 
+        String macroVStr = args[12];
+        double macroV = (Double.valueOf(macroVStr)).doubleValue();
+// Argument 14: surface equatorial linear rotational velocity (km/s) 
+        String rotVStr = args[13];
+        double rotV  = (Double.valueOf(rotVStr)).doubleValue();
+// Argument 15: inclination of rotation axis wrt line-of-sight (degrees) 
+        String rotIStr = args[14];
+        double rotI  = (Double.valueOf(rotIStr)).doubleValue();
+
+        if (macroV < 0.0) {
+            macroV = 0.0;
+            macroVStr = "0.0";
+        }
+        if (macroV > 8.0) {
+            macroV = 8.0;
+            macroVStr = "8.0";
+        }
+
+        if (rotV < 0.0) {
+            rotV = 0.0;
+            rotVStr = "0.0";
+        }
+        if (rotV > 20.0) {
+            rotV = 20.0;
+            rotVStr = "20.0";
+        }
+
+        if (rotI < 0.0) {
+            rotI = 0.0;
+            rotIStr = "0.0";
+        }
+        if (rotI > 90.0) {
+            rotI = 90.0;
+            rotIStr = "90.0";
+        }
+
+
+    //double rotV = 100.0;  //surface equatorial rotation velocity in km/s
+    //double rotI = 90.0;  //angle of rotation axis wrt to line-of-sight in degrees
+    //double macroV = 2.0;  //standard deviation of Gaussian macroturbulent velocity field in km/s
+
+//For rotation:
+    double inclntn = Math.PI * rotI / 180;  //degrees to radians
+    double vsini = rotV * Math.sin(inclntn);
+//
+
+//
+
 //
 // ************************ 
 //
@@ -263,6 +312,7 @@ public class GrayStar3Server {
         //wavelength grid (cm):
         double[] lamSetup = new double[3];
         lamSetup[0] = 300.0 * 1.0e-7;  // test Start wavelength, cm
+        //lamSetup[0] = 100.0 * 1.0e-7;  // test Start wavelength, cm
         lamSetup[1] = 1000.0 * 1.0e-7; // test End wavelength, cm
         lamSetup[2] = 250;  // test number of lambda
         //int numLams = (int) (( lamSetup[1] - lamSetup[0] ) / lamSetup[2]) + 1;  
@@ -287,6 +337,12 @@ public class GrayStar3Server {
         //double radius = Math.sqrt(massStar * gravSun / grav); // solar radii
         double logLum = 2.0 * Math.log(radius) + 4.0 * Math.log(teff / teffSun);
         double bolLum = Math.exp(logLum); // L_Bol in solar luminosities 
+     //cgs units:
+        double rSun = 6.955e10; // solar radii to cm
+
+        double cgsRadius = radius * rSun;
+        double omegaSini = (1.0e5 * vsini) / cgsRadius; // projected rotation rate in 1/sec
+        double macroVkm = macroV * 1.0e5;  //km/s to cm/s
 
         //Composition by mass fraction - needed for opacity approximations
         //   and interior structure
@@ -294,6 +350,7 @@ public class GrayStar3Server {
         double massY = 0.28; //Helium
         double massZSun = 0.02; // "metals"
         double massZ = massZSun * zScale; //approximation
+
 
         //double logNH = 17.0;
 
@@ -749,6 +806,9 @@ public class GrayStar3Server {
   double[] mmw = new double[numDeps];
   double logMmw;
   double[][] logKappa = new double[numLams][numDeps];
+  double[][] logKappaHHe = new double[numLams][numDeps];
+  double[][] logKappaMetalBF = new double[numLams][numDeps];
+  double[][] logKappaRayl = new double[numLams][numDeps];
   double[][] kappaRos = new double[2][numDeps];
   double[][] kappa500 = new double[2][numDeps];
   double[][] pGas = new double[2][numDeps]; 
@@ -888,8 +948,10 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
 
 
 //
-//H & He only for now... we only compute H, He, and e^- opacity sources: 
-   for (int iElem = 0; iElem < 2; iElem++){
+////H & He only for now... we only compute H, He, and e^- opacity sources: 
+   //for (int iElem = 0; iElem < 2; iElem++){
+//H to Fe only for now... we only compute opacity sources for elements up to Fe: 
+   for (int iElem = 0; iElem < 26; iElem++){
        species = cname[iElem] + "I";
        chiIArr[0] = IonizationEnergy.getIonE(species);
     //THe following is a 2-element vector of temperature-dependent partitio fns, U, 
@@ -1019,18 +1081,43 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
 
 
 //H & He only for now... we only compute H, He, and e^- opacity sources: 
-      logKappa = Kappas.kappas2(numDeps, newPe, zScale, temp, rho,
+      logKappaHHe = Kappas.kappas2(numDeps, newPe, zScale, temp, rho,
                      numLams, lambdaScale, logAz[1],
                      masterStagePops[0][0], masterStagePops[0][1], 
                      masterStagePops[1][0], masterStagePops[1][1], newNe, 
                      teff, logTotalFudge);
 
-      //System.out.println("i     tauRos      l      lamb     kappa");
-      //for (int i = 0; i < numDeps; i+=10){
-      //   for (int l = 0; l < numLams; l+=20){
-      //      System.out.format("%03d, %21.15f, %03d, %21.15f, %21.15f%n", i, tauRos[0][i], l, lambdaScale[l], logKappa[l][i]);
-      //   }
-      //}
+//Add in metal b-f opacity from adapted Moog routines:
+      //System.out.println("Calling masterMetal from GSS...");
+      logKappaMetalBF = KappasMetal.masterMetal(numDeps, numLams, temp, lambdaScale, masterStagePops);
+//Add in Rayleigh scattering opacity from adapted Moog routines:
+      logKappaRayl = KappasRayl.masterRayl(numDeps, numLams, temp, lambdaScale, masterStagePops, masterMolPops);
+
+//Convert metal b-f & Rayleigh scattering oapcities to cm^2/g and sum up total opacities
+   double logKapMetalBF, logKapRayl, kapContTot;
+   //System.out.println("i     tauRos      l      lamb     kappa    kappaHHe    kappaMtl     kappaRayl    kapContTot");
+   for (int iL = 0; iL < numLams; iL++){
+       for (int iD = 0; iD < numDeps; iD++){
+          logKapMetalBF = logKappaMetalBF[iL][iD] - rho[1][iD]; 
+          logKapRayl = logKappaRayl[iL][iD] - rho[1][iD]; 
+          kapContTot = Math.exp(logKappaHHe[iL][iD]) + Math.exp(logKapMetalBF) + Math.exp(logKapRayl); 
+          logKappa[iL][iD] = Math.log(kapContTot);
+         // if ( (iD%10 == 1) && (iL%10 == 0) ){
+         //    System.out.format("%03d, %21.15f, %03d, %21.15f, %21.15f, %21.15f, %21.15f, %21.15f %n", 
+         //     iD, tauRos[0][iD], iL, lambdaScale[iL], logE*logKappaHHe[iL][iD], 
+         //     logE*(logKapMetalBF), logE*(logKapRayl), logE*logKappa[iL][iD]);
+         // }
+       }
+   } 
+
+     // System.out.println("i     tauRos      l      lamb     kappa    kappaMtl     kappaRayl");
+     // for (int i = 0; i < numDeps; i+=10){
+     //    for (int l = 0; l < numLams; l+=10){
+     //       System.out.format("%03d, %21.15f, %03d, %21.15f, %21.15f, %21.15f, %21.15f%n", 
+     //        i, tauRos[0][i], l, lambdaScale[l], logE*logKappa[l][i], 
+     //        logE*(logKappaMetalBF[l][i]-rho[1][i]), logE*(logKappaRayl[l][i]-rho[1][i]));
+     //    }
+     // }
 
       kappaRos = Kappas.kapRos(numDeps, numLams, lambdaScale, logKappa, temp); 
       //System.out.println("i     tauRos      logNH      kappa");
@@ -1474,6 +1561,25 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
         // Number of angles, numThetas, will have to be determined after the fact
         double cosTheta[][] = Thetas.thetas();
         int numThetas = cosTheta[0].length;
+
+//establish a phi grid for non-axi-symmetric situations (eg. spots, in situ rotation, ...)
+//    //number of phi values per quandrant of unit circle centered on sub-stellar point
+//        //    in plane of sky:
+//        //For geometry calculations: phi = 0 is direction of positive x-axis of right-handed
+//        // 2D Cartesian coord system in plane of sky with origin at sub-stellar point (phi
+//        // increases CCW)
+    int numPhiPerQuad = 9;
+    int numPhi = 4 * numPhiPerQuad;
+    double numPhiD = (double) numPhi;
+    double[] phi = new double[numPhi];
+    //Compute phi values in whole range (0 - 2pi radians):
+    double delPhi = 2.0 * Math.PI / numPhiD;
+    double ii;
+    for (int i = 0; i < numPhi; i++){
+      ii = (double) i;
+      phi[i] = delPhi * ii;
+    }
+    
 
         boolean lineMode;
 
@@ -2484,14 +2590,14 @@ if (ifMolLines == true){
             contIntensLam = FormalSoln.formalSoln(numDeps,
                     cosTheta, lambdaScale[il], thisTau, temp, lineMode);
 
-            contFluxLam = Flux.flux(contIntensLam, cosTheta);
+            //contFluxLam = Flux.flux(contIntensLam, cosTheta);
 
             for (int it = 0; it < numThetas; it++) {
                 contIntens[il][it] = contIntensLam[it];
             } //it loop - thetas
 
-            contFlux[0][il] = contFluxLam[0];
-            contFlux[1][il] = contFluxLam[1];
+            //contFlux[0][il] = contFluxLam[0];
+            //contFlux[1][il] = contFluxLam[1];
 
             //// Teff test - Also needed for convection module!:
             if (il > 1) {
@@ -2501,6 +2607,8 @@ if (ifMolLines == true){
                         + contFluxLam[0] * (lambda2 - lambda1);
             }
         } //il loop
+
+        contFlux = Flux.flux3(contIntens, lambdaScale, cosTheta, phi, cgsRadius, omegaSini, macroVkm);
 
 //Line blanketed monochromatic optical depth array:
        // double logTauMaster[][] = LineTau2.tauLambda(numMaster, masterLams, logMasterKaps,
@@ -2534,14 +2642,14 @@ if (ifMolLines == true){
             masterIntensLam = FormalSoln.formalSoln(numDeps,
                     cosTheta, masterLams[il], thisTau, temp, lineMode);
 
-            masterFluxLam = Flux.flux(masterIntensLam, cosTheta);
+            //masterFluxLam = Flux.flux(masterIntensLam, cosTheta);
 
             for (int it = 0; it < numThetas; it++) {
                 masterIntens[il][it] = masterIntensLam[it];
             } //it loop - thetas
 
-            masterFlux[0][il] = masterFluxLam[0];
-            masterFlux[1][il] = masterFluxLam[1];
+            //masterFlux[0][il] = masterFluxLam[0];
+            //masterFlux[1][il] = masterFluxLam[1];
 
             //// Teff test - Also needed for convection module!:
             if (il > 1) {
@@ -2551,6 +2659,8 @@ if (ifMolLines == true){
                         + masterFluxLam[0] * (lambda2 - lambda1);
             }
         } //il loop
+
+        masterFlux = Flux.flux3(masterIntens, masterLams, cosTheta, phi, cgsRadius, omegaSini, macroVkm);
 
         logFluxSurfBol = Math.log(fluxSurfBol);
         double logTeffFlux = (logFluxSurfBol - Useful.logSigma()) / 4.0;

@@ -90,8 +90,8 @@ public class LevelPopsServer{
             thisLogUw = logUw[1];
         }
         if (Ttheta > 0.5 && Ttheta < 1.0){
-            thisLogUw = ( 0.5 * logUw[1] * (Ttheta - 0.5)/(1.0 - 0.5) )
-                      + ( 0.5 * logUw[0] * (1.0 - Ttheta)/(1.0 - 0.5) );
+            thisLogUw = ( logUw[1] * (Ttheta - 0.5)/(1.0 - 0.5) )
+                      + ( logUw[0] * (1.0 - Ttheta)/(1.0 - 0.5) );
         }
 
                 //System.out.println("LevPops: ionized branch taken, ionized =  " + ionized);
@@ -490,27 +490,27 @@ public class LevelPopsServer{
        }
        if (Ttheta > 0.5 && Ttheta < 1.0){
            for (int iStg = 0; iStg < numStages; iStg++){
-              thisLogUw[iStg] = ( 0.5 * logUw[iStg][1] * (Ttheta - 0.5)/(1.0 - 0.5) )
-                              + ( 0.5 * logUw[iStg][0] * (1.0 - Ttheta)/(1.0 - 0.5) );
+              thisLogUw[iStg] = ( logUw[iStg][1] * (Ttheta - 0.5)/(1.0 - 0.5) )
+                              + ( logUw[iStg][0] * (1.0 - Ttheta)/(1.0 - 0.5) );
            }
            for (int iMol = 0; iMol < numMols; iMol++){
-              thisLogUwB[iMol] = ( 0.5 * logUwB[iMol][1] * (Ttheta - 0.5)/(1.0 - 0.5) )
-                               + ( 0.5 * logUwB[iMol][0] * (1.0 - Ttheta)/(1.0 - 0.5) );
+              thisLogUwB[iMol] = ( logUwB[iMol][1] * (Ttheta - 0.5)/(1.0 - 0.5) )
+                               + ( logUwB[iMol][0] * (1.0 - Ttheta)/(1.0 - 0.5) );
            }
        }
          thisLogUw[numStages] = 0.0;
       for (int iMol = 0; iMol < numMols; iMol++){
          if (thisTemp < 3000.0){
-            thisLogQwAB = ( 0.5 * logQwABArr[iMol][1] * (3000.0 - thisTemp)/(3000.0 - 500.0) )
-                        + ( 0.5 * logQwABArr[iMol][2] * (thisTemp - 500.0)/(3000.0 - 500.0) ); 
+            thisLogQwAB = ( logQwABArr[iMol][1] * (3000.0 - thisTemp)/(3000.0 - 500.0) )
+                        + ( logQwABArr[iMol][2] * (thisTemp - 500.0)/(3000.0 - 500.0) ); 
          }
          if ( (thisTemp >= 3000.0) && (thisTemp <= 8000.0) ){
-            thisLogQwAB = ( 0.5 * logQwABArr[iMol][2] * (8000.0 - thisTemp)/(8000.0 - 3000.0) )
-                        + ( 0.5 * logQwABArr[iMol][3] * (thisTemp - 3000.0)/(8000.0 - 3000.0) ); 
+            thisLogQwAB = ( logQwABArr[iMol][2] * (8000.0 - thisTemp)/(8000.0 - 3000.0) )
+                        + ( logQwABArr[iMol][3] * (thisTemp - 3000.0)/(8000.0 - 3000.0) ); 
          }
          if ( thisTemp > 8000.0 ){
-            thisLogQwAB = ( 0.5 * logQwABArr[iMol][3] * (10000.0 - thisTemp)/(10000.0 - 8000.0) )
-                        + ( 0.5 * logQwABArr[iMol][4] * (thisTemp - 8000.0)/(10000.0 - 8000.0) ); 
+            thisLogQwAB = ( logQwABArr[iMol][3] * (10000.0 - thisTemp)/(10000.0 - 8000.0) )
+                        + ( logQwABArr[iMol][4] * (thisTemp - 8000.0)/(10000.0 - 8000.0) ); 
          }
       } // iMol loop 
             
@@ -686,10 +686,10 @@ public class LevelPopsServer{
               thisLogUwL = logUwL[1];
        }
        if (Ttheta > 0.5 && Ttheta < 1.0){
-              thisLogUwU = ( 0.5 * logUwU[1] * (Ttheta - 0.5)/(1.0 - 0.5) )
-                         + ( 0.5 * logUwU[0] * (1.0 - Ttheta)/(1.0 - 0.5) );
-              thisLogUwL = ( 0.5 * logUwL[1] * (Ttheta - 0.5)/(1.0 - 0.5) )
-                         + ( 0.5 * logUwL[0] * (1.0 - Ttheta)/(1.0 - 0.5) );
+              thisLogUwU = ( logUwU[1] * (Ttheta - 0.5)/(1.0 - 0.5) )
+                         + ( logUwU[0] * (1.0 - Ttheta)/(1.0 - 0.5) );
+              thisLogUwL = ( logUwL[1] * (Ttheta - 0.5)/(1.0 - 0.5) )
+                         + ( logUwL[0] * (1.0 - Ttheta)/(1.0 - 0.5) );
        }
             
 
@@ -848,39 +848,39 @@ public class LevelPopsServer{
            }
        }
        if (Ttheta > 0.5 && Ttheta < 1.0){
-           thisLogUwA = ( 0.5 * logUwA[1] * ((Ttheta - 0.5)/(1.0 - 0.5)) )
-                      + ( 0.5 * logUwA[0] * ((1.0 - Ttheta)/(1.0 - 0.5)) );
-           nmrtrThisLogUwB = ( 0.5 * nmrtrLogUwB[1] * ((Ttheta - 0.5)/(1.0 - 0.5)) )
-                           + ( 0.5 * nmrtrLogUwB[0] * ((1.0 - Ttheta)/(1.0 - 0.5)) );
+           thisLogUwA = ( logUwA[1] * ((Ttheta - 0.5)/(1.0 - 0.5)) )
+                      + ( logUwA[0] * ((1.0 - Ttheta)/(1.0 - 0.5)) );
+           nmrtrThisLogUwB = ( nmrtrLogUwB[1] * ((Ttheta - 0.5)/(1.0 - 0.5)) )
+                           + ( nmrtrLogUwB[0] * ((1.0 - Ttheta)/(1.0 - 0.5)) );
            for (int iMol = 0; iMol < numMolsB; iMol++){
-              thisLogUwB[iMol] = ( 0.5 * logUwB[iMol][1] * ((Ttheta - 0.5)/(1.0 - 0.5)) )
-                               + ( 0.5 * logUwB[iMol][0] * ((1.0 - Ttheta)/(1.0 - 0.5)) );
+              thisLogUwB[iMol] = ( logUwB[iMol][1] * ((Ttheta - 0.5)/(1.0 - 0.5)) )
+                               + ( logUwB[iMol][0] * ((1.0 - Ttheta)/(1.0 - 0.5)) );
            }
        }
       for (int iMol = 0; iMol < numMolsB; iMol++){
          if (thisTemp < 3000.0){
-            thisLogQwAB = ( 0.5 * logQwABArr[iMol][1] * (3000.0 - thisTemp)/(3000.0 - 500.0) )
-                        + ( 0.5 * logQwABArr[iMol][2] * (thisTemp - 500.0)/(3000.0 - 500.0) ); 
+            thisLogQwAB = ( logQwABArr[iMol][1] * (3000.0 - thisTemp)/(3000.0 - 500.0) )
+                        + ( logQwABArr[iMol][2] * (thisTemp - 500.0)/(3000.0 - 500.0) ); 
          }
          if ( (thisTemp >= 3000.0) && (thisTemp <= 8000.0) ){
-            thisLogQwAB = ( 0.5 * logQwABArr[iMol][2] * (8000.0 - thisTemp)/(8000.0 - 3000.0) )
-                        + ( 0.5 * logQwABArr[iMol][3] * (thisTemp - 3000.0)/(8000.0 - 3000.0) ); 
+            thisLogQwAB = ( logQwABArr[iMol][2] * (8000.0 - thisTemp)/(8000.0 - 3000.0) )
+                        + ( logQwABArr[iMol][3] * (thisTemp - 3000.0)/(8000.0 - 3000.0) ); 
          }
          if ( thisTemp > 8000.0 ){
-            thisLogQwAB = ( 0.5 * logQwABArr[iMol][3] * (10000.0 - thisTemp)/(10000.0 - 8000.0) )
-                        + ( 0.5 * logQwABArr[iMol][4] * (thisTemp - 8000.0)/(10000.0 - 8000.0) ); 
+            thisLogQwAB = ( logQwABArr[iMol][3] * (10000.0 - thisTemp)/(10000.0 - 8000.0) )
+                        + ( logQwABArr[iMol][4] * (thisTemp - 8000.0)/(10000.0 - 8000.0) ); 
          }
          if (thisTemp < 3000.0){
-            nmrtrThisLogQwAB = ( 0.5 * nmrtrLogQwAB[1] * (3000.0 - thisTemp)/(3000.0 - 500.0) )
-                             + ( 0.5 * nmrtrLogQwAB[2] * (thisTemp - 500.0)/(3000.0 - 500.0) ); 
+            nmrtrThisLogQwAB = ( nmrtrLogQwAB[1] * (3000.0 - thisTemp)/(3000.0 - 500.0) )
+                             + ( nmrtrLogQwAB[2] * (thisTemp - 500.0)/(3000.0 - 500.0) ); 
          }
          if ( (thisTemp >= 3000.0) && (thisTemp <= 8000.0) ){
-            nmrtrThisLogQwAB = ( 0.5 * nmrtrLogQwAB[2] * (8000.0 - thisTemp)/(8000.0 - 3000.0) )
-                             + ( 0.5 * nmrtrLogQwAB[3] * (thisTemp - 3000.0)/(8000.0 - 3000.0) ); 
+            nmrtrThisLogQwAB = ( nmrtrLogQwAB[2] * (8000.0 - thisTemp)/(8000.0 - 3000.0) )
+                             + ( nmrtrLogQwAB[3] * (thisTemp - 3000.0)/(8000.0 - 3000.0) ); 
          }
          if ( thisTemp > 8000.0 ){
-            nmrtrThisLogQwAB = ( 0.5 * nmrtrLogQwAB[3] * (10000.0 - thisTemp)/(10000.0 - 8000.0) )
-                             + ( 0.5 * nmrtrLogQwAB[4] * (thisTemp - 8000.0)/(10000.0 - 8000.0) ); 
+            nmrtrThisLogQwAB = ( nmrtrLogQwAB[3] * (10000.0 - thisTemp)/(10000.0 - 8000.0) )
+                             + ( nmrtrLogQwAB[4] * (thisTemp - 8000.0)/(10000.0 - 8000.0) ); 
          }
       } //iMol loop 
 //For clarity: neutral stage of atom whose ionization equilibrium is being computed is element A

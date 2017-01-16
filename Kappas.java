@@ -7,11 +7,6 @@
 package graystar3server;
 
 
- /**
- * Compute Rosseland mean extinction coefficient (cm^2/g) structure by scaling
- * from Sun
- *
- */
 public class Kappas {
 
     /**
@@ -28,6 +23,11 @@ public class Kappas {
     // If mode = 0: We don't yet know the mass density, rho & rhoSun, yet - the rhos passed in are meaningless and rhos must be faked
     // If mode = 1" We already have a previous in situ calculation of mass density, rho & rhoSun - passed in as parameters
     //public static double[][] kappas(int numDeps, double kappaScale,  double teff, double teffSun, double logg, double loggSun) {
+ /**
+ * Compute Rosseland mean extinction coefficient (cm^2/g) structure by scaling
+ * from Sun
+ *
+ */
     public static double[][] kappas(int mode, int numDeps, double[][] rho, double[][] rhoRef, double[][] kappaRosSun, double zScale, double logg, double loggSun, double teff, double teffSun, double radius,
             double massX, double massZ, double[][] tauRos, double[][] temp, double[][] tempRef, double[][] logNumsH3, double[][] logNumsH2) {
 
@@ -200,7 +200,11 @@ public class Kappas {
         return kapFac;
 
     }
-  
+ 
+
+/* Compute opacities properly from scratch with real physical cross-sections
+ */
+ 
   public static double[][] kappas2(int numDeps, double[][] pe, double zScale, double[][] temp, double[][] rho,
                                    int numLams, double[] lambdas, double logAHe,
                                    double[] logNH1, double[] logNH2, double[] logNHe1, double[] logNHe2, double[][] Ne,
