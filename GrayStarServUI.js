@@ -102,6 +102,7 @@ function main() {
 
 var gsAjaxParser = function(num, ajaxStr){
 
+//console.log("gsAjaxParser: ajaxStr " + ajaxStr);
 //console.log("num " + num);
 //convert one string with a comma delimited set of num values into
 // an array of numeric data type values
@@ -111,7 +112,7 @@ var gsAjaxParser = function(num, ajaxStr){
 var strArray = ajaxStr.split(","); //split on commas
 var ajaxLength = strArray.length;
 
-
+//console.log("gsAjaxParser: num " + num + " ajaxLength " + ajaxLength);
 var numArray = [];
 numArray.length = num;
 
@@ -185,7 +186,10 @@ var gsDuplex = function(num, logVector){
     settingsId.length = numInputs;
     //
     //1st version of each is of JQuery-ui round sliders not available
-    //Sigh - IE needs it this way...
+    // jquery-ui round sliders -->
+    //Round sliders Copyright (c) 2015-2016, Soundar
+    //      http://roundsliderui.com/
+    //
     var teffObj = $("#Teff").data("roundSlider");
     var teff = 1.0 * teffObj.getValue();
     var loggObj = $("#logg").data("roundSlider");
@@ -1436,7 +1440,7 @@ var gsDuplex = function(num, logVector){
 
 
 
-var url = "http://www.ap.smu.ca/~ishort/OpenStars/GrayStarServerTest/grayStarServer.php";
+var url = "http://www.ap.smu.ca/~ishort/OpenStars/GrayStarServer/grayStarServer.php";
 //var masterInput="teff="+teff+"&logg="+logg+"&logZScale="+logZScale+"&massStar="+massStar;
 var masterInput="teff="+teff+"&logg="+logg+"&logZScale="+logZScale+"&massStar="+massStar
   +"&xiT="+xiT+"&lineThresh="+lineThresh+"&voigtThresh="+voigtThresh+"&lambdaStart="+lambdaStart+"&lambdaStop="+lambdaStop
@@ -1608,6 +1612,8 @@ var jsonObj;
 //
 //Unpack the atmospheric structure:
 
+         //console.log("logTauRosAjax numDeps " + numDeps);
+         //console.log("jsonObj.logTau " + jsonObj.logTau);
          var logTauRosAjax = gsAjaxParser(numDeps, jsonObj.logTau);
          var tauRos = gsDuplex(numDeps, logTauRosAjax);
          var logZAjax = gsAjaxParser(numDeps, jsonObj.logZ);
@@ -2327,7 +2333,9 @@ var jsonObj;
 
 //Background color of panels - a gray tone will accentuate most colors:
 // 24 bit RGB color in hexadecimal notation:
-    var wColor = "#F0F0F0";  
+
+    var wDefaultColor = "#F0F0F0"; //default value
+    var wDiskColor = wDefaultColor; //needed to finesse background colour of white light image
 
     var charToPx = 4; // width of typical character font in pixels - CAUTION: finesse!
 
@@ -2902,10 +2910,10 @@ var jsonObj;
         //var yAxisName = "<span title='Normalized flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'> <em>F</em><sub>&#955</sub> / <em>B</em><sub>&#955</sub></a></span>";
         var yAxisName = "<span title='Normalized flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'> <em>F</em><sub>&#955</sub> / <em>F</em><sup>c</sup><sub>&#955</sub></a></span>";
 
-        var panelOrigin = washer(plotRow, plotCol, thisPanelWidth, wColor, plotThirteenId, cnvsThirteenId);
+        var panelOrigin = washer(plotRow, plotCol, thisPanelWidth, wDefaultColor, plotThirteenId, cnvsThirteenId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsThirteenCtx.fillStyle = wColor;
+        cnvsThirteenCtx.fillStyle = wDefaultColor;
         cnvsThirteenCtx.fillRect(0, 0, thisPanelWidth, panelHeight);
 
         var fineness = "hyperfine";
@@ -3116,10 +3124,18 @@ var jsonObj;
         var plotRow = 0;
         var plotCol = 0;
 
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotSevenId, cnvsSevenId);
+//background color needs to be finessed so that white-ish stars will stand out:
+       if (teff > 6000.0){
+   //hotter white or blue-white star - darken the background (default background in #F0F0F0
+              wDiskColor = "#808080";
+           } else {
+              wDiskColor = wDefaultColor;
+           }
+
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDiskColor, plotSevenId, cnvsSevenId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsSevenCtx.fillStyle = wColor;
+        cnvsSevenCtx.fillStyle = wDiskColor;
         cnvsSevenCtx.fillRect(0, 0, panelWidth, panelHeight);
 
         var thet1, thet2;
@@ -3203,10 +3219,10 @@ var jsonObj;
 //        radiusPx = Math.ceil(radiusPx);
         var thet1, thet2;
         var thet3;
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotTwelveId, cnvsTwelveId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotTwelveId, cnvsTwelveId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsTwelveCtx.fillStyle = wColor;
+        cnvsTwelveCtx.fillStyle = wDefaultColor;
         cnvsTwelveCtx.fillRect(0, 0, panelWidth, panelHeight);
         // Add title annotation:
 
@@ -3334,10 +3350,10 @@ var jsonObj;
 
         
         var fineness = "normal";
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotTenId, cnvsTenId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotTenId, cnvsTenId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsTenCtx.fillStyle = wColor;
+        cnvsTenCtx.fillStyle = wDefaultColor;
         cnvsTenCtx.fillRect(0, 0, panelWidth, panelHeight);
         var xAxisParams = XAxis(panelX, panelY, xAxisLength,
                 minXData, maxXData, xAxisName, fineness,
@@ -3486,14 +3502,14 @@ var jsonObj;
         ggI = saveRGB[1];
         bbI = saveRGB[2];
         var starRGBHex = "rgb(" + rrI + "," + ggI + "," + bbI + ")";
-        var colors = ["#0000FF", "#00FF88", "#FF0000", wColor, starRGBHex];
+        var colors = ["#0000FF", "#00FF88", "#FF0000", wDefaultColor, starRGBHex];
         var numZone = radii.length;
         //var titleYPos = xLowerYOffset - yRange + 40;
-        //var cnvsCtx = washer(xOffset - xRange / 2, yOffset, wColor, plotElevenId);
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotElevenId, cnvsElevenId);
+        //var cnvsCtx = washer(xOffset - xRange / 2, yOffset, wDefaultColor, plotElevenId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotElevenId, cnvsElevenId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsElevenCtx.fillStyle = wColor;
+        cnvsElevenCtx.fillStyle = wDefaultColor;
         cnvsElevenCtx.fillRect(0, 0, panelWidth, panelHeight);
         // Add title annotation:
 
@@ -3575,10 +3591,10 @@ var jsonObj;
      <em>L</em><sub>Sun</sub></a></span> ";
         //
         var fineness = "fine";
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotNineId, cnvsNineId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotNineId, cnvsNineId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsNineCtx.fillStyle = wColor;
+        cnvsNineCtx.fillStyle = wDefaultColor;
         cnvsNineCtx.fillRect(0, 0, panelWidth, panelHeight);
         var xAxisParams = XAxis(panelX, panelY, xAxisLength,
                 minXData, maxXData, xAxisName, fineness,
@@ -4061,10 +4077,10 @@ var jsonObj;
         var yAxisName = "<em>T</em><sub>Kin</sub> (K)";
         var fineness = "normal";
 
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotTwoId, cnvsTwoId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotTwoId, cnvsTwoId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsTwoCtx.fillStyle = wColor;
+        cnvsTwoCtx.fillStyle = wDefaultColor;
         cnvsTwoCtx.fillRect(0, 0, panelWidth, panelHeight);
         var xAxisParams = XAxis(panelX, panelY, xAxisLength,
                 minXData, maxXData, xAxisName, fineness,
@@ -4260,14 +4276,14 @@ var jsonObj;
         var minYData = logE * Math.min(pGas[1][0], pRad[1][0], Pe[1][0]) - 1.0;
         var maxYData = logE * logPTot[numDeps - 1];
         var yAxisName = "Log<sub>10</sub> <em>P</em> <br />(dynes <br />cm<sup>-2</sup>)";
-        //washer(xRange, xOffset, yRange, yOffset, wColor, plotThreeId);
+        //washer(xRange, xOffset, yRange, yOffset, wDefaultColor, plotThreeId);
 
         var fineness = "normal";
-        //var cnvsCtx = washer(plotRow, plotCol, wColor, plotThreeId, cnvsId);
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotThreeId, cnvsThreeId);
+        //var cnvsCtx = washer(plotRow, plotCol, wDefaultColor, plotThreeId, cnvsId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotThreeId, cnvsThreeId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsThreeCtx.fillStyle = wColor;
+        cnvsThreeCtx.fillStyle = wDefaultColor;
         cnvsThreeCtx.fillRect(0, 0, panelWidth, panelHeight);
         var xAxisParams = XAxis(panelX, panelY, xAxisLength,
                 minXData, maxXData, xAxisName, fineness,
@@ -4447,10 +4463,10 @@ var jsonObj;
 
         var fineness = "normal";
 //
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotFourId, cnvsFourId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotFourId, cnvsFourId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsFourCtx.fillStyle = wColor;
+        cnvsFourCtx.fillStyle = wDefaultColor;
         cnvsFourCtx.fillRect(0, 0, panelWidth, panelHeight);
         var xAxisParams = XAxis(panelX, panelY, xAxisLength,
                 minXData, maxXData, xAxisName, fineness,
@@ -4582,14 +4598,14 @@ var jsonObj;
         //var minYData = 12.0;
         //var maxYData = logE * masterFluxBroad[1][iLamMax];
         //var yAxisName = "<span title='Monochromatic surface flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'>Log<sub>10</sub> <em>F</em><sub>&#955</sub> <br /> ergs s<sup>-1</sup> cm<sup>-3</sup></a></span>";
-        //(xRange, xOffset, yRange, yOffset, wColor, plotFiveId);
+        //(xRange, xOffset, yRange, yOffset, wDefaultColor, plotFiveId);
 
         var fineness = "coarse";
-        //var cnvsCtx = washer(plotRow, plotCol, wColor, plotFiveId, cnvsId);
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotFiveId, cnvsFiveId);
+        //var cnvsCtx = washer(plotRow, plotCol, wDefaultColor, plotFiveId, cnvsId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotFiveId, cnvsFiveId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsFiveCtx.fillStyle = wColor;
+        cnvsFiveCtx.fillStyle = wDefaultColor;
         cnvsFiveCtx.fillRect(0, 0, panelWidth, panelHeight);
         var xAxisParams = XAxis(panelX, panelY, xAxisLength,
                 minXData, maxXData, xAxisName, fineness,
@@ -4863,14 +4879,14 @@ var jsonObj;
         var maxYData = ionE[0] + ionE[1] + ionE[2];
 
         var yAxisName = "<span title='Atomic excitation energy'><a href='http://en.wikipedia.org/wiki/Excited_state' target='_blank'>Excitation<br /> E</a> (<a href='http://en.wikipedia.org/wiki/Electronvolt' target='_blank'>eV</a>)</span>";
-        //(xRange, xOffset, yRange, yOffset, wColor, plotEightId);
+        //(xRange, xOffset, yRange, yOffset, wDefaultColor, plotEightId);
 
         var fineness = "coarse";
-        //var cnvsCtx = washer(plotRow, plotCol, wColor, plotEightId, cnvsId);
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotEightId, cnvsEightId);
+        //var cnvsCtx = washer(plotRow, plotCol, wDefaultColor, plotEightId, cnvsId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotEightId, cnvsEightId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsEightCtx.fillStyle = wColor;
+        cnvsEightCtx.fillStyle = wDefaultColor;
         cnvsEightCtx.fillRect(0, 0, panelWidth, panelHeight);
         var xAxisParams = XAxis(panelX, panelY, xAxisLength,
                 minXData, maxXData, xAxisName, fineness,
@@ -5016,10 +5032,10 @@ var jsonObj;
         var yAxisName = "Log<sub>10</sub> <em>&#954</em><sub>Ros</sub> <br />(cm<sup>2</sup> g<sup>-1</sup>)";
 
         var fineness = "normal";
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotFourteenId, cnvsFourteenId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotFourteenId, cnvsFourteenId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsFourteenCtx.fillStyle = wColor;
+        cnvsFourteenCtx.fillStyle = wDefaultColor;
         cnvsFourteenCtx.fillRect(0, 0, panelWidth, panelHeight);
         var xAxisParams = XAxis(panelX, panelY, xAxisLength,
                 minXData, maxXData, xAxisName, fineness,
@@ -5165,10 +5181,10 @@ var jsonObj;
 
         var fineness = "normal";
 //
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wColor, plotFifteenId, cnvsFifteenId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotFifteenId, cnvsFifteenId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsFifteenCtx.fillStyle = wColor;
+        cnvsFifteenCtx.fillStyle = wDefaultColor;
         cnvsFifteenCtx.fillRect(0, 0, panelWidth, panelHeight);
         var xAxisParams = XAxis(panelX, panelY, xAxisLength,
                 minXData, maxXData, xAxisName, fineness,
@@ -5347,25 +5363,27 @@ var jsonObj;
 
     if (ifPrintAtmos == true) {
 
-        txtPrint("Vertical atmospheric structure", 10, yOffsetPrint, txtColor, printModelId);
+        var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
+        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint("Vertical atmospheric structure", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
         //Column headings:
 
         var xTab = 190;
         txtPrint("i", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>&#964</em><sub>Rosseland</sub>", 10 + xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> depth (cm)", 10 + 2 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>T</em><sub>Kin</sub> (K)", 10 + 3 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>P</em><sub>Gas</sub> (dynes cm<sup>-2</sup>)", 10 + 4 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>P</em><sub>Rad</sub> (dynes cm<sup>-2</sup>)", 10 + 5 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>&#961</em> (g cm<sup>-3</sup>)", 10 + 6 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>N</em><sub>e</sub> (cm<sup>-3</sup>)", 10 + 7 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub><em>&#956</em> (g)", 10 + 8 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>&#954</em> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 9 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#964</em><sub>Rosseland</sub>", 10 + xTab, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> depth (cm)", 10 + 2 * xTab, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>T</em><sub>Kin</sub> (K)", 10 + 3 * xTab, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>P</em><sub>Gas</sub> (dynes cm<sup>-2</sup>)", 10 + 4 * xTab, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>P</em><sub>Rad</sub> (dynes cm<sup>-2</sup>)", 10 + 5 * xTab, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#961</em> (g cm<sup>-3</sup>)", 10 + 6 * xTab, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>N</em><sub>e</sub> (cm<sup>-3</sup>)", 10 + 7 * xTab, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub><em>&#956</em> (g)", 10 + 8 * xTab, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#954</em> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 9 * xTab, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
         //txtPrint("log<sub>10</sub> <em>&#954</em><sub>500</sub> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 10 * xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
 
 
         for (var i = 0; i < numDeps; i++) {
-            yTab = yOffsetPrint + vOffset + i * lineHeight;
+            yTab = yOffsetPrint + vOffset + (i+1) * lineHeight;
             numPrint(i, 10, yTab, txtColor, printModelId);
             value = logE * tauRos[1][i];
             value = value.toPrecision(5);
@@ -5404,14 +5422,16 @@ var jsonObj;
 
     if (ifPrintSED == true) {
 
-        txtPrint("Monochromatic surface flux spectral energy distribution (SED)", 10, yOffsetPrint, txtColor, printModelId);
+        var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
+        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint("Monochromatic surface flux spectral energy distribution (SED)", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
         //Column headings:
 
         var xTab = 190;
-        txtPrint("log<sub>10</sub> <em>&#955</em> (cm)", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("log<sub>10</sub> <em>F</em><sub>&#955</sub> (ergs s<sup>-1</sup> cm<sup>-2</sup> cm<sup>-1</sup>)", 10 + xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#955</em> (cm)", 10, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>F</em><sub>&#955</sub> (ergs s<sup>-1</sup> cm<sup>-2</sup> cm<sup>-1</sup>)", 10 + xTab, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
         for (var i = 0; i < numMaster; i++) {
-            yTab = yOffsetPrint + vOffset + i * lineHeight;
+            yTab = yOffsetPrint + vOffset + (i+1) * lineHeight;
             value = logE * Math.log(masterLams2[i]);
             value = value.toPrecision(9);
             numPrint(value, 10, yTab, txtColor, printModelId);
@@ -5424,11 +5444,13 @@ var jsonObj;
 
     if (ifPrintIntens == true) {
 
-        txtPrint("Monochromatic specific intensity distribution", 10, yOffsetPrint, txtColor, printModelId);
+        var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
+        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint("Monochromatic specific intensity distribution", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
         //Column headings:
 
         var xTab = 100;
-        txtPrint("log<sub>10</sub><em>&#955</em> (cm)", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub><em>&#955</em> (cm)", 10, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
         txtPrint("log<sub>10</sub><em>I</em><sub>&#955</sub>(<em>&#952</em>) (ergs s<sup>-1</sup> cm<sup>-2</sup> cm<sup>-1</sup> steradian<sup>-1</sup>)",
                 10 + xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         for (var j = 0; j < numThetas; j += 2) {
@@ -5437,7 +5459,7 @@ var jsonObj;
         }
 
         for (var i = 0; i < numMaster; i++) {
-            yTab = yOffsetPrint + vOffset + (i+1) * lineHeight;
+            yTab = yOffsetPrint + vOffset + (i+2) * lineHeight;
             value = logE * Math.log(masterLams2[i]);
             value = value.toPrecision(9);
             numPrint(value, 10, yTab, txtColor, printModelId);
@@ -5452,14 +5474,16 @@ var jsonObj;
     if (ifPrintLine == true) {
 
 
-        txtPrint("Monochromatic surface flux: Spectrum synthesis region", 10, yOffsetPrint, txtColor, printModelId);
+        var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
+        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint("Monochromatic surface flux: Spectrum synthesis region", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
         //Column headings:
 
         var xTab = 190;
         txtPrint("<em>&#955</em> (nm)", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
-        txtPrint("<em>F</em><sub>&#955</sub> / <em>F</em><sup>C</sup><sub>&#955</sub>", 10 + xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("<em>F</em><sub>&#955</sub> / <em>F</em><sup>C</sup><sub>&#955</sub>", 10 + xTab, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
         for (var i = 0; i < numSpecSyn; i++) {
-            yTab = yOffsetPrint + vOffset + i * lineHeight;
+            yTab = yOffsetPrint + vOffset + (i+1) * lineHeight;
             value = 1.0e7 * specSynLams2[i];
             value = value.toPrecision(9);
             numPrint(value, 10, yTab, txtColor, printModelId);
@@ -5473,14 +5497,16 @@ var jsonObj;
 
     if (ifPrintLDC == true) {
 
-        txtPrint("Linear monochromatic continuum limb darkening coefficients (LCD)", 10, yOffsetPrint, txtColor, printModelId);
+        var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
+        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint("Linear monochromatic continuum limb darkening coefficients (LCD)", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
         //Column headings:
 
         var xTab = 190;
-        txtPrint("log<sub>10</sub> <em>&#955</em> (cm)", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#955</em> (cm)", 10, yOffsetPrint + 2*lineHeight, txtColor, printModelId);
         txtPrint("LDC", 10 + xTab, yOffsetPrint + lineHeight, txtColor, printModelId);
         for (var i = 0; i < numLams; i++) {
-            yTab = yOffsetPrint + vOffset + i * lineHeight;
+            yTab = yOffsetPrint + vOffset + (i+1) * lineHeight;
             value = logE * Math.log(lambdaScale[i]);
             value = value.toPrecision(9);
             numPrint(value, 10, yTab, txtColor, printModelId);
@@ -5491,9 +5517,11 @@ var jsonObj;
     }
 
   if (ifPrintAbnd == true){
-     txtPrint("A_12 logarithmic abundnaces (log_10(N_X/N_H)+12)", 10, yOffsetPrint, txtColor, printModelId);
+        var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
+        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+     txtPrint("A_12 logarithmic abundnaces (log_10(N_X/N_H)+12)", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
      for (var i = 0; i < nelemAbnd; i++){
-        yTab = yOffsetPrint + vOffset + i * lineHeight;
+        yTab = yOffsetPrint + vOffset + (i+1) * lineHeight;
         value = element[i];
         txtPrint(value, 10, yTab, txtColor, printModelId);
         value = abundance[i];
@@ -5503,8 +5531,10 @@ var jsonObj;
    }
 
   if (ifPrintJSON == true){
+        var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
+        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
      txtPrint("Compound atmospheric model, SED, and synthetic spectrum output as <a href='https://en.wikipedia.org/wiki/JSON' target='_blank'> JSON</a> string", 
-       10, yOffsetPrint, txtColor, printModelId);
+       10, yOffsetPrint + lineHeight, txtColor, printModelId);
           yTab = yOffsetPrint + vOffset;
           txtPrint(xmlhttp.responseText, 0, yTab, txtColor, printModelId);
   }

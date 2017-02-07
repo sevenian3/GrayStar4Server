@@ -1,9 +1,14 @@
-
 cd graystar3server
-javac -cp  . -sourcepath . *.java
+
+# DJL's version
+javac *.java
+
+# javac -cp .:$CLASSPATH *.java
+# javac -cp '.:mysql-connector-java-5.1.39-bin.jar' -sourcepath . *.java
+# javac -cp '.:org.example.jar' mysource.java
 
 cd ..
-////cp  GrayStar3Server.jar GrayStar3Server.jar.bak
-////jar cvmf mymanifest GrayStar3Server.jar graystar3server/*.class
+#cp  GrayStar3Server.jar GrayStar3Server.jar.bak
+#jar cvmf mymanifest GrayStar3Server.jar graystar3server/*.class
 jar cvmf mymanifest test.jar graystar3server/*.class
 

@@ -1610,6 +1610,8 @@ String dataPath = "./InputData/";
 //
 // **************  Atomic line list:
 //
+//NIST Atomic Spectra Database Lines Data
+//Kramida, A., Ralchenko, Yu., Reader, J., and NIST ASD Team (2015). NIST Atomic Spectra Database (ver. 5.3), [Online]. Available: http://physics.nist.gov/asd [2017, January 30]. National Institute of Standards and Technology, Gaithersburg, MD.
 //
 //Stuff for byte file method:
 //
@@ -2563,6 +2565,59 @@ if (ifMolLines == true){
             }
           //No! } //ifThisLine strength condition
         } //numMolLines loop
+
+//Sweep the wavelength grid for line-specific wavelength points that are closer together than needed for
+//critical sampling:
+   //equivalent spectral resolution of wavelength-dependent critical sampling interval
+   double sweepRes = 500000.0; //equivalent spectral resolution of wavelength-dependent critical sampling interval
+   //cm //use shortest wavelength to avoid under-smapling:
+   double sweepDelta = lambdaStart / sweepRes; //cm //use shortest wavelength to avoid under-smapling
+   double[] sweepHelp = new double[numMaster]; //to be truncated later
+
+//Initialize sweepHelp
+   for (int iSweep = 0; iSweep < numMaster; iSweep++){
+       sweepHelp[iSweep] = 0.0;
+   }
+
+//
+   sweepHelp[0] = masterLams[0]; //An auspicous start :-)
+   int lastLam = 0; //index of last masterLam wavelength NOT swept out
+   int iSweep = 1; //current sweepHelp index
+//
+   for (int iLam = 1; iLam < numMaster; iLam++){
+      if ( (masterLams[iLam] - masterLams[lastLam]) >= sweepDelta){
+         //Kept - ie. NOT swept out:
+         sweepHelp[iSweep] = masterLams[iLam];
+         lastLam = iLam;
+         iSweep++;
+      }
+   }
+
+  int numKept = iSweep-1;
+  double[] sweptLams = new double[numKept];
+  for (int iKept = 0; iKept < numKept; iKept++){
+     sweptLams[iKept] = sweepHelp[iKept];
+  }
+
+ // System.out.println("numMaster " + numMaster + " numKept " + numKept
+ //    + " masterLams [0] and [numMaster-1] " + masterLams[0] + " " + masterLams[numMaster-1]
+ //    + " sweptLams [0] and [numKept-1] " + sweptLams[0] + " " + sweptLams[numKept-1]);
+
+//Interpolate the total extinction array onto the swept wavelength grid:
+   double[] keptHelp = new double[numKept];
+   double[][] logSweptKaps = new double[numKept][numDeps];
+   double[] logMasterKapsId = new double[numMaster];
+   for (int iD = 0; iD < numDeps; iD++){
+      //extract 1D kappa vs lambda at each depth:
+      for (int iL = 0; iL < numMaster; iL++){
+         logMasterKapsId[iL] = logMasterKaps[iL][iD];
+      }
+      keptHelp = ToolBox.interpolV(logMasterKapsId, masterLams, sweptLams);
+      for (int iL = 0; iL < numKept; iL++){
+         logSweptKaps[iL][iD] = keptHelp[iL];
+      }
+   } //iD loop
+
 //
 ////
 //Continuum monochromatic optical depth array:
@@ -2613,21 +2668,26 @@ if (ifMolLines == true){
 //Line blanketed monochromatic optical depth array:
        // double logTauMaster[][] = LineTau2.tauLambda(numMaster, masterLams, logMasterKaps,
        //         numLams, lambdaScale, logKappa, numDeps, logTauCont, kappa500, tauRos, logTotalFudge);
-        double logTauMaster[][] = LineTau2.tauLambda(numMaster, masterLams, logMasterKaps,
+        //double logTauMaster[][] = LineTau2.tauLambda(numMaster, masterLams, logMasterKaps,
+        //        numDeps, kappa500, tauRos, logTotalFudge);
+        double logTauMaster[][] = LineTau2.tauLambda(numKept, sweptLams, logSweptKaps,
                 numDeps, kappa500, tauRos, logTotalFudge);
 
 //Lin blanketed formal Rad Trans solution:
         //Evaluate formal solution of rad trans eq at each lambda throughout line profile
         // Initial set to put lambda and tau arrays into form that formalsoln expects
-        double[][] masterIntens = new double[numMaster][numThetas];
+        //double[][] masterIntens = new double[numMaster][numThetas];
+        double[][] masterIntens = new double[numKept][numThetas];
         double[] masterIntensLam = new double[numThetas];
 
-        double[][] masterFlux = new double[2][numMaster];
+        //double[][] masterFlux = new double[2][numMaster];
+        double[][] masterFlux = new double[2][numKept];
         double[] masterFluxLam = new double[2];
 
         lineMode = false;  //no scattering for overall SED
 
-        for (int il = 0; il < numMaster; il++) {
+        //for (int il = 0; il < numMaster; il++) {
+        for (int il = 0; il < numKept; il++) {
 
 //                        }
             for (int id = 0; id < numDeps; id++) {
@@ -2639,8 +2699,10 @@ if (ifMolLines == true){
                // }
             } // id loop
 
+            //masterIntensLam = FormalSoln.formalSoln(numDeps,
+            //        cosTheta, masterLams[il], thisTau, temp, lineMode);
             masterIntensLam = FormalSoln.formalSoln(numDeps,
-                    cosTheta, masterLams[il], thisTau, temp, lineMode);
+                    cosTheta, sweptLams[il], thisTau, temp, lineMode);
 
             //masterFluxLam = Flux.flux(masterIntensLam, cosTheta);
 
@@ -2653,14 +2715,17 @@ if (ifMolLines == true){
 
             //// Teff test - Also needed for convection module!:
             if (il > 1) {
-                lambda2 = masterLams[il]; // * 1.0E-7;  // convert nm to cm
-                lambda1 = masterLams[il - 1]; // * 1.0E-7;  // convert nm to cm
+                //lambda2 = masterLams[il]; // * 1.0E-7;  // convert nm to cm
+                //lambda1 = masterLams[il - 1]; // * 1.0E-7;  // convert nm to cm
+                lambda2 = sweptLams[il]; // * 1.0E-7;  // convert nm to cm
+                lambda1 = sweptLams[il - 1]; // * 1.0E-7;  // convert nm to cm
                 fluxSurfBol = fluxSurfBol
                         + masterFluxLam[0] * (lambda2 - lambda1);
             }
         } //il loop
 
-        masterFlux = Flux.flux3(masterIntens, masterLams, cosTheta, phi, cgsRadius, omegaSini, macroVkm);
+        //masterFlux = Flux.flux3(masterIntens, masterLams, cosTheta, phi, cgsRadius, omegaSini, macroVkm);
+        masterFlux = Flux.flux3(masterIntens, sweptLams, cosTheta, phi, cgsRadius, omegaSini, macroVkm);
 
         logFluxSurfBol = Math.log(fluxSurfBol);
         double logTeffFlux = (logFluxSurfBol - Useful.logSigma()) / 4.0;
@@ -2698,8 +2763,10 @@ if (ifMolLines == true){
      double tiny = 1.0e-19;
      double logTiny = Math.log(tiny);
      
-   int iStart = ToolBox.lamPoint(numMaster, masterLams, lambdaStart);
-   int iStop = ToolBox.lamPoint(numMaster, masterLams, lambdaStop);
+   //int iStart = ToolBox.lamPoint(numMaster, masterLams, lambdaStart);
+   //int iStop = ToolBox.lamPoint(numMaster, masterLams, lambdaStop);
+   int iStart = ToolBox.lamPoint(numKept, sweptLams, lambdaStart);
+   int iStop = ToolBox.lamPoint(numKept, sweptLams, lambdaStop);
    int numSpecSyn = iStop - iStart;
  
   int numSpecies = nelemAbnd * numStages; 
@@ -2710,8 +2777,10 @@ if (ifMolLines == true){
      //values:
         //System.out.format("%03d,%07d,%03d,%07d,%06d,%07d,%05d,%04d%n", 
          //   numDeps, numMaster, numThetas, numSpecSyn, numGaussLines, numLams, nelemAbnd, numSpecies);
+        //System.out.format("%03d,%07d,%03d,%06d,%07d,%05d,%04d%n", 
+        //    numDeps, numMaster, numThetas, numGaussLines, numLams, nelemAbnd, numSpecies);
         System.out.format("%03d,%07d,%03d,%06d,%07d,%05d,%04d%n", 
-            numDeps, numMaster, numThetas, numGaussLines, numLams, nelemAbnd, numSpecies);
+            numDeps, numKept, numThetas, numGaussLines, numLams, nelemAbnd, numSpecies);
 
     //Block 2: Atmosphere
      //keys:
@@ -2728,13 +2797,15 @@ if (ifMolLines == true){
    //keys:
         System.out.println("logWave,logFlux");
    //values:
-        for (int i = 0; i < numMaster; i++){
+        //for (int i = 0; i < numMaster; i++){
+        for (int i = 0; i < numKept; i++){
  //Do quality control here:
            if ( (masterFlux[1][i] < logTiny) || (masterFlux[0][i] < tiny) ){
               masterFlux[1][i] = logTiny;
               masterFlux[0][i] = tiny;
                }
-           System.out.format("%13.8f,%13.8f%n", Math.log(masterLams[i]), masterFlux[1][i]); 
+           //System.out.format("%13.8f,%13.8f%n", Math.log(masterLams[i]), masterFlux[1][i]); 
+           System.out.format("%13.8f,%13.8f%n", Math.log(sweptLams[i]), masterFlux[1][i]); 
          }
 
 //
@@ -2746,7 +2817,8 @@ if (ifMolLines == true){
         System.out.println("cosTheta" + i);  //key
            System.out.format("%11.6f%n", cosTheta[1][i]);  //value
             System.out.println("Intensity" + i); //key 
-            for (int j = 0; j < numMaster; j++){
+            //for (int j = 0; j < numMaster; j++){
+            for (int j = 0; j < numKept; j++){
  //Do quality control here:
            if ( masterIntens[j][i] < tiny ){
               masterIntens[j][i] = tiny;

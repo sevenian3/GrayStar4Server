@@ -62,11 +62,11 @@ function test_input($data) {
 }
 
 
-/*
+
 // WARNING: Must be consistent with value on GrayStar!
 
 
-
+/*
 ////hard-wired values for testing:
 //Sun:
 $teff = "5780.0";
@@ -84,8 +84,8 @@ $logKapFudge = "0.0";
 $macroV = "2.0";
 $rotV = "2.0";
 $rotI = "90.0";
-
 */
+
 
 //echo $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh  . ' ' . $lambdaStart  . ' ' . $lambdaStop;
 $argLine = 'java -cp ./graystar3server -jar GrayStar3Server.jar ' . ' ' . $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh . ' ' . $lambdaStart . ' ' . $lambdaStop  . ' ' . $sampling . ' ' . $logGammaCol  . ' ' . $logKapFudge . ' ' . $macroV . ' ' . $rotV . ' ' . $rotI; 
