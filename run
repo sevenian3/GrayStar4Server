@@ -1,5 +1,5 @@
 # DJL's version
-java -jar test.jar 5778.0 4.44 0.0 1.0 1.0 -2.0 1.0 587.0 592.0 "fine" 0.0 0.0 1.0 2.0 90.0 > test.out
+java -jar test.jar 5778.0 4.44 0.0 1.0 1.0 -2.0 1.0 587.0 592.0 "fine" 0.0 0.0 1.0 2.0 90.0 2 2 0 > test.out
 
 # java -cp ./graystar3server -jar test.jar $teff $logg $logKappaScale $massStar $xiT $lineThresh $voigtThresh $lambdaStart $lambdaStop $sampling $logGammaCol $logKapFudge $macroV $rotV $rotI
 #rm test.out

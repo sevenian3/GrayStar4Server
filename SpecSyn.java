@@ -98,6 +98,9 @@ public class SpecSyn {
 
             for (int k = 0; k < numPoints; k++) {
                 lineKap1D[k] = Math.exp(listLogKappaL[k][iD]);
+           //     if (iD%10 == 1){
+          //        System.out.println("iD " + iD + " k " + k + " listLineLambdas " + listLineLambdas[k] + " lineKap1D " + lineKap1D[k]);
+            //     }
             }
 
             //Interpolate continuum and line opacity onto master lambda scale, and add them lambda-wise:
@@ -109,6 +112,9 @@ public class SpecSyn {
                     //lineKap2 = 1.0e-99;  //test
                 }
                 //test lineKap2 = 1.0e-99;  //test
+               // if (iD%10 == 1){
+               //   System.out.println("iD " + iD + " iL " + iL + " masterLamsOut " + masterLamsOut[iL] + " kappa2 " + kappa2 + " lineKap2 " + lineKap2);
+                //}
                 totKap = kappa2 + lineKap2;
                 logMasterKapsOut[iL][iD] = Math.log(totKap);
                 //if (iD == 36) {

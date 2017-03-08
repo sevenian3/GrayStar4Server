@@ -173,7 +173,7 @@ var gsDuplex = function(num, logVector){
 
 //JQuery:  Independent of order of switches in HTML file?
 // Stellar atmospheric parameters
-    var numInputs = 19;
+    var numInputs = 20;
 //Make settingsId object array by hand:
 // setId() is an object constructor
     function setId(nameIn, valueIn) {
@@ -201,6 +201,8 @@ var gsDuplex = function(num, logVector){
     var xiTObj = $("#xiT").data("roundSlider");
     var xiT = 1.0 * xiTObj.getValue();
 // Planetary parameters for habitable zone calculation
+    var atmosPressObj = $("#AtmPress").data("roundSlider");
+    var atmosPress = 1.0 * atmosPressObj.getValue();
     var greenHouseObj = $("#GHTemp").data("roundSlider");
     var greenHouse = 1.0 * greenHouseObj.getValue();
     var albedoObj = $("#Albedo").data("roundSlider");
@@ -222,6 +224,11 @@ var gsDuplex = function(num, logVector){
     var diskSigma = 1.0 * $("#diskSigma").val(); //nm
     var logKapFudge = 1.0 * $("#logKapFudge").val(); //log_10 cm^2/g mass extinction fudge
     var RV = 1.0 * $("#RV").val(); // radial velocity of star 
+//
+    var nOuterIter = $("#nOuterIter").val(); //number of outer HSE-EOS-Opacity iterations
+    var nInnerIter = $("#nInnerIter").val(); //number of inner Pe-(ion. fraction) iterations
+   //var nOuterIter = 3;
+   //var nInnerIter = 3;
 
 //    
     settingsId[0] = new setId("<em>T</em><sub>eff</sub>", teff);
@@ -245,6 +252,7 @@ var gsDuplex = function(num, logVector){
     settingsId[16] = new setId("&#963<sub>Filter</sub>", diskSigma);
     settingsId[17] = new setId("&#954<sub>Fudge</sub>", logKapFudge);
     settingsId[18] = new setId("RV", RV);
+    settingsId[19] = new setId("<span style='color:green'>AtmP</span>", atmosPress);
 
     //
     var numPerfModes = 8;
@@ -286,6 +294,7 @@ var gsDuplex = function(num, logVector){
     var ifPrintLogNums = false;
     var ifPrintJSON = false;
     //
+    var ifTiO = 0;
     //
 
 //
@@ -329,6 +338,10 @@ var gsDuplex = function(num, logVector){
         if ($("#scatter").is(":checked")) {
             ifScatt = true; // checkbox
         }
+    }
+
+    if ($("#ifTiO").is(":checked")) {
+        ifTiO = 1; // checkbox
     }
 
     // Display options:
@@ -750,6 +763,10 @@ var gsDuplex = function(num, logVector){
     }
 
     if (switchPlanet === "Earth") {
+        var AtmPress = 101.3;
+        settingsId[19].value = 101.3;
+        //$("#AtmPress").val(101.3);
+        $("#AtmPress").roundSlider("setValue", "100.0");
         var GHTemp = 20.0;
         settingsId[4].value = 20.0;
         //$("#GHTemp").val(20.0);
@@ -1106,6 +1123,27 @@ var gsDuplex = function(num, logVector){
 
     // Planetary parameters for habitable zone calculation:
     //
+    if (atmosPress === null || atmosPress === "") {
+        alert("atmosPress must be filled out");
+        return;
+    }
+    flagArr[19] = false;
+    if (atmosPress < 10.0) {
+        flagArr[19] = true;
+        atmosPress = 10.0;
+        var atmosPressStr = "10.0";
+        settingsId[19].value = 10.0;
+        //$("#AtmPress").val(10.0);
+        $("#AtmPress").roundSlider("setValue", 10.0);
+    }
+    if (atmosPress > 6800.0) {
+        flagArr[19] = true;
+        atmosPress = 6800.0;
+        var atmosPressStr = "6800.0";
+        settingsId[19].value = 6800.0;
+        //$("#AtmPress").val(6800.0);
+        $("#AtmPress").roundSlider("setValue", 6800.0);
+    }
     if (greenHouse === null || greenHouse === "") {
         alert("greenHouse must be filled out");
         return;
@@ -1142,7 +1180,7 @@ var gsDuplex = function(num, logVector){
     }
     if (albedo > 1.0) {
         flagArr[5] = true;
-        greenHouse = 1.0;
+        albedo = 1.0;
         var albedoStr = "1.0";
         settingsId[5].value = 1.0;
         //$("#Albedo").val(1.0);
@@ -1209,8 +1247,8 @@ var gsDuplex = function(num, logVector){
         $("#voigtThresh").val(30.0);
     }
 
-    var lamUV = 360.0;
-    var lamIR = 900.0;
+    var lamUV = 260.0;
+    var lamIR = 2600.0;
  
     if (lambdaStart === null || lambdaStart == "") {
         alert("lambdaStart must be filled out");
@@ -1247,35 +1285,49 @@ var gsDuplex = function(num, logVector){
 //Prevent negative or zero lambda range:
     if (lambdaStop <= lambdaStart) {
         flagArr[10] = true;
-        lambdaStop = lamStart + 0.5; //0.5 nm = 5 A
+        lambdaStop = lambdaStart + 0.5; //0.5 nm = 5 A
         var lambdaStopStr = String(lambdaStop);
         settingsId[10].value = lambdaStop;
         $("#lambdaStop").val(lambdaStop);
     }
 
-//limit size of synthesis region:
-   var maxSynthRange = 10.0; //set default to minimum value
+//limit size of synthesis region (nm):
+   var maxSynthRange = 5.0; //set default to minimum value //nm
   //if we're not in the blue we can get away wth more:
+   if (lambdaStart > 350.0){
+      maxSynthRange = 10.0;
+   }
    if (lambdaStart > 550.0){
       maxSynthRange = 20.0;
    }
    if (lambdaStart > 700.0){
       maxSynthRange = 50.0;
    }
+   if (lambdaStart > 1000.0){
+      maxSynthRange = 100.0;
+   }
+   if (lambdaStart > 1600.0){
+      maxSynthRange = 200.0;
+   }
+    //console.log("maxSynthRange " + maxSynthRange + " lambdaStop " + lambdaStop);
     if (lambdaStop > (lambdaStart+maxSynthRange)) {
+        //console.log("lambdaStop > (lambdaStart+maxSynthRange) condition");
         flagArr[10] = true;
-        lambdaStop = lamStart + maxSynthRange; //10 nm = 100 A
+        lambdaStop = lambdaStart + maxSynthRange; //10 nm = 100 A
         var lambdaStopStr = String(lambdaStop);
         settingsId[10].value = lambdaStop;
-        $("#lambdaStop").val(lamIR);
+        $("#lambdaStop").val(lambdaStop);
     }
+    //console.log("lambdaStop " + lambdaStop);
     if (lambdaStop > lamIR) {
+        //console.log("lambdaStop > lamIR condition");
         flagArr[10] = true;
         lambdaStop = lamIR;
         var lambdaStopStr = String(lamIR);
         settingsId[10].value = lamIR;
         $("#lambdaStop").val(lamIR);
     }
+    //console.log("lambdaStop " + lambdaStop);
 
     if (diskLambda === null || diskLambda == "") {
         alert("filter wavelength must be filled out");
@@ -1438,6 +1490,46 @@ var gsDuplex = function(num, logVector){
         $("#RV").val(200);
     }
 
+    if (nOuterIter === null || nOuterIter === "") {
+        alert("nOuterIter must be filled out");
+        return;
+    }
+    //flagArr[28] = false;
+    if (nOuterIter < 5) {
+        //flagArr[28] = true;
+        nOuterIter = 5;
+        var nOuterIterStr = "5";
+        //settingsId[28].value = 0.0;
+        $("#nOuterIter").val(5);
+    }
+    if (nOuterIter > 12) {
+        //flagArr[28] = true;
+        nOuterIter = 12;
+        var nOuterIterStr = "12";
+        //settingsId[28].value = 90.0;
+        $("#nOuterIter").val(12);
+    }
+
+    if (nInnerIter === null || nInnerIter === "") {
+        alert("nInnerIter must be filled out");
+        return;
+    }
+    //flagArr[28] = false;
+    if (nInnerIter < 5) {
+        //flagArr[28] = true;
+        nInnerIter = 5;
+        var nInnerIterStr = "5";
+        //settingsId[28].value = 0.0;
+        $("#nInnerIter").val(5);
+    }
+    if (nInnerIter > 12) {
+        //flagArr[28] = true;
+        nInnerIter = 12;
+        var nInnerIterStr = "12";
+        //settingsId[28].value = 90.0;
+        $("#nInnerIter").val(12);
+    }
+
 
 
 var url = "http://www.ap.smu.ca/~ishort/OpenStars/GrayStarServer/grayStarServer.php";
@@ -1445,7 +1537,8 @@ var url = "http://www.ap.smu.ca/~ishort/OpenStars/GrayStarServer/grayStarServer.
 var masterInput="teff="+teff+"&logg="+logg+"&logZScale="+logZScale+"&massStar="+massStar
   +"&xiT="+xiT+"&lineThresh="+lineThresh+"&voigtThresh="+voigtThresh+"&lambdaStart="+lambdaStart+"&lambdaStop="+lambdaStop
   +"&sampling="+switchSampl+"&logGammaCol="+logGammaCol+"&logKapFudge="+logKapFudge
-  +"&macroV="+macroV+"&rotV="+rotV+"&rotI="+rotI;
+  +"&macroV="+macroV+"&rotV="+rotV+"&rotI="+rotI
+  +"&nInnerIter="+nInnerIter+"&nOuterIter="+nOuterIter+"&ifTiO="+ifTiO;
 //console.log("masterInput " + masterInput);
 
 var xmlhttp = new XMLHttpRequest();
@@ -1536,7 +1629,7 @@ var jsonObj;
     }
     if (ifShowRad === false) {
         plotFourId.style.display = "none";
-        plotFiveId.style.display = "none";
+        //plotFiveId.style.display = "none";
     }
     if (ifShowLine === false) {
         //plotSixId.style.display = "none";
@@ -1571,7 +1664,7 @@ var jsonObj;
         var numSpecies = Number(jsonObj.numSpecies); //number of chemical speecies (ionization stages) 
         var nelemAbnd = Number(jsonObj.nelemAbnd); //number of chemical elements 
       //console.log("numDeps " + numDeps + " numMaster " + numMaster + " numThetas " + numThetas 
-      //        + " numSpecSyn " + numSpecSyn + " numGaussLines " + numGaussLines);
+      //        + " numGaussLines " + numGaussLines);
 
     var grav = Math.pow(10.0, logg);
     var zScale = Math.pow(10.0, logZScale);
@@ -1683,6 +1776,7 @@ var jsonObj;
          var logMasterLamsAjax = gsAjaxParser(numMaster, jsonObj.logWave);
          for (var i = 0; i < numMaster; i++){
           masterLams[i] = Math.exp(logMasterLamsAjax[i]); 
+          //console.log("i " + i + " masterLams[i] " + masterLams[i]);
             }
          var logFluxAjax = gsAjaxParser(numMaster, jsonObj.logFlux);
          var masterFlux = gsDuplex(numMaster, logFluxAjax);
@@ -1707,23 +1801,6 @@ var jsonObj;
         }  //j 
       }  //i
 
-/* Do this later...
-    var colors =  UBVRI(masterLams2, masterFlux, numDeps, tauRos, temp);
-
-    // UBVRI band intensity annuli - for disk rendering:
-    var bandIntens = iColors(masterLams2, masterIntens, numThetas, numMaster); 
-    // tunable monochromatic band intensity annuli - for disk rendering:
-    //var diskSigma = 1; //nm test
-    //var tuneBandIntens = tuneColor(masterLams2, masterIntens, numThetas, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
-    //Use UN-shifted wavelength scale (masterLams) for defining the user-filter:
-    var gaussFilter = gaussian(masterLams, numMaster, diskLambda, diskSigma, lamUV, lamIR); 
-    //Use *shifted* wavelength scale (masterLams2) for user-filter integration of spectrum:
-    var tuneBandIntens = tuneColor(masterLams2, masterIntens, numThetas, numMaster, gaussFilter, lamUV, lamIR); 
-
-    //Fourier transform of narrow band image:
-    var ft = fourier(numThetas, cosTheta, tuneBandIntens);
-    var numK = ft[0].length;
-*/
     //default initializations:
 
     //var specSynLams = [];
@@ -2947,7 +3024,7 @@ var jsonObj;
                  + lambdaStart + " < &#955 < " + lambdaStop + " nm, "
                  + "Min log<sub>10</sub><em>&#954</em><sub>l</sub>/<em>&#954</em><sub>c</sub> = " + lineThresh + ", "
                  + " " + numGaussLines + " lines included.  <br /> "
-                 + " <a href='InputData/gsLineList.dat' target='_blank'>View the ascii line list</a></span>",   
+                 + " <a href='InputData/gsLineList.dat' target='_blank'>View the line list</a></span>",   
                 titleOffsetX, titleOffsetY, lineColor, plotThirteenId);
         txtPrint("<span style='font-size:small; color:blue'><a href='http://en.wikipedia.org/wiki/Spectral_energy_distribution' target='_blank'>\n\
      Normalized spectrum synthesis region</a></span>",
@@ -2967,6 +3044,12 @@ var jsonObj;
 <a href='http://en.wikipedia.org/wiki/Picometre' target='_blank'>pm</a>\n\
 </span>",
            titleOffsetX + 600, titleOffsetY+35, lineColor, plotThirteenId);
+
+     var TiOString = "Off";
+     if (ifTiO == 1){
+        TiOString = "On";
+     }
+     txtPrint("TiO bands: " + TiOString, titleOffsetX + 400, titleOffsetY+35, lineColor, plotThirteenId);
 
         var dSize = 1;
         opac = 1;
@@ -3098,6 +3181,71 @@ var jsonObj;
             xShiftDum = YBar(listLams[i], minXData, maxXData, thisXAxisLength, barWidth, barHeight,
                     barFinesse, RGBHex, plotThirteenId, cnvsThirteenCtx);
         }
+
+//Label TiO band origins:
+//Set up for molecules with JOLA bands:
+   var jolaTeff = 5000.0;
+   var numJola = 3; //for now
+   var jolaSpecies = [];
+   jolaSpecies.length = numJola; // molecule name
+   var jolaSystem = []
+   jolaSystem.length = numJola; //band system
+   var jolaLabel = []
+   jolaLabel.length = numJola; //band system
+
+   jolaSpecies[0] = "TiO"; // molecule name
+   jolaSystem[0] = "TiO_C3Delta_X3Delta"; //band system //DeltaLambda=0
+   jolaLabel[0] = "TiO C<sup>3</sup>&#916-X<sup>3</sup>&#916"; //band system //DeltaLambda=0
+   jolaSpecies[1] = "TiO"; // molecule name
+   jolaSystem[1] = "TiO_c1Phi_a1Delta"; //band system //DeltaLambda=1
+   jolaLabel[1] = "TiO c<sup>1</sup>&#934-a<sup>1</sup>&#916"; //band system //DeltaLambda=1
+   jolaSpecies[2] = "TiO"; // molecule name
+   jolaSystem[2] = "TiO_A3Phi_X3Phi"; //band system //DeltaLambda=0
+   jolaLabel[2] = "TiO A<sup>3</sup>&#934_X<sup>3</sup>&#934"; //band system //DeltaLambda=0
+   RGBHex = colHex(255, 0, 0);
+   if (ifTiO == 1){
+   if (teff < jolaTeff){
+
+        for (var i = 0; i < numJola; i++) {
+
+            if ((i % 4) === 0) {
+                yPos = thisYPos - 5;
+                barHeight = 30;
+                barFinesse = 60;
+            } else if ((i % 4) === 1) {
+                yPos = thisYPos + 15;
+                barHeight = 10;
+                barFinesse = 80;
+            } else if ((i % 4) === 2) {
+                yPos = thisYPos - 25;
+                barHeight = 30;
+                barFinesse = 60;
+            } else {
+                yPos = thisYPos + 35;
+                barHeight = 10;
+                barFinesse = 80;
+            }
+
+            var jolaOmega0 = getOrigin(jolaSystem[i]);
+            var lambda0 = 1.0e7 / jolaOmega0;
+            //console.log("lambda0 " + lambda0);
+            xPos = thisXAxisLength * (lambda0 - minXData) / (maxXData - minXData);
+            xPos = xPos - 5; // finesse
+
+            nameLbl = "<span style='font-size: xx-small'>" + jolaLabel[i] + "</span>";
+            //lamLblNum = listLams[i].toPrecision(6);
+            //lamLblStr = lamLblNum.toString(10);
+            //lamLbl = "<span style='font-size: xx-small'>" + lamLblStr + "</span>";
+            //RGBHex = colHex(r255, g255, b255);
+            txtPrint(nameLbl, xPos + xAxisXCnvs, (yPos - 10), RGBHex, plotThirteenId);
+            //txtPrint(lamLbl, xPos + xAxisXCnvs, yPos, RGBHex, plotThirteenId);
+            xShiftDum = YBar(lambda0, minXData, maxXData, thisXAxisLength, barWidth, barHeight,
+                    barFinesse, RGBHex, plotThirteenId, cnvsThirteenCtx);
+        }
+   } //jolaTeff condition
+   } // ifTiO condition
+
+
            //monochromatic disk lambda
             barFinesse = yAxisYCnvs;
             barHeight = 18;
@@ -3380,7 +3528,8 @@ var jsonObj;
         titleX = panelX + titleOffsetX;
         titleY = panelY + titleOffsetY;
         txtPrint("<span style='font-size:normal; color:blue'><a href='https://en.wikipedia.org/wiki/Visible_spectrum' target='_blank'>\n\
-     Visual spectrum</a></span>",
+     Visual spectrum</a></span></br>" +
+        "<span style='font-size:x-small'>Features in synthesis region and TiO bands only</span>",
                 titleOffsetX, titleOffsetY, lineColor, plotTenId);
         var xShift, zShift, xShiftDum, zLevel;
         var RGBHex; //, r255, g255, b255;
@@ -3445,6 +3594,20 @@ var jsonObj;
         }  // i loop (wavelength)
 
 
+           //monochromatic disk lambda
+            barFinesse = yAxisYCnvs;
+            barHeight = 108;
+            barWidth = 2;
+            RGBHex = "#000000";
+            if ( (diskLambda > 380.0) && (diskLambda < 680.0) ){
+                 xShiftDum = YBar(diskLambda, minXData, maxXData, xAxisLength,
+                               barWidth, barHeight,
+                               barFinesse-60, RGBHex, plotTenId, cnvsTenCtx);
+                 txtPrint("<span style='font-size:xx-small'>Filter</span>",
+                       xShiftDum, yAxisYCnvs, RGBHex, plotTenId);
+            }
+
+
 //
 //
 //  *****   PLOT ELEVEN / PLOT 11
@@ -3456,10 +3619,21 @@ var jsonObj;
         var plotRow = 0;
         var plotCol = 2;
 
+//background color needs to be finessed so that white-ish stars will stand out:
+       if (teff > 6000.0){
+  //hotter white or blue-white star - darken the background (default background in #F0F0F0
+           wDiskColor = "#808080";
+       } else {
+           wDiskColor = wDefaultColor;
+       }
+
+
         // Calculation of steam line and ice line:
 
         //Assuming liquid salt-free water at one atmospheric pressure is necessary:
-        var steamTemp = 373.0; // K = 100 C
+        var steamTemp = waterPhase(atmosPress);
+        //console.log("steamTemp " + steamTemp);
+        //var steamTemp = 373.0; // K = 100 C
         var iceTemp = 273.0; //K = 0 C
 
         steamTemp = steamTemp - greenHouse;
@@ -3467,6 +3641,8 @@ var jsonObj;
         var logSteamLine, logIceLine;
         var au = 1.4960e13; // 1 AU in cm
         var rSun = 6.955e10; // solar radii to cm
+        var log1AULine = logAu - logRSun; // 1 AU in solar radii
+
         //Steam line:
         //Set steamTemp equal to planetary surface temp and find distance that balances stellar irradiance 
         //absorbed by planetary cross-section with planet's bolometric thermal emission:
@@ -3478,6 +3654,7 @@ var jsonObj;
         var steamLineAU = Math.exp(logSteamLine) * rSun / au;
         iceLineAU = iceLineAU.toPrecision(3);
         steamLineAU = steamLineAU.toPrecision(3);
+        var steamTempRound = steamTemp.toPrecision(3); 
 
         // Convert solar radii to pixels:
 
@@ -3495,21 +3672,52 @@ var jsonObj;
         radiusPxSteam = Math.ceil(radiusPxSteam);
         var radiusPxIce = logScale * logTen(radiusScale * radius * Math.exp(logIceLine));
         radiusPxIce = Math.ceil(radiusPxIce);
-        // Key raii in order of *DECREASING* size (important!):
-        var radii = [radiusPxIce + 2, radiusPxIce, radiusPxSteam, radiusPxSteam - 2, radiusPx];
-        //
+        var radiusPx1AU = logScale * logTen(radiusScale * radius * Math.exp(log1AULine));
+        radiusPx1AU = Math.ceil(radiusPx1AU);
+        // Key radii in order of *DECREASING* size (important!):
+        var numZone = 7;
+        var radii = [];
+        radii.length = numZone;
         rrI = saveRGB[0];
         ggI = saveRGB[1];
         bbI = saveRGB[2];
         var starRGBHex = "rgb(" + rrI + "," + ggI + "," + bbI + ")";
-        var colors = ["#0000FF", "#00FF88", "#FF0000", wDefaultColor, starRGBHex];
-        var numZone = radii.length;
+        var colors = [];
+        colors.length = numZone;
+
+        // Key raii in order of *DECREASING* size (important!):
+        if (radiusPx1AU > (radiusPxIce + 3)){
+           radii = [radiusPx1AU+1, radiusPx1AU, radiusPxIce + 3, radiusPxIce, radiusPxSteam, radiusPxSteam - 3, radiusPx];
+           colors = ["#000000", wDiskColor, "#0000FF", "#00FF88", "#FF0000", wDiskColor, starRGBHex];
+        }
+        if ( (radiusPx1AU >= radiusPxIce) && (radiusPx1AU < (radiusPxIce + 3)) ){
+           radii = [radiusPxIce + 3, radiusPx1AU, radiusPx1AU-1, radiusPxIce, radiusPxSteam, radiusPxSteam - 3, radiusPx];
+           colors = ["#0000FF", "#000000", "#0000FF", "#00FF88", "#FF0000", wDiskColor, starRGBHex];
+        }
+        if ( (radiusPx1AU >= radiusPxSteam) && (radiusPx1AU < radiusPxIce) ){
+           radii = [radiusPxIce + 3, radiusPxIce, radiusPx1AU+1, radiusPx1AU, radiusPxSteam, radiusPxSteam - 3, radiusPx];
+           colors = ["#0000FF", "#00FF88", "#000000", "#00FF88", "#FF0000", wDiskColor, starRGBHex];
+        }
+        if ( (radiusPx1AU >= (radiusPxSteam - 3)) && (radiusPx1AU < radiusPxSteam) ){
+           radii = [radiusPxIce + 3, radiusPxIce, radiusPxSteam, radiusPx1AU+1, radiusPx1AU, radiusPxSteam - 3, radiusPx];
+           colors = ["#0000FF", "#00FF88", "#FF0000", "#000000", "#FF0000", wDiskColor, starRGBHex];
+        }
+        if ( (radiusPx1AU >= radiusPx) && (radiusPx1AU < (radiusPxSteam - 3)) ){
+           radii = [radiusPxIce + 3, radiusPxIce, radiusPxSteam, radiusPxSteam - 3, radiusPx1AU, radiusPx1AU-1,  radiusPx];
+           colors = ["#0000FF", "#00FF88", "#FF0000", wDiskColor, "#000000", wDiskColor, starRGBHex];
+        }
+        if (radiusPx1AU <= radiusPx){
+           radii = [radiusPxIce + 3, radiusPxIce, radiusPxSteam, radiusPxSteam - 3, radiusPx, radiusPx1AU, radiusPx1AU-1];
+           colors = ["#0000FF", "#00FF88", "#FF0000", wDiskColor, starRGBHex, "#000000", starRGBHex];
+        }
+
+        //
         //var titleYPos = xLowerYOffset - yRange + 40;
         //var cnvsCtx = washer(xOffset - xRange / 2, yOffset, wDefaultColor, plotElevenId);
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotElevenId, cnvsElevenId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDiskColor, plotElevenId, cnvsElevenId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsElevenCtx.fillStyle = wDefaultColor;
+        cnvsElevenCtx.fillStyle = wDiskColor;
         cnvsElevenCtx.fillRect(0, 0, panelWidth, panelHeight);
         // Add title annotation:
 
@@ -3524,9 +3732,11 @@ var jsonObj;
         txtPrint("<span style='font-size:small'>"
                 + " <span style='color:#FF0000'>Steam line</span> " + steamLineAU + " <a href='https://en.wikipedia.org/wiki/Astronomical_unit' title='1 AU = Earths average distance from center of Sun'> AU</a><br /> "
                 + " <span style='color:#00FF88'><strong>Life zone</strong></span><br /> "
-                + " <span style='color:#0000FF'>Ice line</span> " + iceLineAU + " <a href='https://en.wikipedia.org/wiki/Astronomical_unit' title='1 AU = Earths average distance from center of Sun'> AU</a>"
-                + " </span>",
+                + " <span style='color:#0000FF'>Ice line</span> " + iceLineAU + " <a href='https://en.wikipedia.org/wiki/Astronomical_unit' title='1 AU = Earths average distance from center of Sun'> AU</a><br /> "
+                + " <span style='color:#000000'>Reference line: 1 <a href='https://en.wikipedia.org/wiki/Astronomical_unit' title='1 AU = Earths average distance from center of Sun'>AU</a></span>",
                 legendX, legendY, lineColor, plotElevenId);
+//
+        txtPrint("<span style='font-size:small'> Boiling temp = " + steamTempRound + " K</span>", legendX, (legendY+300), lineColor, plotElevenId);
         //Get the Vega-calibrated colors from the intensity spectrum of each theta annulus:    
         // moved earlier var intcolors = iColors(lambdaScale, intens, numDeps, numThetas, numLams, tauRos, temp);
 
@@ -3569,6 +3779,14 @@ var jsonObj;
 
         var plotRow = 1;
         var plotCol = 1;
+//background color needs to be finessed so that white-ish stars will stand out:
+       if (teff > 6000.0){
+  //hotter white or blue-white star - darken the background (default background in #F0F0F0
+           wDiskColor = "#808080";
+       } else {
+           wDiskColor = wDefaultColor;
+       }
+
         // WARNING: Teff axis is backwards!!
         var minXData = logTen(100000.0); //K
         var maxXData = logTen(1000.0); //K
@@ -3591,10 +3809,10 @@ var jsonObj;
      <em>L</em><sub>Sun</sub></a></span> ";
         //
         var fineness = "fine";
-        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotNineId, cnvsNineId);
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDiskColor, plotNineId, cnvsNineId);
         panelX = panelOrigin[0];
         panelY = panelOrigin[1];
-        cnvsNineCtx.fillStyle = wDefaultColor;
+        cnvsNineCtx.fillStyle = wDiskColor;
         cnvsNineCtx.fillRect(0, 0, panelWidth, panelHeight);
         var xAxisParams = XAxis(panelX, panelY, xAxisLength,
                 minXData, maxXData, xAxisName, fineness,
@@ -3777,9 +3995,9 @@ var jsonObj;
         var dSizeCnvs = 2.0; //plot point size
         var opac = 0.7; //opacity
         // RGB color
-        var r255 = 50;
-        var g255 = 50;
-        var b255 = 50; //dark gray
+        var r255 = 0;
+        var g255 = 0;
+        var b255 = 0; 
         var RGBHex = colHex(r255, r255, r255);
 
         var ii;
@@ -3809,9 +4027,9 @@ var jsonObj;
 //RGB stars
 
 // RGB color
-        var r255 = 100;
-        var g255 = 100;
-        var b255 = 100; //gray
+        var r255 = 0;
+        var g255 = 0;
+        var b255 = 0; 
         var RGBHex = colHex(r255, r255, r255);
 
         var ii;
@@ -3838,13 +4056,11 @@ var jsonObj;
         }
 
 
-// No! Too bright for what GrayStar can model!
 // //SGB stars
 // 
-// // RGB color
- var r255 = 150;
- var g255 = 150;
- var b255 = 150; //light gray
+ var r255 = 0;
+ var g255 = 0;
+ var b255 = 0; 
  var RGBHex = colHex(r255, r255, r255);
   
  var ii;
@@ -4571,9 +4787,9 @@ var jsonObj;
 
 // Plot five: SED
 // 
-    if (ifShowRad === true) {
+//    if (ifShowRad === true) {
 
-        var plotRow = 3;
+        var plotRow = 1;
         var plotCol = 2;
 //
         var minXData = 1.0e7 * masterLams2[0];
@@ -4824,7 +5040,7 @@ var jsonObj;
                         yFinesse, RGBHex, plotFiveId, cnvsFiveCtx);
         txtPrint("<span style='font-size:xx-small'>Filter</span>",
                 xShiftDum, titleOffsetY+60, lineColor, plotFiveId);
-    }
+  //  }
 
 
 //
@@ -5364,7 +5580,7 @@ var jsonObj;
     if (ifPrintAtmos == true) {
 
         var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
-        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint(modelBanner, 10, yOffsetPrint, txtColor, printModelId);
         txtPrint("Vertical atmospheric structure", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
         //Column headings:
 
@@ -5423,7 +5639,7 @@ var jsonObj;
     if (ifPrintSED == true) {
 
         var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
-        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint(modelBanner, 10, yOffsetPrint, txtColor, printModelId);
         txtPrint("Monochromatic surface flux spectral energy distribution (SED)", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
         //Column headings:
 
@@ -5445,7 +5661,7 @@ var jsonObj;
     if (ifPrintIntens == true) {
 
         var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
-        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint(modelBanner, 10, yOffsetPrint, txtColor, printModelId);
         txtPrint("Monochromatic specific intensity distribution", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
         //Column headings:
 
@@ -5475,7 +5691,7 @@ var jsonObj;
 
 
         var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
-        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint(modelBanner, 10, yOffsetPrint, txtColor, printModelId);
         txtPrint("Monochromatic surface flux: Spectrum synthesis region", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
         //Column headings:
 
@@ -5498,7 +5714,7 @@ var jsonObj;
     if (ifPrintLDC == true) {
 
         var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
-        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint(modelBanner, 10, yOffsetPrint, txtColor, printModelId);
         txtPrint("Linear monochromatic continuum limb darkening coefficients (LCD)", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
         //Column headings:
 
@@ -5518,7 +5734,7 @@ var jsonObj;
 
   if (ifPrintAbnd == true){
         var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
-        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint(modelBanner, 10, yOffsetPrint, txtColor, printModelId);
      txtPrint("A_12 logarithmic abundnaces (log_10(N_X/N_H)+12)", 10, yOffsetPrint + lineHeight, txtColor, printModelId);
      for (var i = 0; i < nelemAbnd; i++){
         yTab = yOffsetPrint + vOffset + (i+1) * lineHeight;
@@ -5532,7 +5748,7 @@ var jsonObj;
 
   if (ifPrintJSON == true){
         var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
-        txtPrint(modelBanner, 10, yOffsetT, txtColor, printModelId);
+        txtPrint(modelBanner, 10, yOffsetPrint, txtColor, printModelId);
      txtPrint("Compound atmospheric model, SED, and synthetic spectrum output as <a href='https://en.wikipedia.org/wiki/JSON' target='_blank'> JSON</a> string", 
        10, yOffsetPrint + lineHeight, txtColor, printModelId);
           yTab = yOffsetPrint + vOffset;

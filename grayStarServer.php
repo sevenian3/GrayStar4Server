@@ -17,6 +17,9 @@ $logKapFudge = "";
 $macroV = "";
 $rotV = "";
 $rotI = "";
+$nInnerIter = "";
+$nOuterIter = "";
+$ifTiO = "";
 
 
 $teff = $_POST['teff'];
@@ -34,6 +37,9 @@ $logKapFudge = $_POST['logKapFudge'];
 $macroV = $_POST['macroV'];
 $rotV = $_POST['rotV'];
 $rotI = $_POST['rotI'];
+$nInnerIter = $_POST['nInnerIter'];
+$nOuterIter = $_POST['nOuterIter'];
+$ifTiO = $_POST['ifTiO'];
 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -51,6 +57,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
    $macroV = test_input($_POST['macroV']);
    $rotV = test_input($_POST['rotV']);
    $rotI = test_input($_POST['rotI']);
+   $nInnerIter = test_input($_POST['nInnerIter']);
+   $nOuterIter = test_input($_POST['nOuterIter']);
+   $ifTiO = test_input($_POST['ifTiO']);  
 }
 
 //validation and sanitization
@@ -84,11 +93,14 @@ $logKapFudge = "0.0";
 $macroV = "2.0";
 $rotV = "2.0";
 $rotI = "90.0";
+$nInnerIter = "2";
+$nOuterIter = "2";
+$ifTiO = "0";
 */
 
 
 //echo $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh  . ' ' . $lambdaStart  . ' ' . $lambdaStop;
-$argLine = 'java -cp ./graystar3server -jar GrayStar3Server.jar ' . ' ' . $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh . ' ' . $lambdaStart . ' ' . $lambdaStop  . ' ' . $sampling . ' ' . $logGammaCol  . ' ' . $logKapFudge . ' ' . $macroV . ' ' . $rotV . ' ' . $rotI; 
+$argLine = 'java -cp ./graystar3server -jar GrayStar3Server.jar ' . ' ' . $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh . ' ' . $lambdaStart . ' ' . $lambdaStop  . ' ' . $sampling . ' ' . $logGammaCol  . ' ' . $logKapFudge . ' ' . $macroV . ' ' . $rotV . ' ' . $rotI . ' ' . $nOuterIter . ' ' . $nInnerIter . ' ' . $ifTiO; 
 
 //print_r($argLine);
 exec($argLine, $outArray, $returnVar);

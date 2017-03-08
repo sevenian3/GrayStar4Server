@@ -226,7 +226,7 @@ public class LevelPopsServer{
             //Row 1 of Ne is log_e Ne in cm^-3
             logNe = Ne[1][id];
 
-//Determine temeprature dependenet aprtition functions Uw:
+//Determine temperature dependent partition functions Uw:
     Ttheta = 5040.0 / temp[0][id];
 
        if (Ttheta >= 1.0){
@@ -242,14 +242,14 @@ public class LevelPopsServer{
            thisLogUw4 = logUw4[1];
        }
        if (Ttheta > 0.5 && Ttheta < 1.0){
-           thisLogUw1 = 0.5 * (Ttheta - 0.5) * logUw1[1]
-               + 0.5 * (1.0 - Ttheta) * logUw1[0];
-           thisLogUw2 = 0.5 * (Ttheta - 0.5) * logUw2[1]
-               + 0.5 * (1.0 - Ttheta) * logUw2[0];
-           thisLogUw3 = 0.5 * (Ttheta - 0.5) * logUw3[1]
-               + 0.5 * (1.0 - Ttheta) * logUw3[0];
-           thisLogUw4 = 0.5 * (Ttheta - 0.5) * logUw4[1]
-               + 0.5 * (1.0 - Ttheta) * logUw4[0];
+           thisLogUw1 = (Ttheta - 0.5)/(1.0 - 0.5) * logUw1[1]
+                      + (1.0 - Ttheta)/(1.0 - 0.5) * logUw1[0];
+           thisLogUw2 = (Ttheta - 0.5)/(1.0 - 0.5) * logUw2[1]
+                      + (1.0 - Ttheta)/(1.0 - 0.5) * logUw2[0];
+           thisLogUw3 = (Ttheta - 0.5)/(1.0 - 0.5) * logUw3[1]
+                      + (1.0 - Ttheta)/(1.0 - 0.5) * logUw3[0];
+           thisLogUw4 = (Ttheta - 0.5)/(1.0 - 0.5) * logUw4[1]
+                      + (1.0 - Ttheta)/(1.0 - 0.5) * logUw4[0];
        }
        //System.out.println("thisLogUw1, ... thisLogUw4 " + logE*thisLogUw1 + " " + logE*thisLogUw2 + " " + logE*thisLogUw3 + " " + logE*thisLogUw4);
        double thisLogUw5 = 0.0; //ionization stage V partition fn, U = 1.0
@@ -672,7 +672,7 @@ public class LevelPopsServer{
 //        for (int id = 0; id < numDeps; id++) {
 
 //
-//Determine temeprature dependenet aprtition functions Uw:
+//Determine temperature dependent partition functions Uw:
             thisTemp = temp[0];
             Ttheta = 5040.0 / thisTemp;
          
@@ -734,8 +734,7 @@ public class LevelPopsServer{
        //     nmrtrLog10UwB[0] + " " + nmrtrLog10UwB[1] + " nmrtrLog10QwAB " + logE*nmrtrLogQwAB[2] + " nmrtrLogMuAB " + logE*nmrtrLogMuAB
        //     + " numMolsB " + numMolsB + " dissEArr " + dissEArr[0] + " log10UwBArr " + log10UwBArr[0][0] + " " + log10UwBArr[0][1] + " log10QwABArr " +
        //     logE*logQwABArr[0][2] + " logMuABArr " + logE*logMuABArr[0]);
-
- //console.log("Line: nmrtrLog10UwB[0] " + nmrtrLog10UwB[0] + " nmrtrLog10UwB[1] " + nmrtrLog10UwB[1]);
+ //System.out.println("Line: nmrtrLog10UwB[0] " + logE*nmrtrLog10UwB[0] + " nmrtrLog10UwB[1] " + logE*nmrtrLog10UwB[1]);
 
         double ln10 = Math.log(10.0);
         double log2pi = Math.log(2.0 * Math.PI);
@@ -799,7 +798,7 @@ public class LevelPopsServer{
         nmrtrBoltzFacIAB = Math.exp(logBoltzFacIAB);
         nmrtrLogMolSahaFac = (3.0 / 2.0) * (log2pi + nmrtrLogMuAB  + Useful.logK() - 2.0 * Useful.logH());
   //System.out.println("nmrtrLogMolSahaFac " + logE*nmrtrLogMolSahaFac);
-  //console.log("nmrtrDissE " + nmrtrDissE + " logDissE " + logE*logDissE + " logBoltzFacIAB " + logE*logBoltzFacIAB + " nmrtrBoltzFacIAB " + nmrtrBoltzFacIAB + " nmrtrLogMuAB " + logE*nmrtrLogMuAB + " nmrtrLogMolSahaFac " + logE*nmrtrLogMolSahaFac);
+  //System.out.println("nmrtrDissE " + nmrtrDissE + " logDissE " + logE*logDissE + " logBoltzFacIAB " + logE*logBoltzFacIAB + " nmrtrBoltzFacIAB " + nmrtrBoltzFacIAB + " nmrtrLogMuAB " + logE*nmrtrLogMuAB + " nmrtrLogMolSahaFac " + logE*nmrtrLogMolSahaFac);
         double[] boltzFacIAB = new double[numMolsB];
         double[] logMolSahaFac = new double[numMolsB];
       //if (numMolsB > 0){
@@ -809,7 +808,7 @@ public class LevelPopsServer{
            boltzFacIAB[iMol] = Math.exp(logBoltzFacIAB);
            logMolSahaFac[iMol] = (3.0 / 2.0) * (log2pi + logMuABArr[iMol] + Useful.logK() - 2.0 * Useful.logH());
   //System.out.println("logMolSahaFac[iMol] " + logE*logMolSahaFac[iMol]);
-  //console.log("iMol " + iMol + " dissEArr[iMol] " + dissEArr[iMol] + " logDissE " + logE*logDissE + " logBoltzFacIAB " + logE*logBoltzFacIAB + " boltzFacIAB[iMol] " + boltzFacIAB[iMol] + " logMuABArr " + logE*logMuABArr[iMol] + " logMolSahaFac " + logE*logMolSahaFac[iMol]);
+  //System.out.println("iMol " + iMol + " dissEArr[iMol] " + dissEArr[iMol] + " logDissE " + logE*logDissE + " logBoltzFacIAB " + logE*logBoltzFacIAB + " boltzFacIAB[iMol] " + boltzFacIAB[iMol] + " logMuABArr " + logE*logMuABArr[iMol] + " logMolSahaFac " + logE*logMolSahaFac[iMol]);
         }
        
       //double[] logNums = new double[numDeps];
@@ -829,7 +828,7 @@ public class LevelPopsServer{
 
             //// reduce or enhance number density by over-all Rosseland opcity scale parameter
 
-//Determine temeprature dependenet aprtition functions Uw:
+//Determine temparature dependent partition functions Uw:
             thisTemp = temp[0][id];
             Ttheta = 5040.0 / thisTemp;
 
@@ -887,31 +886,36 @@ public class LevelPopsServer{
 // for molecule formation:
 
    //Ionization stage Saha factors: 
-//console.log("id " + id + " nmrtrLogNumB[id] " + logE*nmrtrLogNumB[id]);             
+//System.out.println("id " + id + " nmrtrLogNumB[id] " + logE*nmrtrLogNumB[id]);   
+  // if (id == 16){ 
+  //   System.out.println("id " + id + " nmrtrLogNumB[id] " + logE*nmrtrLogNumB[id] + " pp nmrtB " + (logE*(nmrtrLogNumB[id]+temp[1][id]+Useful.logK())) + " nmrtrThisLogUwB " + logE*nmrtrThisLogUwB + " thisLogUwA " + logE*thisLogUwA + " nmrtrLogQwAB " + logE*nmrtrThisLogQwAB);         
    //System.out.println("nmrtrThisLogUwB " + logE*nmrtrThisLogUwB + " thisLogUwA " + logE*thisLogUwA + " nmrtrThisLogQwAB " + logE*nmrtrThisLogQwAB);
+   // }
                nmrtrLogSahaMol = nmrtrLogMolSahaFac - nmrtrLogNumB[id] - (nmrtrBoltzFacIAB / temp[0][id]) + (3.0 * temp[1][id] / 2.0) + nmrtrThisLogUwB + thisLogUwA - nmrtrThisLogQwAB;
                nmrtrLogInvSahaMol = -1.0 * nmrtrLogSahaMol;
                //System.out.println("nmrtrLogInvSahaMol " + logE*nmrtrLogInvSahaMol);
                //nmrtrInvSahaMol = Math.exp(nmrtrLogSahaMol);
-
-          //if (id == 36){
-          //     console.log("nmrtrBoltzFacIAB " + nmrtrBoltzFacIAB + " nmrtrThisLogUwB " + logE*nmrtrThisLogUwB + " thisLogUwA " + logE*thisLogUwA + " nmrtrLogQwAB " + nmrtrLogQwAB);   
-          //     console.log("nmrtrLogSahaMol " + logE*nmrtrLogSahaMol + " nmrtrInvSahaMol " + nmrtrInvSahaMol);
-         // }
+       //   if (id == 16){
+       //       System.out.println("nmrtrLogInvSahaMol " + logE*nmrtrLogInvSahaMol);
+       //   }
+       //   if (id == 16){
+       //        System.out.println("nmrtrBoltzFacIAB " + nmrtrBoltzFacIAB + " nmrtrThisLogUwB " + logE*nmrtrThisLogUwB + " thisLogUwA " + logE*thisLogUwA + " nmrtrThisLogQwAB " + nmrtrThisLogQwAB);   
+       //        System.out.println("nmrtrLogSahaMol " + logE*nmrtrLogSahaMol); // + " nmrtrInvSahaMol " + nmrtrInvSahaMol);
+       //   }
 
 //Molecular Saha factors:
          for (int iMol = 0; iMol < numMolsB; iMol++){
-//console.log("iMol " + iMol + " id " + id + " logNumB[iMol][id] " + logE*nmrtrLogNumB[id]);             
+//System.out.println("iMol " + iMol + " id " + id + " logNumB[iMol][id] " + logE*nmrtrLogNumB[id]);             
    //System.out.println("iMol " + iMol + " thisLogUwB[iMol] " + logE*thisLogUwB[iMol] + " thisLogUwA " + logE*thisLogUwA + " thisLogQwAB " + logE*thisLogQwAB);
              logSahaMol[iMol] = logMolSahaFac[iMol] - logNumB[iMol][id] - (boltzFacIAB[iMol] / temp[0][id]) + (3.0 * temp[1][id] / 2.0) + thisLogUwB[iMol] + thisLogUwA - thisLogQwAB;
 //For denominator of ionization fraction, we need *inverse* molecular Saha factors (N_AB/NI):
              logSahaMol[iMol] = -1.0 * logSahaMol[iMol];
              invSahaMol[iMol] = Math.exp(logSahaMol[iMol]);
              //TEST invSahaMol[iMol] = 1.0e-99; //test
-          //if (id == 36){
-              //console.log("iMol " + iMol + " boltzFacIAB[iMol] " + boltzFacIAB[iMol] + " thisLogUwB[iMol] " + logE*thisLogUwB[iMol] + " logQwAB[iMol] " + logE*logQwAB[iMol] + " logNumB[iMol][id] " + logE*logNumB[iMol][id] + " logMolSahaFac[iMol] " + logE*logMolSahaFac[iMol]);   
-              //console.log("iMol " + iMol + " logSahaMol " + logE*logSahaMol[iMol] + " invSahaMol[iMol] " + invSahaMol[iMol]);
-          //}
+     //     if (id == 16){
+     //         System.out.println("iMol " + iMol + " boltzFacIAB[iMol] " + boltzFacIAB[iMol] + " thisLogUwB[iMol] " + logE*thisLogUwB[iMol] + " logQwAB[iMol] " + logE*thisLogQwAB + " logNumB[iMol][id] " + logE*logNumB[iMol][id] + " logMolSahaFac[iMol] " + logE*logMolSahaFac[iMol]);   
+     //         System.out.println("iMol " + iMol + " logSahaMol " + logE*logSahaMol[iMol] + " invSahaMol[iMol] " + invSahaMol[iMol]);
+     //     }
          }
 
 //Compute log of denominator is ionization fraction, f_stage 
@@ -920,30 +924,26 @@ public class LevelPopsServer{
             double denominator = Math.exp(logGroundRatio[id]); //default initialization - ratio of total atomic particles in all ionization stages to number in ground state 
 //molecular contribution
            for (int iMol = 0; iMol < numMolsB; iMol++){
-              //System.out.println("invSahaMol[iMol] " + invSahaMol[iMol]);
+           //  if (id == 16){
+           //   System.out.println("invSahaMol[iMol] " + invSahaMol[iMol] + " denominator " + denominator);
+           //  }
               denominator = denominator + invSahaMol[iMol];
            }
 // 
             double logDenominator = Math.log(denominator); 
            //System.out.println("logGroundRatio[id] " + logE*logGroundRatio[id] + " logDenominator " + logE*logDenominator);
-            //console.log("id " + id + " logGroundRatio " + logGroundRatio[id] + " logDenominator " + logDenominator);
-            
+           //  if (id == 16){
+           // System.out.println("id " + id + " logGroundRatio " + logGroundRatio[id] + " logDenominator " + logDenominator);
+           //  } 
           //if (id == 36){
-          //     console.log("logDenominator " + logE*logDenominator);
+          //     System.out.println("logDenominator " + logE*logDenominator);
          // }
             //var logDenominator = Math.log( 1.0 + saha21 + (saha32 * saha21) + (saha43 * saha32 * saha21) + (saha54 * saha43 * saha32 * saha21) );
 
           logMolFrac[id] = nmrtrLogInvSahaMol - logDenominator;
-          //if (id == 36){
-           //    console.log("jStg " + jStg + " logIonFrac[jStg] " + logE*logIonFrac[jStg]);
-          //}
-
-            //if (id == 36) {
-            //    System.out.println("logSaha21 " + logE*logSaha21 + " logSaha32 " + logE*logSaha32);
-            //    System.out.println("IonFracII " + Math.exp(logIonFracII) + " IonFracI " + Math.exp(logIonFracI) + " logNe " + logE*logNe);
-            //}
-            //System.out.println("LevelPops: id, ionFracI, ionFracII: " + id + " " + Math.exp(logIonFracI) + " " + Math.exp(logIonFracII) );
-                //System.out.println("LevPops: ionized branch taken, ionized =  " + ionized);
+        //  if (id == 16){
+        //       System.out.println("id " + id + " logMolFrac[id] " + logE*logMolFrac[id]);
+        //  }
 
             //logNums[id] = logNum[id] + logMolFrac;
         } //id loop

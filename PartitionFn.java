@@ -35,6 +35,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0;   //dummy
          log10PartFn[1] = 0.0;   //dummy
        }
+      if ("HV".equals(species)){
+         log10PartFn[0] = 0.0;   //dummy
+         log10PartFn[1] = 0.0;   //dummy
+       }
+      if ("HVI".equals(species)){
+         log10PartFn[0] = 0.0;   //dummy
+         log10PartFn[1] = 0.0;   //dummy
+       }
       if ("HeI".equals(species)){
          log10PartFn[0] = 0.00; 
          log10PartFn[1] = 0.00; 
@@ -51,6 +59,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0;  //dummy 
          log10PartFn[1] = 0.0;  //dummy 
         }   
+      if ("HeV".equals(species)){
+         log10PartFn[0] = 0.0;  //dummy 
+         log10PartFn[1] = 0.0;  //dummy 
+        }   
+      if ("HeVI".equals(species)){
+         log10PartFn[0] = 0.0;  //dummy 
+         log10PartFn[1] = 0.0;  //dummy 
+        }   
       if ("LiI".equals(species)){
          log10PartFn[0] = 0.32; 
          log10PartFn[1] = 0.49;
@@ -64,6 +80,14 @@ public class PartitionFn{
          log10PartFn[1] = Math.log10(2.0); 
         }           
       if ("LiIV".equals(species)){
+         log10PartFn[0] = 0.00; 
+         log10PartFn[1] = 0.00; 
+         }
+      if ("LiV".equals(species)){
+         log10PartFn[0] = 0.00; 
+         log10PartFn[1] = 0.00; 
+         } 
+      if ("LiVI".equals(species)){
          log10PartFn[0] = 0.00; 
          log10PartFn[1] = 0.00; 
         }           
@@ -83,6 +107,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }         
+      if ("BeV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }         
+      if ("BeVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }         
       if ("BI".equals(species)){
          log10PartFn[0] = 0.78; 
          log10PartFn[1] =  0.78;
@@ -96,6 +128,14 @@ public class PartitionFn{
          log10PartFn[1] = Math.log10(2.0);
         }        
       if ("BIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }        
+      if ("BV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }        
+      if ("BVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }        
@@ -115,6 +155,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] = 0.0;
         }      
+      if ("CV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] = 0.0;
+        }      
+      if ("CVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] = 0.0;
+        }      
       if ("NI".equals(species)){
          log10PartFn[0] = 0.61; 
          log10PartFn[1] = 0.66; 
@@ -128,6 +176,14 @@ public class PartitionFn{
          log10PartFn[1] = Math.log10(6.0);
         }   
       if ("NIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }   
+      if ("NV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }   
+      if ("NVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }   
@@ -147,6 +203,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }              
+      if ("OV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }              
+      if ("OVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }              
       if ("FI".equals(species)){
          log10PartFn[0] = 0.75; 
          log10PartFn[1] =  0.77;
@@ -160,6 +224,14 @@ public class PartitionFn{
          log10PartFn[1] = Math.log10(4.0);
         }           
       if ("FIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }           
+      if ("FV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }           
+      if ("FVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }           
@@ -179,6 +251,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }         
+      if ("NeV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }         
+      if ("NeVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }         
       if ("NaI".equals(species)){
          log10PartFn[0] = 0.31; 
          log10PartFn[1] = 0.60; 
@@ -192,6 +272,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(6.0);
         }      
       if ("NaIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }      
+      if ("NaV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }      
+      if ("NaVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }      
@@ -211,6 +299,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }               
+      if ("MgV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }               
+      if ("MgVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }               
       if ("AlI".equals(species)){
          log10PartFn[0] = 0.77; 
          log10PartFn[1] = 0.81; 
@@ -224,6 +320,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(2.0);
         }           
       if ("AlIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }           
+      if ("AlV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }           
+      if ("AlVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }           
@@ -243,6 +347,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }        
+      if ("SiV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }        
+      if ("SiVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }        
       if ("PI".equals(species)){
          log10PartFn[0] = 0.65; 
          log10PartFn[1] = 0.79; 
@@ -256,6 +368,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(6.0);
         }     
       if ("PIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }     
+      if ("PV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }     
+      if ("PVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }     
@@ -275,6 +395,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }    
+      if ("SV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }    
+      if ("SVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }    
       if ("ClI".equals(species)){
          log10PartFn[0] = 0.72; 
          log10PartFn[1] = 0.75; 
@@ -288,6 +416,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(4.0);
         }                 
       if ("ClIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }                 
+      if ("ClV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }                 
+      if ("ClVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }                 
@@ -307,6 +443,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }             
+      if ("ArV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }             
+      if ("ArVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }             
       if ("KI".equals(species)){
          log10PartFn[0] = 0.34; 
          log10PartFn[1] = 0.60; 
@@ -320,6 +464,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(6.0);
          }         
       if ("KIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }         
+      if ("KV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }         
+      if ("KVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }         
@@ -339,6 +491,14 @@ public class PartitionFn{
        log10PartFn[0] = 0.00; 
        log10PartFn[1] = 0.00; 
          }    
+      if ("CaV".equals(species)){
+       log10PartFn[0] = 0.00; 
+       log10PartFn[1] = 0.00; 
+         }    
+      if ("CaVI".equals(species)){
+       log10PartFn[0] = 0.00; 
+       log10PartFn[1] = 0.00; 
+         }    
       if ("ScI".equals(species)){
          log10PartFn[0] = 1.08; 
          log10PartFn[1] = 1.49; 
@@ -352,6 +512,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(10.0);
          }  
       if ("ScIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }  
+      if ("ScV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }  
+      if ("ScVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }  
@@ -371,6 +539,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }                 
+      if ("TiV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }                 
+      if ("TiVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }                 
       if ("VI".equals(species)){
          log10PartFn[0] = 1.62; 
          log10PartFn[1] = 2.03; 
@@ -384,6 +560,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(28.0);
          }               
       if ("VIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }               
+      if ("VV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }               
+      if ("VVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }               
@@ -403,6 +587,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }             
+      if ("CrV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }             
+      if ("CrVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }             
       if ("MnI".equals(species)){
          log10PartFn[0] = 0.81; 
          log10PartFn[1] = 1.16; 
@@ -416,6 +608,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(6.0);
          }          
       if ("MnIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }          
+      if ("MnV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }          
+      if ("MnVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }          
@@ -435,6 +635,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }       
+      if ("FeV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }       
+      if ("FeVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }       
       if ("CoI".equals(species)){
          log10PartFn[0] = 1.52; 
          log10PartFn[1] = 1.76; 
@@ -448,6 +656,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(28.0);
          }   
       if ("CoIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }   
+      if ("CoV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }   
+      if ("CoVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }   
@@ -467,6 +683,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }                  
+      if ("NiV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }                  
+      if ("NiVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }                  
       if ("CuI".equals(species)){
          log10PartFn[0] = 0.36; 
          log10PartFn[1] = 0.58; 
@@ -480,6 +704,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(10.0);
          }               
       if ("CuIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }               
+      if ("CuV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }               
+      if ("CuVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }               
@@ -499,6 +731,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }          
+      if ("ZnV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }          
+      if ("ZnVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }          
       if ("GaI".equals(species)){
          log10PartFn[0] = 0.73; 
          log10PartFn[1] = 0.77; 
@@ -512,6 +752,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(2.0);
          }       
       if ("GaIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }       
+      if ("GaV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+         }       
+      if ("GaVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
          }       
@@ -531,6 +779,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }      
+      if ("KrV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }      
+      if ("KrVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }      
       if ("RbI".equals(species)){
          log10PartFn[0] = 0.36; 
          log10PartFn[1] = 0.70; 
@@ -544,6 +800,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(6.0);
         }                 
       if ("RbIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }                 
+      if ("RbV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }                 
+      if ("RbVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }                 
@@ -563,6 +827,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }              
+      if ("SrV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }              
+      if ("SrVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }              
       if ("YI".equals(species)){
          log10PartFn[0] = 1.08; 
          log10PartFn[1] = 1.50; 
@@ -576,6 +848,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(10.0);
         }           
       if ("YIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }           
+      if ("YV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }           
+      if ("YVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }           
@@ -595,6 +875,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }                
+      if ("ZrV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }                
+      if ("ZrVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }                
       if ("NbI".equals(species)){
          log10PartFn[0] = 0.00; 
          log10PartFn[1] = 0.00; 
@@ -608,6 +896,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(1.0);
         }                
       if ("NbIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }                
+      if ("NbV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }                
+      if ("NbVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }                
@@ -627,6 +923,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }                
+      if ("CsV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }                
+      if ("CsVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }                
       if ("BaI".equals(species)){
          log10PartFn[0] = 0.36; 
          log10PartFn[1] = 0.92; 
@@ -643,6 +947,14 @@ public class PartitionFn{
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }              
+      if ("BaV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }              
+      if ("BaVI".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }              
       if ("LaI".equals(species)){
          log10PartFn[0] = 1.41; 
          log10PartFn[1] = 1.85; 
@@ -656,6 +968,14 @@ public class PartitionFn{
          log10PartFn[1] =  Math.log10(10.0);
         }          
       if ("LaIV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }          
+      if ("LaV".equals(species)){
+         log10PartFn[0] = 0.0; 
+         log10PartFn[1] =  0.0;
+        }          
+      if ("LaVI".equals(species)){
          log10PartFn[0] = 0.0; 
          log10PartFn[1] =  0.0;
         }          

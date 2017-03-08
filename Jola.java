@@ -1,0 +1,306 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package graystar3server;
+
+
+ /**
+ * Collection of methods for computing molecular band opacity in the
+ * Just-overlapping-line approximation (JOLA)
+ * Just-overlapping line approximation treats molecular ro-vibrational bands as pseudo-continuum
+ * opacity sources by "smearing" out the individual rotational fine-structure lines
+ *See 1982A&A...113..173Z, Zeidler & Koestler, 1982
+ */
+public class Jola{
+
+    /**
+     *
+     */
+
+    public static double[] jolaGrid(double[] jolaLambda, int jolaNumPoints){
+
+     //Try linear wavelength sampling of JOLA band for now...
+    
+      double[] jolaPoints = new double[jolaNumPoints];
+
+      double iLambD = 0.0;
+      double deltaLamb = (jolaLambda[1] - jolaLambda[0]) / jolaNumPoints;
+
+      for (int iL = 0; iL < jolaNumPoints; iL++){
+         iLambD = (double) iL;
+         jolaPoints[iL] = jolaLambda[0] + iLambD*deltaLamb; //nm
+         //System.out.println("iL: " + iL + " jolaPoints " + jolaPoints[iL]);
+      }
+  
+      return jolaPoints; //nm
+
+    } //end method jolaGrid
+
+//
+//JOLA profile for P (Delta J = 1) and R (Delta J = 1) branches
+//Equation 19 from Zeidler & Koestler
+    public static double[][] jolaProfilePR(double omega0, double logf, double[] vibConst,
+                    double[] jolaPoints, double alphP, double alphR, int numDeps, double[][] temp) {
+
+        double log10E = Math.log10(Math.E);
+
+          int numPoints = jolaPoints.length;
+ // derivative of rotational-line oscillator strength with respect to frequency
+          double[][] dfBydw = new double[numPoints][numDeps];
+
+          double fvv = Math.exp(logf);
+
+          double logHcBbyK = Useful.logH() + Useful.logC() + Math.log(vibConst[0])
+                                - Useful.logK();
+
+ //System.out.println("omega0 " + omega0 + " logf " + log10E*logf + " vibConst " + vibConst[0] + " " + vibConst[1] + " alphP " + alphP + " alphR " + alphR);
+
+          double Bsum = vibConst[1] + vibConst[0]; 
+          double Bdiff = vibConst[1] - vibConst[0];
+
+//value of J-related "m" at band-head:
+          double mH = -1.0 * Bsum / (2.0*Bdiff); //Eq. 14
+//Frequency (or wavenumber??) at band head:
+          double wH = ( -1.0 * Bdiff * mH*mH ) + omega0; //Eq. 15  
+          //System.out.println("1.0/wH " + 1.0/wH + " 1.0/omega0 " + 1.0/omega0);
+
+          double mTheta1 = 1.0; //R branch?
+          double mTheta2 = 1.0; //P branch?
+
+          double m1, m2; // related to J, for R & P branches, respectively
+          double alpha1 = 1.0;
+          double alpha2 = 1.0;
+
+ //value of m is closely related to rotational quantum number J,
+ //Near band origin, frequency, w, range should correspond to -1 <= m <= 1 - ???:
+          //double wMin = Useful.c / (1.0e-7*jolaPoints[numPoints-1]); //first frequency omega
+          //double wMax = Useful.c / (1.0e-7*jolaPoints[0]); //last frequency omega
+          //double deltaW = 0.02;
+          double w, logW, m1Fctr, m2Fctr, mHelp, wMinuswHOverBDiff;
+          double denom1, denom2, m1Term, m2Term; 
+          double help1, logHcBbyKt, hcBbyKt;
+ 
+//Outer loop over frequency omega 
+         // for (int iW = -1; iW <= 1; iW++){
+          for (int iW = numPoints-1; iW >= 0; iW--){
+
+             //dW = (double) iW; 
+             //w = wMin + (dW*deltaW); 
+             //logW = Useful.logC() - Math.log(1.0e-7*jolaPoints[iW]); //if w is freq in Hz
+             logW = 0.0 - Math.log(1.0e-7*jolaPoints[iW]); //if w is waveno in cm^-1 
+             w = Math.exp(logW);
+             //System.out.println("logW " + log10E*logW);
+             //I have no idea if this is right...
+             wMinuswHOverBDiff = (w - wH) / Bdiff; 
+             mHelp = Math.sqrt(Math.abs(wMinuswHOverBDiff));  //Eq. 17
+             m1 = mH + mHelp;
+             m2 = mH - mHelp; //Eq. 18
+             //System.out.println("mH " + mH + " m1 " + m1 + " m2 " + m2);
+             m1Fctr = (m1*m1 - m1); 
+             m2Fctr = (m2*m2 - m2);
+//The following association between the sign of m1 or m2 and whether 
+//it's the P or the R branch might be backwards:
+             if (m1 < 0){
+               alpha1 = alphP;
+             }
+             if (m1 >= 0){
+               alpha1 = alphR;
+             }
+             if (m2 < 0){
+               alpha2 = alphP;
+             }
+             if (m2 >= 0){
+               alpha2 = alphR;
+             }
+             
+             denom1 = Math.abs(Bsum + 2.0*m1*Bdiff); 
+             denom2 = Math.abs(Bsum + 2.0*m2*Bdiff);
+
+             for (int iD = 0; iD < numDeps; iD++){
+
+               if (wMinuswHOverBDiff > 0){ 
+                 logHcBbyKt = logHcBbyK - temp[1][iD]; 
+                 hcBbyKt = Math.exp(logHcBbyKt);
+
+                 help1 = -1.0 * hcBbyKt * m1Fctr;
+                 m1Term = alpha1 * mTheta1 * Math.exp(help1) / denom1;  
+                              
+                 help1 = -1.0 * hcBbyKt * m2Fctr;
+                 m2Term = alpha2 * mTheta2 * Math.exp(help1) / denom2;                
+            
+//Can this be used like a differential cross-section (once converted to sigma)?  
+                // System.out.println("fvv " + fvv + " hcBbyKt " + hcBbyKt + " m1Term " + m1Term + " m2Term " + m2Term);
+                 dfBydw[iW][iD] = fvv * hcBbyKt * ( m1Term + m2Term );  // Eq. 19     
+               } else {
+                 dfBydw[iW][iD] = 0.0;
+               } 
+              // if (iD%10 == 1){
+              //   System.out.println("PR iD " + iD + " iW " + iW + " dfBydw " + dfBydw[iW][iD]);
+              // }
+    
+             } //iD - depth loop 
+             
+          } //iW - frequency loop
+    
+       return dfBydw;      
+
+    } //end method jolaProfilePR 
+//
+//JOLA profile for Q (Delta J = 0) branch
+//Equation 24 from Zeidler & Koestler
+    public static double[][] jolaProfileQ(double omega0, double logf, double[] vibConst,
+                    double[] jolaPoints, double alphQ, int numDeps, double[][] temp){
+
+          int numPoints = jolaPoints.length;
+ // derivative of rotational-line oscillator strength with respect to frequency
+          double[][] dfBydw = new double[numPoints][numDeps];
+          double fvv = Math.exp(logf);
+          double logHcBbyK = Useful.logH() + Useful.logC() + Math.log(vibConst[0])
+                                - Useful.logK();
+
+          double Bsum = vibConst[1] + vibConst[0]; 
+          double Bdiff = vibConst[1] - vibConst[0];
+
+          double mQ; // related to J, for R & P branches, respectively
+
+ //value of m is closely related to rotational quantum number J,
+ //Near band origin, frequency, w, range should correspond to -1 <= m <= 1 - ???:
+    //      double wMin = Useful.c / (1.0e-7*lambda[1]); //first frequency omega
+     //     double wMax = Useful.c / (1.0e-7*lambda[0]); //last frequency omega
+      //    double deltaW = 0.02;
+          double w, logW, mQFctr, mHelp;
+          double denom, mQTerm, wMinusw0OverBDiff; 
+          double help1, logHcBbyKt, hcBbyKt;
+ 
+//Outer loop over frequency omega 
+          //for (int iW = -1; iW <= 1; iW++){
+          for (int iW = numPoints-1; iW >= 0; iW--){
+
+             //dW = (double) iW; 
+             //w = wMin + (dW*deltaW); 
+             //logW = Useful.logC() - Math.log(1.0e-7*jolaPoints[iW]); //if w is freq in Hz
+             logW = 0.0 - Math.log(1.0e-7*jolaPoints[iW]); //if w is waveno in cm^-1 
+             w = Math.exp(logW);
+
+             //I have no idea if this is right...
+             wMinusw0OverBDiff = (w - omega0) / Bdiff; 
+             mHelp = 0.25 + Math.abs(wMinusw0OverBDiff);
+             mHelp = Math.sqrt(mHelp);  //Eq. 17
+             mQ = -0.5 + mHelp;
+             mQFctr = (mQ*mQ - mQ); 
+             denom = Math.abs(Bdiff); 
+
+             for (int iD = 0; iD < numDeps; iD++){
+
+               if (wMinusw0OverBDiff > 0){ 
+
+                 logHcBbyKt = logHcBbyK - temp[1][iD]; 
+                 hcBbyKt = Math.exp(logHcBbyKt);
+
+                 help1 = -1.0 * hcBbyKt * mQFctr;
+                 mQTerm = Math.exp(help1) / denom;  
+                              
+            
+//Can this be used like a differential cross-section (once converted to sigma)?  
+                 //System.out.println("alphQ " + alphQ + " fvv " + " logHcBbyKt " + logHcBbyKt + " mQTerm " + mQTerm);
+                 dfBydw[iW][iD] = alphQ * fvv * hcBbyKt * mQTerm;  // Eq. 24      
+            
+               } else {
+              
+                  dfBydw[iW][iD] = 0.0;
+         
+               }
+
+               //if (iD%10 == 1){
+                 //System.out.println("Q iD " + iD + " iW " + iW + " dfBydw " + dfBydw[iW][iD]);
+               //}
+ 
+             } //iD - depth loop 
+             
+          } //iW - frequency loop
+          
+       return dfBydw;      
+         
+
+    } //end method jolaProfileQ 
+  //
+
+    public static double[][] jolaKap(double[] jolaLogNums, double[][] dfBydw, double[] jolaPoints,
+                    int numDeps, double[][] temp, double[][] rho){
+
+      double log10E = Math.log10(Math.E);
+
+      int numPoints = jolaPoints.length;
+ 
+      double[][] logKappaJola = new double[numPoints][numDeps];
+//Initialize this carefully:
+
+     for (int iD = 0; iD < numDeps; iD++){
+       for (int iW = 0; iW < numPoints; iW++){
+          logKappaJola[iW][iD] = -999.0;
+       }
+     }
+
+      double stimEmExp, stimEmLogExp, stimEmLogExpHelp, stimEm;
+      double freq, lastFreq, w, lastW, deltaW, thisDeltaF;
+      double logSigma = -999.0;    
+      double logFreq = Useful.logC() - Math.log(1.0e-7 * jolaPoints[0]);
+      double logW = 0.0 - Math.log(1.0e-7 * jolaPoints[0]); //if w is waveno in cm^-1
+      //lastFreq = Math.exp(logFreq); 
+      lastW = Math.exp(logW); 
+
+//try accumulating oscillator strenth, f, across band - assumes f = 0 at first (largest) lambda- ??
+     double thisF = 0.0;
+
+//loop in order of *increasing* wavenumber
+      for (int iW = numPoints-1; iW >=1; iW--){
+
+//df/dv is a differential oscillator strength in *frequency* space:
+        logFreq = Useful.logC() - Math.log(1.0e-7*jolaPoints[iW]);
+        freq = Math.exp(logFreq);
+        logW = 0.0 - Math.log(1.0e-7 * jolaPoints[iW]); //if w is waveno in cm^-1
+        w = Math.exp(logW); //if w is waveno in cm^-1
+        //deltaW = Math.abs(freq - lastFreq);
+        deltaW = Math.abs(w - lastW);
+
+//For LTE stimulated emission correction:
+        stimEmLogExpHelp = Useful.logH() + logFreq - Useful.logK();
+
+        for (int iD = 0; iD < numDeps; iD++){
+
+          thisDeltaF = deltaW * dfBydw[iW][iD];
+          if (thisDeltaF > 0.0){
+            thisF += thisDeltaF;
+            logSigma = Math.log(thisF) + Math.log(Math.PI) + 2.0*Useful.logEe() - Useful.logMe() - Useful.logC();
+          } else {
+            logSigma = -999.0;
+          }
+
+// LTE stimulated emission correction:
+          stimEmLogExp = stimEmLogExpHelp - temp[1][iD];
+          stimEmExp = -1.0 * Math.exp(stimEmLogExp);
+          stimEm = ( 1.0 - Math.exp(stimEmExp) );
+
+//extinction coefficient in cm^2 g^-1:
+          logKappaJola[iW][iD] = logSigma + jolaLogNums[iD] - rho[1][iD] + Math.log(stimEm); 
+          //logKappaJola[iW][iD] = -999.0; 
+          //if (iD%10 == 1){
+            //System.out.println("iD " + iD + " iW " + iW + " logFreq " + log10E*logFreq + " logW " + log10E*logW + " logStimEm " + log10E*Math.log(stimEm));
+            //System.out.println("iD " + iD + " iW " + iW + " thisDeltaF " + thisDeltaF + " logSigma " + log10E*logSigma + " jolaLogNums " + log10E*jolaLogNums[iD] + " rho " + log10E*rho[1][iD] + " logKappaJola " + log10E*logKappaJola[iW][iD]);
+          //} 
+
+        } //iD loop - depths
+
+          lastFreq = freq;
+      } //iW loop - wavelength
+
+      return logKappaJola;
+
+    } //end method jolaKap
+
+  //
+    
+} //end class Jola

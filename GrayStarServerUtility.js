@@ -772,3 +772,135 @@ var minMax2 = function(x) {
         return newY;
  };
 
+//
+//Input data on water phase in temp-press place
+// - only boiling point significantly affected
+//
+   var waterPhase = function(atmPresIn){
+
+//Input: Planetary atmospheric surface pressure in kPa 
+
+//Data from
+//The Engineering ToolBox
+//http://www.engineeringtoolbox.com/boiling-point-water-d_926.html
+//Water  Pressure and Boiling Point
+//Pressure Boiling Point
+// kPa     deg C
+
+  var numDataPnts = 99;
+  var atmPresKPa = [];
+  atmPresKPa.length = numDataPnts;
+  var boilTempC = [];
+  boilTempC.length = numDataPnts;
+
+ atmPresKPa[0] = 3.45   ; boilTempC[0] = 26.4 ;
+ atmPresKPa[1] = 6.90   ; boilTempC[1] = 38.7 ;
+ atmPresKPa[2] = 13.79  ; boilTempC[2] = 52.2 ;
+ atmPresKPa[3] = 20.69  ; boilTempC[3] = 60.8 ;
+ atmPresKPa[4] = 27.58  ; boilTempC[4] = 67.2 ;
+ atmPresKPa[5] = 34.48  ; boilTempC[5] = 72.3 ;
+ atmPresKPa[6] = 41.37  ; boilTempC[6] = 76.7 ;
+ atmPresKPa[7] = 48.27  ; boilTempC[7] = 80.4 ;
+ atmPresKPa[8] = 55.16  ; boilTempC[8] = 83.8 ;
+ atmPresKPa[9] = 62.06  ; boilTempC[9] = 86.8 ;
+ atmPresKPa[10] = 68.95  ; boilTempC[10] = 89.6 ;
+ atmPresKPa[11] = 75.85  ; boilTempC[11] = 92.1 ;
+ atmPresKPa[12] = 82.74  ; boilTempC[12] = 94.4 ;
+ atmPresKPa[13] = 89.64  ; boilTempC[13] = 96.6 ;
+ atmPresKPa[14] = 96.53  ; boilTempC[14] = 98.7 ;
+ atmPresKPa[15] = 101.3  ; boilTempC[15] = 100 ;
+ atmPresKPa[16] = 103.4  ; boilTempC[16] = 101 ;
+ atmPresKPa[17] = 110.3  ; boilTempC[17] = 102 ;
+ atmPresKPa[18] = 117.2  ; boilTempC[18] = 104 ;
+ atmPresKPa[19] = 124.1  ; boilTempC[19] = 106 ;
+ atmPresKPa[20] = 131.0  ; boilTempC[20] = 107 ;
+ atmPresKPa[21] = 137.9  ; boilTempC[21] = 109 ;
+ atmPresKPa[22] = 151.7  ; boilTempC[22] = 112 ;
+ atmPresKPa[23] = 165.5  ; boilTempC[23] = 114 ;
+ atmPresKPa[24] = 179.3  ; boilTempC[24] = 117 ;
+ atmPresKPa[25] = 193.1  ; boilTempC[25] = 119 ;
+ atmPresKPa[26] = 206.9  ; boilTempC[26] = 121 ;
+ atmPresKPa[27] = 220.6  ; boilTempC[27] = 123 ;
+ atmPresKPa[28] = 234.4  ; boilTempC[28] = 125 ;
+ atmPresKPa[29] = 248.2  ; boilTempC[29] = 127 ;
+ atmPresKPa[30] = 262.0  ; boilTempC[30] = 129 ;
+ atmPresKPa[31] = 275.8  ; boilTempC[31] = 131 ;
+ atmPresKPa[32] = 289.6  ; boilTempC[32] = 132 ;
+ atmPresKPa[33] = 303.4  ; boilTempC[33] = 134 ;
+ atmPresKPa[34] = 317.2  ; boilTempC[34] = 135 ;
+ atmPresKPa[35] = 331.0  ; boilTempC[35] = 137 ;
+ atmPresKPa[36] = 344.8  ; boilTempC[36] = 138 ;
+ atmPresKPa[37] = 358.5  ; boilTempC[37] = 140 ;
+ atmPresKPa[38] = 372.3  ; boilTempC[38] = 141 ;
+ atmPresKPa[39] = 386.1  ; boilTempC[39] = 142 ;
+ atmPresKPa[40] = 399.9  ; boilTempC[40] = 144 ;
+ atmPresKPa[41] = 413.7  ; boilTempC[41] = 145 ;
+ atmPresKPa[42] = 427.5  ; boilTempC[42] = 146 ;
+ atmPresKPa[43] = 441.3  ; boilTempC[43] = 147 ;
+ atmPresKPa[44] = 455.1  ; boilTempC[44] = 148 ;
+ atmPresKPa[45] = 468.9  ; boilTempC[45] = 149 ;
+ atmPresKPa[46] = 482.7  ; boilTempC[46] = 151 ;
+ atmPresKPa[47] = 496.4  ; boilTempC[47] = 152 ;
+ atmPresKPa[48] = 510.2  ; boilTempC[48] = 153 ;
+ atmPresKPa[49] = 524.0  ; boilTempC[49] = 154 ;
+ atmPresKPa[50] = 537.8  ; boilTempC[50] = 155 ;
+ atmPresKPa[51] = 551.6  ; boilTempC[51] = 156 ;
+ atmPresKPa[52] = 565.4  ; boilTempC[52] = 157 ;
+ atmPresKPa[53] = 579.2  ; boilTempC[53] = 158 ;
+ atmPresKPa[54] = 593.0  ; boilTempC[54] = 158 ;
+ atmPresKPa[55] = 606.8  ; boilTempC[55] = 159 ;
+ atmPresKPa[56] = 620.6  ; boilTempC[56] = 160 ;
+ atmPresKPa[57] = 634.3  ; boilTempC[57] = 161 ;
+ atmPresKPa[58] = 648.1  ; boilTempC[58] = 162 ;
+ atmPresKPa[59] = 661.9  ; boilTempC[59] = 163 ;
+ atmPresKPa[60] = 675.7  ; boilTempC[60] = 164 ;
+ atmPresKPa[61] = 689.5  ; boilTempC[61] = 164 ;
+ atmPresKPa[62] = 724.0  ; boilTempC[62] = 166 ;
+ atmPresKPa[63] = 758.5  ; boilTempC[63] = 168 ;
+ atmPresKPa[64] = 792.9  ; boilTempC[64] = 170 ;
+ atmPresKPa[65] = 827.4  ; boilTempC[65] = 172 ;
+ atmPresKPa[66] = 1034   ; boilTempC[66] = 181 ;
+ atmPresKPa[67] = 1207   ; boilTempC[67] = 189 ;
+ atmPresKPa[68] = 1379   ; boilTempC[68] = 194 ;
+ atmPresKPa[69] = 1551   ; boilTempC[69] = 200 ;
+ atmPresKPa[70] = 1724   ; boilTempC[70] = 205 ;
+ atmPresKPa[71] = 1896   ; boilTempC[71] = 210 ;
+ atmPresKPa[72] = 2069   ; boilTempC[72] = 214 ;
+ atmPresKPa[73] = 2241   ; boilTempC[73] = 218 ;
+ atmPresKPa[74] = 2413   ; boilTempC[74] = 222 ;
+ atmPresKPa[75] = 2586   ; boilTempC[75] = 226 ;
+ atmPresKPa[76] = 2758   ; boilTempC[76] = 229 ;
+ atmPresKPa[77] = 2930   ; boilTempC[77] = 233 ;
+ atmPresKPa[78] = 3103   ; boilTempC[78] = 236 ;
+ atmPresKPa[79] = 3275   ; boilTempC[79] = 239 ;
+ atmPresKPa[80] = 3448   ; boilTempC[80] = 242 ;
+ atmPresKPa[81] = 3620   ; boilTempC[81] = 245 ;
+ atmPresKPa[82] = 3792   ; boilTempC[82] = 247 ;
+ atmPresKPa[83] = 3965   ; boilTempC[83] = 250 ;
+ atmPresKPa[84] = 4137   ; boilTempC[84] = 252 ;
+ atmPresKPa[85] = 4309   ; boilTempC[85] = 255 ;
+ atmPresKPa[86] = 4482   ; boilTempC[86] = 257 ;
+ atmPresKPa[87] = 4654   ; boilTempC[87] = 260 ;
+ atmPresKPa[88] = 4827   ; boilTempC[88] = 262 ;
+ atmPresKPa[89] = 4999   ; boilTempC[89] = 264 ;
+ atmPresKPa[90] = 5171   ; boilTempC[90] = 266 ;
+ atmPresKPa[91] = 5344   ; boilTempC[91] = 268 ;
+ atmPresKPa[92] = 5516   ; boilTempC[92] = 270 ;
+ atmPresKPa[93] = 5688   ; boilTempC[93] = 272 ;
+ atmPresKPa[94] = 5861   ; boilTempC[94] = 274 ;
+ atmPresKPa[95] = 6033   ; boilTempC[95] = 276 ;
+ atmPresKPa[96] = 6206   ; boilTempC[96] = 278 ;
+ atmPresKPa[97] = 6550   ; boilTempC[97] = 281 ;
+ atmPresKPa[98] = 6895   ; boilTempC[98] = 285 ;
+
+    var steamTempK, steamTempC;
+
+    //steamTempC = interpolV(boilTempC, atmPresKPa, atmPresIn);
+    steamTempC = interpol(atmPresKPa, boilTempC, atmPresIn);
+    steamTempK = steamTempC + 273.0;
+
+    return steamTempK;
+
+   }; //end function waterPhase
+
+

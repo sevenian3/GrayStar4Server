@@ -251,6 +251,26 @@ var thetas = function() {
     return cosTheta;
 };
 
+  var getOrigin = function(system){
+   
+// Wavenumber of band origin, omega_0 (cm^-1)
+// //Allen's Astrophysical quantities, p. 91, Table 4.18
 
+   var nu00 = 0.0; //
 
+      if ("TiO_C3Delta_X3Delta" == system){
+         nu00 = 19341.7;
+      }
+      if ("TiO_c1Phi_a1Delta" == system){
+         nu00 = 17840.6;
+      }
+      if ("TiO_A3Phi_X3Phi" == system){
+         nu00 = 14095.9;
+       }
+
+//Return frequency:
+  //no!  double omega00 = Useful.c * nu00;
+    return nu00;
+
+  };  //end of method getOrigin
 
