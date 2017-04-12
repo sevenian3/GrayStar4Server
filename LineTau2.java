@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package graystar3server;
+package chromastarserver;
 
 
 /**
@@ -28,8 +28,6 @@ public class LineTau2 {
 /* This might be the wrong approach - using the *local* monochromatic continuum optical depth and extinction 
  * scale for reference at each wavelength - the alternative is to use a universal tau and kappa scale
  * for reference, like Rosseland tau and kappa (or those at 500 nm)*/
-   // public static double[][] tauLambda(int numMaster, double[] masterLams, double[][] logKappaL,
-    //        int numLams, double[] lambdaScale, double[][] logKappa, int numDeps, double[][] logTauCont, double[][] logKappaRef, double[][] tauRef, double logTotalFudge) {
     public static double[][] tauLambda(int numMaster, double[] masterLams, double[][] logKappaL,
             int numDeps, double[][] logKappaRef, double[][] tauRef, double logTotalFudge) {
  

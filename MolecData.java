@@ -1,5 +1,5 @@
 
-package graystar3server;
+package chromastarserver;
 
 //Various diatomic molecular transition data needed for the 
 //Just-overlapping-line-approximation (JOLA)
@@ -27,7 +27,7 @@ public class MolecData{
       if ("TiO_c1Phi_a1Delta".equals(system)){
          RSqu = 4.63;
        }
-      if ("TiO_A3Phi_X3Phi".equals(system)){
+      if ("TiO_A3Phi_X3Delta".equals(system)){
          RSqu = 5.24;
        }
 
@@ -64,14 +64,14 @@ public class MolecData{
 //
 // Generally: Higher vibrational states have *smaller* B values
       if ("TiO_C3Delta_X3Delta".equals(system)){
-         B[1] = 0.498888; // upper
+         B[1] = 0.489888; // upper
          B[0] = 0.535431; //lower
       }
       if ("TiO_c1Phi_a1Delta".equals(system)){
-         B[1] = 0.537602; // upper
-         B[0] = 0.560; //lower - NO DATA in Allen - make up a value for now (that's right!)
+         B[1] = 0.500000; // upper - NO DATA in Allen - make up a value for now (that's right!)
+         B[0] = 0.537602; //lower 
       }
-      if ("TiO_A3Phi_X3Phi".equals(system)){
+      if ("TiO_A3Phi_X3Delta".equals(system)){
          B[1] = 0.507390; // upper
          B[0] = 0.535431;; //lower
        }
@@ -87,7 +87,7 @@ public class MolecData{
          B[1] = 1018.273; // lower??
          B[0] = 1150.0; //lower NO DATA in Allen - make up a value for now (that's right!)
       }
-      if ("TiO_A3Phi_X3Phi".equals(system)){
+      if ("TiO_A3Phi_X3Delta".equals(system)){
          B[1] = 867.7799; // upper 
          B[0] = 1009.1697;; //lower
        }
@@ -117,7 +117,7 @@ public class MolecData{
          lambda[0] = 490.0;
          lambda[1] = 580.0;
       }
-      if ("TiO_A3Phi_X3Phi".equals(system)){
+      if ("TiO_A3Phi_X3Delta".equals(system)){
          lambda[0] = 570.0;
          lambda[1] = 865.0;
        }
@@ -132,20 +132,19 @@ public class MolecData{
 //This is "script S" from Alles 4th Ed. p. 88 - Eq. for line strength, S
 //Computed from a Wigner 6-j symbols - ??
 //Here we tune the values by hand to make the band strengths look right
-// TiO bands should develop rapidly below Teff=4250 K at log(g) ~ 2.0:
 // - I just don't have the molecular data, or knowledge to use it, that I need
 // Can anyone out there help, or am I really on my own??
 
       double jolaQuantumS = 1.0; //default for a multiplicative factor
 
       if ("TiO_C3Delta_X3Delta".equals(system)){
-         jolaQuantumS = 1.0e-14;
+         jolaQuantumS = 1.0e-15;
       }
       if ("TiO_c1Phi_a1Delta".equals(system)){
-         jolaQuantumS = 1.0e-14;
+         jolaQuantumS = 2.0e-16;
       }
-      if ("TiO_A3Phi_X3Phi".equals(system)){
-         jolaQuantumS = 1.0e-14;
+      if ("TiO_A3Phi_X3Delta".equals(system)){
+         jolaQuantumS = 1.0e-16;
       }
 
       return jolaQuantumS;
@@ -166,7 +165,7 @@ public class MolecData{
       if ("TiO_c1Phi_a1Delta".equals(system)){
          nu00 = 17840.6;
       }
-      if ("TiO_A3Phi_X3Phi".equals(system)){
+      if ("TiO_A3Phi_X3Delta".equals(system)){
          nu00 = 14095.9;
        }
 

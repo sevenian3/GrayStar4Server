@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package graystar3server;
+package chromastarserver;
 
 /**
  *
@@ -30,8 +30,6 @@ public class LineKappa {
 // tauRos structure
 // temp structure 
 // rho structure
-//    public static double[][] lineKap(double lam0In, double logNlIn, double logFluIn, boolean ionized, double chiI, double chiL, double[][] linePoints, double[][] lineProf,
-//            int numDeps, double kappaScale, double[][] tauRos, double[][] temp, double[][] rho) {
 // Level population now computed in LevelPops.levelPops()
     public static double[][] lineKap(double lam0In, double[] logNums, double logFluIn, double[][] linePoints, double[][] lineProf,
             int numDeps, double zScale, double[][] tauRos, double[][] temp, double[][] rho) {

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package graystar3server;
+package chromastarserver;
 
 /**
  * Solves the equation of state (EOS) for the mass density (rho) given total
@@ -32,7 +32,6 @@ public class State {
         // double c = 9.9989E+10; // light speed in vaccuum in cm/s
         // double sigma = 5.670373E-5;   //Stefan-Boltzmann constant ergs/s/cm^2/K^4   
         //Row 0 of mmwNe is Mean molecular weight in amu
-        //NO! double[][] mmwNe = mmwNeFn(numDeps, temp, kappaScale);
         double k = Useful.k;
         double logK = Useful.logK();
         double amu = Useful.amu;
@@ -90,31 +89,6 @@ public class State {
             }
         }
         return mmw;
-    }
-
-    public static double[][] NeFn(int numDeps, double[][] temp, double[][] NeDfg2, double zScale) {
-
-        double[][] Ne = new double[2][numDeps];
-
-        double logE = Math.log10(Math.E); // for debug output
-
-        // Expression for cgs logNe for *hot* *MS* stars from *MKS* logPe expression from D. Turner (private communication):
-        // *** We need to do better than this...
-        for (int id = 0; id < numDeps; id++) {
-            if (temp[0][id] < 7300.0) {
-                Ne[0][id] = NeDfg2[0][id] * zScale;
-                Ne[1][id] = Math.log(Ne[0][id]);
-            } else {
-                Ne[1][id] = -4.5 - Useful.logK() + 0.5 * temp[1][id] - 6.0 + Math.log(zScale); // last term converts m^-3 to cm^-3  
-                Ne[0][id] = Math.exp(Ne[1][id]);
-                //System.out.format("%12.8f   %12.8f   %12.8f%n", temp[0][id], logE * mmwNe[1][id], mmwNe[0][id]);
-            }
-
-            //System.out.format("%12.8f   %12.8f%n", temp[0][id], logE * Ne[1][id]);
-        }
-
-        return Ne;
-
     }
 
    public static double[][] getNz(int numDeps, double[][] temp, double[][] pGas, double[][] pe, 

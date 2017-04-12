@@ -121,8 +121,7 @@ public class Jola{
 
              for (int iD = 0; iD < numDeps; iD++){
 
-               if (wMinuswHOverBDiff > 0){
- 
+               if (wMinuswHOverBDiff > 0){ 
                  logHcBbyKt = logHcBbyK - temp[1][iD]; 
                  hcBbyKt = Math.exp(logHcBbyKt);
 
@@ -135,11 +134,8 @@ public class Jola{
 //Can this be used like a differential cross-section (once converted to sigma)?  
                 // System.out.println("fvv " + fvv + " hcBbyKt " + hcBbyKt + " m1Term " + m1Term + " m2Term " + m2Term);
                  dfBydw[iW][iD] = fvv * hcBbyKt * ( m1Term + m2Term );  // Eq. 19     
-
                } else {
-
                  dfBydw[iW][iD] = 0.0;
-
                } 
               // if (iD%10 == 1){
               //   System.out.println("PR iD " + iD + " iW " + iW + " dfBydw " + dfBydw[iW][iD]);
@@ -259,12 +255,6 @@ public class Jola{
 //try accumulating oscillator strenth, f, across band - assumes f = 0 at first (largest) lambda- ??
      double thisF = 0.0;
 
-//If f is cumulative in wavenumber, then we have to make the wavenumber loop the inner one even if it
-//means re-calculating depth-independent quantities each time:
-    for (int iD = 0; iD < numDeps; iD++){
-
-      thisF = 0.0; //re-set accumulator
-
 //loop in order of *increasing* wavenumber
       for (int iW = numPoints-1; iW >=1; iW--){
 
@@ -273,19 +263,17 @@ public class Jola{
         freq = Math.exp(logFreq);
         logW = 0.0 - Math.log(1.0e-7 * jolaPoints[iW]); //if w is waveno in cm^-1
         w = Math.exp(logW); //if w is waveno in cm^-1
-        //System.out.println("w " + w);
         //deltaW = Math.abs(freq - lastFreq);
         deltaW = Math.abs(w - lastW);
 
 //For LTE stimulated emission correction:
         stimEmLogExpHelp = Useful.logH() + logFreq - Useful.logK();
 
-//        for (int iD = 0; iD < numDeps; iD++){
+        for (int iD = 0; iD < numDeps; iD++){
 
           thisDeltaF = deltaW * dfBydw[iW][iD];
           if (thisDeltaF > 0.0){
-            thisF += thisDeltaF; //cumulative version
-            //thisF = thisDeltaF; //non-cumulative version
+            thisF += thisDeltaF;
             logSigma = Math.log(thisF) + Math.log(Math.PI) + 2.0*Useful.logEe() - Useful.logMe() - Useful.logC();
           } else {
             logSigma = -999.0;
@@ -304,12 +292,10 @@ public class Jola{
             //System.out.println("iD " + iD + " iW " + iW + " thisDeltaF " + thisDeltaF + " logSigma " + log10E*logSigma + " jolaLogNums " + log10E*jolaLogNums[iD] + " rho " + log10E*rho[1][iD] + " logKappaJola " + log10E*logKappaJola[iW][iD]);
           //} 
 
-//        } //iD loop - depths
+        } //iD loop - depths
 
           lastFreq = freq;
       } //iW loop - wavelength
-
-        } //iD loop - depths
 
       return logKappaJola;
 

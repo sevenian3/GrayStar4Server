@@ -4,7 +4,7 @@
  *    * and open the template in the editor.
  *     */
 
-package graystar3server;
+package chromastarserver;
 
 /* Metal b-f opacity routines taken from Moog (moogjul2014/, MOOGJUL2014.tar)
 Chris Sneden (Universtiy of Texas at Austin)  and collaborators
@@ -92,7 +92,7 @@ c******************************************************************************
          species = "FeI";
          logUFe1 = PartitionFn.getPartFn(species);
 
-         //System.out.println("iD     PopsC1     PopsMg1      PopsMg2     PopsAl1     PopsSi1     PopsSi2     PopsFe1"); 
+         //System.out.println("iD     PpC1     PpMg1      PpMg2     PpAl1     PpSi1     PpSi2     PpFe1"); 
          for (int iD = 0; iD < numDeps; iD++){
 //neutral stage
 //Assumes ground state stat weight, g_1, is 1.0
@@ -139,11 +139,15 @@ c******************************************************************************
             logGroundPopsSi2[iD] = stagePops[13][1][iD] - logStatWSi2; 
             logGroundPopsFe1[iD] = stagePops[25][0][iD] - logStatWFe1;
 
-           // if (iD%10 == 1){ 
+           // if (iD%5 == 1){ 
            //     System.out.format("%03d, %21.15f, %21.15f, %21.15f, %21.15f, %21.15f, %21.15f, %21.15f %n", 
-           //          iD, logE*logGroundPopsC1[iD], logE*logGroundPopsMg1[iD], logE*logGroundPopsMg2[iD],
-           //              logE*logGroundPopsAl1[iD], logE*logGroundPopsSi1[iD], logE*logGroundPopsSi2[iD],
-           //              logE*logGroundPopsFe1[iD]);
+           //          iD, logE*(logGroundPopsC1[iD]+temp[1][iD]+Useful.logK()), 
+           //              logE*(logGroundPopsMg1[iD]+temp[1][iD]+Useful.logK()), 
+           //              logE*(logGroundPopsMg2[iD]+temp[1][iD]+Useful.logK()),
+           //              logE*(logGroundPopsAl1[iD]+temp[1][iD]+Useful.logK()), 
+           //              logE*(logGroundPopsSi1[iD]+temp[1][iD]+Useful.logK()), 
+           //              logE*(logGroundPopsSi2[iD]+temp[1][iD]+Useful.logK()),
+           //              logE*(logGroundPopsFe1[iD]+temp[1][iD]+Useful.logK()));
            // }
 
          }   
@@ -202,7 +206,8 @@ c******************************************************************************
                stimEmExp = -1.0 * Math.exp(stimEmLogExp);
                stimEm = ( 1.0 - Math.exp(stimEmExp) ); //LTE correction for stimulated emission  
 
-               kapBF = aC1[iD] + aMg1[iD] + aMg2[iD] + aAl1[iD] + aSi1[iD] + aSi2[iD] + aFe1[iD] ;
+               //kapBF = aC1[iD] + aMg1[iD] + aMg2[iD] + aAl1[iD] + aSi1[iD] + aSi2[iD] + aFe1[iD] ;
+               kapBF = aC1[iD] + aMg2[iD] + aAl1[iD] + aSi2[iD] + aFe1[iD] ;
                masterBF[iL][iD] = Math.log(kapBF) + Math.log(stimEm);
              //  if ( (iD%10 == 0) && (iL%10 == 0) ) {
              //    System.out.format("%03d, %03d, %21.15f, %21.15f, %21.15f, %21.15f, %21.15f, %21.15f, %21.15f, %21.15f, %21.15f, %n", 
@@ -227,6 +232,7 @@ c******************************************************************************
      // include 'Atmos.com'
      // include 'Kappa.com'
 
+      double sigma = 0.0;
       double[] aC1 = new double[numDeps];
 //cross-section is zero below threshold, so initialize:
       for (int i = 0; i < numDeps; i++){
@@ -307,9 +313,10 @@ c******************************************************************************
       //System.out.println("freq " + freq + " lambda " + lambda);
       for (int i = 0; i < numDeps; i++){
          if (freq >= 2.0761e15) { 
-            aC1[i] = (x1100*9.0 + x1240*c1240[i] 
-             + x1444*c1444[i]) * Math.exp(logGroundPops[i]); 
-           // System.out.println("i " + i + " logPop " + logGroundPops[i] + " aC1 " + aC1[i]);
+            sigma = (x1100*9.0 + x1240*c1240[i] + x1444*c1444[i]); 
+            aC1[i] = sigma * Math.exp(logGroundPops[i]);
+            //System.out.println("i " + i + " sigma " + sigma + " aC1 " + aC1[i]);
+            //System.out.println("i " + i + " logPop " + logGroundPops[i] + " aC1 " + aC1[i]);
          } 
       } 
 
@@ -329,7 +336,7 @@ c******************************************************************************
       double seaton;
       int help;
 
-      help = (int) ( (2.0*power) + 0.01 );
+      help = (int) Math.floor( (2.0*power) + 0.01 );
 
       seaton = xsect * (a + freqratio*(1.0-a))*
               Math.sqrt( Math.pow(freqratio, help) );
@@ -346,6 +353,7 @@ c******************************************************************************
       public static double[] opacMg1(int numDeps, double[][] temp, double lambda, double[] logGroundPops){
   //System.out.println("opacMg1 called...");
 
+      double sigma = 0.0;
       double[] aMg1 = new double[numDeps];
 
 //cross-section is zero below threshold, so initialize:
@@ -354,6 +362,7 @@ c******************************************************************************
       }
 
       double freq = Useful.c / lambda;  
+      //System.out.println("opacMg1: lambda, freq " + lambda + " " + freq);
       double freqlg = Math.log(freq); //base e?
 
 
@@ -399,21 +408,25 @@ c******************************************************************************
       double freq1 = 0.0; 
 //modcount/0/
 
-   int thelp, n;
+   int thelp, nn;
    double dd, dd1;
    //double log10E = Math.log10(Math.E);
 
 //c  initialize some quantities for each new model atmosphere
 //      if (modelnum .ne. modcount) then
 //         modcount = modelnum
+     //System.out.println("opacMg1 call, lambda " + lambda);
          for (int i = 0; i < numDeps; i++){
-            thelp = (int) (temp[0][i]/1000.0);
+            thelp = (int) Math.floor((temp[0][i]/1000.0)) - 3;
+            //System.out.println("i " + i + " temp[0] " + temp[0][i] + " thelp " + thelp);
             //n = Math.max( Math.min(6, thelp-3), 1 );
             // -1 term to adjust from FORTRAN to Java subscripting
-            n = Math.max( Math.min(6, thelp-3), 1 ) - 1; // -1 term to adjust from FORTRAN to Java subscripting
-            nt[i] = n;
-            dt[i] = (temp[1][i]-tlg[n]) / (tlg[n+1]-tlg[n]); //base e?
+            nn = Math.max( Math.min(6, thelp), 1 ) - 1; // -1 term to adjust from FORTRAN to Java subscripting
+            nt[i] = nn;
+            dt[i] = (temp[1][i]-tlg[nn]) / (tlg[nn+1]-tlg[nn]); //base e?
+            //System.out.println(" nn " + nn + " temp[1] " + temp[1][i] + " tlg[nn+1] " + tlg[nn+1] + " tlg[nn] " + tlg[nn] + " dt[i] " + dt[i]);
          }
+
 //      endif
    
 //c  initialize some quantities for each new model atmosphere or new frequency;
@@ -423,23 +436,38 @@ c******************************************************************************
        //     if (freq .gt. freqMg(n)) go to 23
        //  enddo
        //n = 7;
-         n = 0;
-         while ( (freq <= freqMg[n]) && (n < 6) ) {
-            n++;
+       //  n = 0;
+       //  while ( (freq <= freqMg[n]) && (n < 6) ) {
+       //     n++;
+       //  }
+         nn = 0;
+         for (int n = 0; n < 7; n++){
+            //System.out.println("freq " + freq + " n " + n + " freqMg[n] " + freqMg[n]);
+            if (freq > freqMg[n]){   
+               break;
+            }
+            nn++;
          }
-         dd = (freqlg-flog[n]) / (flog[n+1]-flog[n]);
+         if (freq <= freqMg[6]){
+            nn = 7; 
+         }  
+         //System.out.println("nn " + nn + " flog[nn+1] " + flog[nn+1] + " flog[nn] " + flog[nn]);
+         dd = (freqlg-flog[nn]) / (flog[nn+1]-flog[nn]);
+         //System.out.println("dd " + dd + " freqlg " + freqlg);
          //if (n .gt. 2) n = 2*n -2
             // -1 term to adjust from FORTRAN to Java subscripting
          //if (n > 2){
-         if (n > 1){
+         if (nn > 1){
             // -1 term to adjust from FORTRAN to Java subscripting
             //n = 2*n - 2 - 1;
-            n = 2*n - 2; // - 1;
+            nn = 2*nn - 2; // - 1;
          }
          dd1 = 1.0 - dd;
          //do it=1,7
+         //System.out.println("nn " + nn + " dd1 " + dd1);
          for (int it = 0; it < 7; it++){
-            xx[it] = peach[it][n+1]*dd + peach[it][n]*dd1;
+            xx[it] = peach[it][nn+1]*dd + peach[it][nn]*dd1;
+            //System.out.println("it " + it + " peach[it][nn+1] " + peach[it][nn+1] + "  peach[it][nn] " +  peach[it][nn] + " xx[it] " + xx[it]);
          }
          //enddo
       //endif
@@ -448,9 +476,10 @@ c******************************************************************************
       for (int i = 0; i < numDeps; i++){
          //if (freq .ge. 2.997925d+14) then
          if (freq >= 2.997925e+14) {
-            n = nt[i];
-            aMg1[i] = Math.exp( (xx[n]*(1.0e0-dt[i])) + (xx[n+1]*dt[i]) ) *
-                     Math.exp(logGroundPops[i]);
+            nn = nt[i];
+            sigma = Math.exp( (xx[nn]*(1.0e0-dt[i])) + (xx[nn+1]*dt[i]) ); 
+            aMg1[i] = sigma * Math.exp(logGroundPops[i]);
+            //System.out.println("i " + i + " sigma " + sigma + " aMg1 " + aMg1[i]);
          //endif
          }
       }
@@ -472,6 +501,7 @@ c******************************************************************************
       public static double[] opacMg2(int numDeps, double[][] temp, double lambda, double[] logGroundPops){
   //System.out.println("opacMg2 called...");
 
+      double sigma = 0.0;
       double[] aMg2 = new double[numDeps];
 //cross-section is zero below threshold, so initialize:
       for (int i = 0; i < numDeps; i++){
@@ -522,8 +552,9 @@ c******************************************************************************
       
       for (int i = 0; i < numDeps; i++){
          if (x1169 >= 1.0e-90) {
-            aMg2[i] = (x824*2.0 + x1169*c1169[i])*
-                     Math.exp(logGroundPops[i]);
+            sigma = (x824*2.0 + x1169*c1169[i]);
+            aMg2[i] = sigma * Math.exp(logGroundPops[i]);
+            //System.out.println("i " + i + " sigma " + sigma + " aMg2 " + aMg2[i]);
          }
       }
 
@@ -540,6 +571,7 @@ c******************************************************************************
       public static double[] opacAl1(int numDeps, double[][] temp, double lambda, double[] logGroundPops){
   //System.out.println("opacAl1 called...");
  
+      double sigma = 0.0;
      double[] aAl1 = new double[numDeps];
 //cross-section is zero below threshold, so initialize:
       for (int i = 0; i < numDeps; i++){
@@ -555,8 +587,9 @@ c******************************************************************************
       for (int i = 0; i < numDeps; i++){
          //if (freq .ge. 1.443d15) then
          if (freq >= 1.443e15) {
-            aAl1[i] = 6.0 * 6.5e-17 * Math.pow((1.443e15/freq), 5.0) *
-                      Math.exp(logGroundPops[i]); 
+            sigma = 6.0 * 6.5e-17 * Math.pow((1.443e15/freq), 5.0);
+            aAl1[i] = sigma * Math.exp(logGroundPops[i]);
+            //System.out.println("i " + i + " sigma " + sigma + " aAl1 " + aAl1[i]);
          }
       }
 
@@ -573,6 +606,7 @@ c******************************************************************************
       public static double[] opacSi1(int numDeps, double[][] temp, double lambda, double[] logGroundPops){
   //System.out.println("opacSi1 called...");
 
+      double sigma = 0.0;
       double[] aSi1 = new double[numDeps];
 //cross-section is zero below threshold, so initialize:
       for (int i = 0; i < numDeps; i++){
@@ -626,19 +660,19 @@ c******************************************************************************
       double freq1 = 0.0;
 //, modcount/0/
 
-   int thelp, n;
+   int thelp, nn;
    double dd, dd1;
 //c  initialize some quantities for each new model atmosphere
 //      if (modelnum .ne. modcount) then
 //         modcount = modelnum
          //do i=1,ntau
          for (int i = 0; i < numDeps; i++){
-            thelp = (int) (temp[0][i]/1000.0);
+            thelp = (int) Math.floor(temp[0][i]/1000.0) - 3;
             // -1 term to adjust from FORTRAN to Java subscripting
             //n = Math.max( Math.min(8, thelp-3), 1 );
-            n = Math.max( Math.min(8, thelp-3), 1 ) - 1;
-            nt[i] = n;
-            dt[i] = (temp[1][i]-tlg[n]) / (tlg[n+1]-tlg[n]);
+            nn = Math.max( Math.min(8, thelp), 1 ) - 1;
+            nt[i] = nn;
+            dt[i] = (temp[1][i]-tlg[nn]) / (tlg[nn+1]-tlg[nn]);
          }
 //      endif
 
@@ -649,29 +683,40 @@ c******************************************************************************
 //            if (freq .gt. freqSi(n)) go to 23
 //         enddo
 //         n = 9;
-         n = 0;
-         while ( (freq <= freqSi[n]) && (n < 8) ) {
-            n++;
+        // n = 0;
+        // while ( (freq <= freqSi[n]) && (n < 8) ) {
+        //    n++;
+        // }
+         nn = 0;
+         for (int n = 0; n < 9; n++){
+            if (freq > freqSi[n]){
+               break;
+            }
+            nn++; 
+         }
+         if (freq <= freqSi[8]){
+           nn = 9;
          }
 //
-         dd = (freqlg-flog[n]) / (flog[n+1]-flog[n]);
+         dd = (freqlg-flog[nn]) / (flog[nn+1]-flog[nn]);
             // -1 term to adjust from FORTRAN to Java subscripting
          //if (n > 2) { 
-         if (n > 1) { 
+         if (nn > 1) { 
             // -1 term to adjust from FORTRAN to Java subscripting
-            n = 2*n - 2; // - 1; // n already adjusted by this point?
+            nn = 2*nn - 2; // - 1; // n already adjusted by this point?
          }
          dd1 = 1.0 - dd;
          for (int it = 0; it < 9; it++){
-            xx[it] = peach[it][n+1]*dd + peach[it][n]*dd1;
+            xx[it] = peach[it][nn+1]*dd + peach[it][nn]*dd1;
          }
       //endif
 
       for (int i=0; i < numDeps; i++){
          if (freq >= 2.997925e+14) {
-            n = nt[i];
-            aSi1[i] = ( 9.0 * Math.exp( -(xx[n]*(1.-dt[i]) + xx[n+1]*dt[i]) ) ) *
-                      Math.exp(logGroundPops[i]); 
+            nn = nt[i];
+            sigma = ( 9.0 * Math.exp( -(xx[nn]*(1.-dt[i]) + xx[nn+1]*dt[i]) ) ); 
+            aSi1[i] = sigma * Math.exp(logGroundPops[i]);
+            //System.out.println("i " + i + " sigma " + sigma + " aSi1 " + aSi1[i]);
          }
       }
 
@@ -689,6 +734,7 @@ c******************************************************************************
       public static double[] opacSi2(int numDeps, double[][] temp, double lambda, double[] logGroundPops){
   //System.out.println("opacSi2 called...");
 
+      double sigma = 0.0;
       double[] aSi2 = new double[numDeps];
 //cross-section is zero below threshold, so initialize:
       for (int i = 0; i < numDeps; i++){
@@ -698,7 +744,7 @@ c******************************************************************************
       double freq = Useful.c / lambda;  
       double freqlg = Math.log(freq); //base e?
 
-   int thelp, n;
+   int thelp, nn;
    double dd, dd1;
 
 //      include 'Atmos.com'
@@ -739,12 +785,12 @@ c******************************************************************************
 //      if (modelnum .ne. modcount) then
 //         modcount = modelnum
          for (int i = 0; i < numDeps; i++){
-            thelp = (int) (temp[0][i]/2000.0);
+            thelp = (int) Math.floor(temp[0][i]/2000.0) - 4;
             // -1 term to adjust from FORTRAN to Java subscripting
             //n = Math.max( Math.min(5, thelp-4), 1 );
-            n = Math.max( Math.min(5, thelp-4), 1 ) - 1;
-            nt[i] = n;
-            dt[i] = (temp[1][i]-tlg[n]) / (tlg[n+1]-tlg[n]);
+            nn = Math.max( Math.min(5, thelp), 1 ) - 1;
+            nt[i] = nn;
+            dt[i] = (temp[1][i]-tlg[nn]) / (tlg[nn+1]-tlg[nn]);
          }
 //      endif
 
@@ -755,37 +801,49 @@ c******************************************************************************
 //            if (freq .gt. freqSi(n)) go to 23
 //         enddo
 //         n = 8
-         n = 0;
-         while ( (freq <= freqSi[n]) && (n < 6) ) {
-            n++;
+         //n = 0;
+         //while ( (freq <= freqSi[n]) && (n < 6) ) {
+         //   n++;
+        // }
+         nn = 0;
+         for (int n = 0; n < 7; n++){
+            if (freq > freqSi[n]){
+               break;
+            }
+            nn++; 
+         }
+         if (freq <= freqSi[6]){
+           nn = 7;
          }
 //
-         dd = (freqlg-flog[n]) / (flog[n+1]-flog[n]);
+//
+         dd = (freqlg-flog[nn]) / (flog[nn+1]-flog[nn]);
             // -1 term to adjust from FORTRAN to Java subscripting
          //if (n > 2){
-         if (n > 1){
+         if (nn > 1){
             // -1 term to adjust from FORTRAN to Java subscripting
             //n = 2*n - 2;
-            n = 2*n - 2; // - 1; //n already adjusted by this point?
+            nn = 2*nn - 2; // - 1; //n already adjusted by this point?
          }
             // -1 term to adjust from FORTRAN to Java subscripting
          //if (n == 14){
-         if (n == 13){
+         if (nn == 13){
             // -1 term to adjust from FORTRAN to Java subscripting
             //n = 13;
-            n = 12;
+            nn = 12;
          }
          dd1 = 1.0 - dd;
          for (int it = 0; it < 6; it++){
-            xx[it] = peach[it][n+1]*dd + peach[it][n]*dd1;
+            xx[it] = peach[it][nn+1]*dd + peach[it][nn]*dd1;
          }
 //      endif
 
       for (int i = 0; i < numDeps; i++){
          if (freq >= 7.6869872e14) {
-            n = nt[i];
-            aSi2[i] = ( 6.0 * Math.exp(xx[n]*(1.0-dt[i]) + xx[n+1]*dt[i]) ) *
-                      Math.exp(logGroundPops[i]);
+            nn = nt[i];
+            sigma = ( 6.0 * Math.exp(xx[nn]*(1.0-dt[i]) + xx[nn+1]*dt[i]) );
+            aSi2[i] = sigma * Math.exp(logGroundPops[i]);
+            //System.out.println("i " + i + " sigma " + sigma + " aSi2 " + aSi2[i]);
          }
       }
 
@@ -802,6 +860,7 @@ c******************************************************************************
       public static double[] opacFe1(int numDeps, double[][] temp, double lambda, double[] logGroundPops){
   //System.out.println("opacFe1 called...");
 
+      double sigma = 0.0;
       double[] aFe1 = new double[numDeps];
 //cross-section is zero below threshold, so initialize:
       for (int i = 0; i < numDeps; i++){
@@ -851,7 +910,7 @@ c******************************************************************************
             hkt = 6.6256e-27 / (1.38054e-16*temp[0][i]);
             //do k=1,48
             for (int k = 0; k < 48; k++){
-               bolt[k][i] = gg[k] * Math.exp(-ee[k]*2.99792458e10*hkt);
+               bolt[k][i] = gg[k] * Math.exp(-ee[k]*Useful.c*hkt);
             }
          }
 //      endif
@@ -869,7 +928,7 @@ c******************************************************************************
                //if (wno(k) .lt. waveno){ 
                if (wno[k] < waveno){ 
                   xsect[k]= 3.0e-18 /
-                           ( 1.0 + Math.pow( (wno[k]+3000.0-waveno)/wno[k]/0.1, 4 ) );
+                           ( 1.0 + Math.pow( ( (wno[k]+3000.0-waveno)/wno[k]/0.1 ), 4 ) );
                }
             }
          }
@@ -877,12 +936,16 @@ c******************************************************************************
 
       //do i=1,ntau
       for (int i = 0; i < numDeps; i++){
+//aFe1 seems to be cumulative.  Moog does not seem to have this reset for each depth, but my aFe is blowing up, so let's try it...
+         aFe1[i] = 0.0; //reset accumulator each depth- ???
          //if (waveno .ge. 21000.) then
          if (waveno >= 21000.0) { 
             //do k=1,48
               for (int k = 0; k < 48; k++){
-               aFe1[i] = aFe1[i] + xsect[k]*bolt[k][i] *
-                     Math.exp(logGroundPops[i]);
+               aFe1[i] = 0.0; //reset accumulator each 'k' - ??? (like removing aFe1 term in expression below...
+               sigma = aFe1[i] + xsect[k]*bolt[k][i]; 
+               aFe1[i] = sigma * Math.exp(logGroundPops[i]);
+               //System.out.println("i " + i + " sigma " + sigma + " aFe1 " + aFe1[i]);
               }
             }
          }
