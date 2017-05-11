@@ -64,6 +64,9 @@ public class LevelPopsServer{
         // energy of b-b transition
         double logTransE = logH + logC - logLam0; //ergs
 
+        if (chiL <= 0.0){
+           chiL = 1.0e-49;
+        }
         double logChiL = Math.log(chiL) + Useful.logEv(); // Convert lower E-level from eV to ergs
         double logBoltzFacL = logChiL - Useful.logK(); // Pre-factor for exponent of excitation Boltzmann factor
         double boltzFacL = Math.exp(logBoltzFacL);

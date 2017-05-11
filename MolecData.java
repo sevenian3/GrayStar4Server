@@ -138,13 +138,13 @@ public class MolecData{
       double jolaQuantumS = 1.0; //default for a multiplicative factor
 
       if ("TiO_C3Delta_X3Delta".equals(system)){
-         jolaQuantumS = 1.0e-15;
+         jolaQuantumS = 1.0e-13;
       }
       if ("TiO_c1Phi_a1Delta".equals(system)){
-         jolaQuantumS = 2.0e-16;
+         jolaQuantumS = 1.0e-14;
       }
       if ("TiO_A3Phi_X3Delta".equals(system)){
-         jolaQuantumS = 1.0e-16;
+         jolaQuantumS = 1.0e-14;
       }
 
       return jolaQuantumS;

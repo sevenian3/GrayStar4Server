@@ -1,5 +1,5 @@
 
-package graystar3server;
+package chromastarserver;
 
 // Partition functions at two temperatures (5000 K and 10000 K) 
 //From Allen's Astrophysical Quantities, 4th Ed. 

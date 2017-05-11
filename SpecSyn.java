@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package graystar3server;
+package chromastarserver;
 
 /**
  *
@@ -106,9 +106,12 @@ public class SpecSyn {
             //Interpolate continuum and line opacity onto master lambda scale, and add them lambda-wise:
             for (int iL = 0; iL < numTot; iL++) {
                 kappa2 = ToolBox.interpol(masterLams, kappa1D, masterLamsOut[iL]);
-                lineKap2 = 1.0e-99; //re-initialization
+                lineKap2 = 1.0e-49; //re-initialization
                 if ( (masterLamsOut[iL] >= listLineLambdas[0]) && (masterLamsOut[iL] <= listLineLambdas[numPoints-1]) ) {
                     lineKap2 = ToolBox.interpol(listLineLambdas, lineKap1D, masterLamsOut[iL]);
+                    if (lineKap2 <= 0.0){
+                       lineKap2 = 1.0e-49;
+                    }
                     //lineKap2 = 1.0e-99;  //test
                 }
                 //test lineKap2 = 1.0e-99;  //test

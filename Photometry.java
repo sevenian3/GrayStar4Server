@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package graystar3server;
+package chromastarserver;
 
     
 /**

@@ -5,7 +5,7 @@
  *    * and open the template in the editor.
  *     */
 
-package graystar3server;
+package chromastarserver;
 
 /* Rayleigh scattering opacity routines taken from Moog (moogjul2014/, MOOGJUL2014.tar)
 Chris Sneden (Universtiy of Texas at Austin)  and collaborators

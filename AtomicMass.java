@@ -1,5 +1,5 @@
 
-package graystar3server;
+package chromastarserver;
 
 //Atomic  AND molecular masses in atomic mass units (amu. "mu")
 

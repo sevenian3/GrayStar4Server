@@ -1,5 +1,5 @@
 
-package graystar3server;
+package chromastarserver;
 
 // Graound state ionization energies in eV 
 //From NIST Atomic Spectra Database
@@ -15,7 +15,7 @@ public class IonizationEnergy {
 
    public static double getIonE(String species){
 
-   double ionE = 8.0; //default initialization
+   double ionE = 999999.0; //default initialization
 
       if ("HI".equals(species)){
          ionE = 13.598434005136;
@@ -29,7 +29,7 @@ public class IonizationEnergy {
       if ("HIV".equals(species)){
          ionE = 999999.0;
        }
-      if ("HIV".equals(species)){
+      if ("HV".equals(species)){
          ionE = 999999.0;
        }
       if ("HVI".equals(species)){

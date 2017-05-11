@@ -165,8 +165,8 @@ public class ChromaStarServer {
         }
 
 //User defined spetrum synthesis region:
-        //double lamUV = 260.0;
-        double lamUV = 100.0;
+        double lamUV = 260.0;
+        //double lamUV = 100.0;
         double lamIR = 2600.0;
         //// Ca II K to H-alpha
         //double lamUV = 390.0;  //testing
@@ -339,8 +339,8 @@ public class ChromaStarServer {
 
         //wavelength grid (cm):
         double[] lamSetup = new double[3];
-        //lamSetup[0] = 260.0 * 1.0e-7;  // test Start wavelength, cm
-        lamSetup[0] = 100.0 * 1.0e-7;  // test Start wavelength, cm
+        lamSetup[0] = 260.0 * 1.0e-7;  // test Start wavelength, cm
+        //lamSetup[0] = 100.0 * 1.0e-7;  // test Start wavelength, cm
         lamSetup[1] = 2600.0 * 1.0e-7; // test End wavelength, cm
         lamSetup[2] = 350;  // test number of lambda
         //int numLams = (int) (( lamSetup[1] - lamSetup[0] ) / lamSetup[2]) + 1;  
@@ -817,6 +817,10 @@ public class ChromaStarServer {
  
 //Ground state ionization E - Stage I (eV) 
   double[] chiIArr = new double[numStages];
+// safe initialization:
+  for (int i = 0; i < numStages; i++){
+      chiIArr[i] = 999999.0;
+  }
 // //Ground state ionization E - Stage II (eV)
 //
 //For diatomic molecules:
@@ -996,7 +1000,9 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
 ////H & He only for now... we only compute H, He, and e^- opacity sources: 
    //for (int iElem = 0; iElem < 2; iElem++){
 //H to Fe only for now... we only compute opacity sources for elements up to Fe: 
+//FLAG!
    for (int iElem = 0; iElem < 26; iElem++){
+   //for (int iElem = 0; iElem < 2; iElem++){
        species = cname[iElem] + "I";
        chiIArr[0] = IonizationEnergy.getIonE(species);
     //THe following is a 2-element vector of temperature-dependent partitio fns, U, 
@@ -1027,6 +1033,8 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
           }
           thisNumMols++;
        }
+//FLAG!  Accounting for mols in ion eq destabilizes everything 
+thisNumMols = 0;
      if (thisNumMols > 0){
        //Find pointer to molecule in master mname list for each associated molecule:
        for (int iMol = 0; iMol < thisNumMols; iMol++){
@@ -1149,19 +1157,21 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
  } //end Pgas-kappa iteration, nOuter
 
 //diagnostic
-//   int tauKapPnt01 = ToolBox.tauPoint(numDeps, tauRos, 0.01);
-//   System.out.println("logTauRos " + logE*tauRos[1][tauKapPnt01] + " temp " + temp[0][tauKapPnt01] + " pGas " + logE*pGas[1][tauKapPnt01]);
-//   System.out.println("tau " + " temp " + " logPgas " + " logPe " + " logRho "); 
-//   for (int iD = 1; iD < numDeps; iD+=5){
-//       System.out.println(" " + tauRos[0][iD] + " " + temp[0][iD] + " " +  logE*pGas[1][iD] + " " + logE*newPe[1][iD] + " " + logE*rho[1][iD]); 
-//   }
-//   for (int iL = 0; iL < numLams; iL++){
-//       //System.out.println(" " + lambdaScale[iL] + " " + logE*logKappa[iL][tauKapPnt01]); 
-//       System.out.println(" " + lambdaScale[iL]); 
-//       for (int iD = 1; iD < numDeps; iD+=5){
-//           System.out.println(" " + logE*(logKappa[iL][iD]+rho[1][iD]));  //cm^-1
-//       }
-//   } 
+   ////int tauKapPnt01 = ToolBox.tauPoint(numDeps, tauRos, 0.01);
+   ////System.out.println("logTauRos " + logE*tauRos[1][tauKapPnt01] + " temp " + temp[0][tauKapPnt01] + " pGas " + logE*pGas[1][tauKapPnt01]);
+   //System.out.println("tau " + " temp " + " logPgas " + " logPe " + " logRho "); 
+   //for (int iD = 1; iD < numDeps; iD+=5){
+   //    System.out.println(" " + tauRos[0][iD] + " " + temp[0][iD] + " " +  logE*pGas[1][iD] + " " + logE*newPe[1][iD] + " " + logE*rho[1][iD]); 
+   //}
+   //for (int iL = 0; iL < numLams; iL++){
+   //    //System.out.println(" " + lambdaScale[iL] + " " + logE*logKappa[iL][tauKapPnt01]); 
+   //    System.out.println(" " + lambdaScale[iL]); 
+   //    for (int iD = 1; iD < numDeps; iD+=5){
+   //       //If we want *mass* extinction, we convert it in the IDL routine...
+   //        System.out.println(" " + logE*(logKappa[iL][iD]+rho[1][iD]));  //cm^-1
+   //        //System.out.println(" " + logE*(logKappa[iL][iD]));  //cm^2/g
+   //    }
+   //} 
    //int tauKapPnt1 = ToolBox.tauPoint(numDeps, tauRos, 1.0);
    //System.out.println("logTauRos " + logE*tauRos[1][tauKapPnt1] + " temp " + temp[0][tauKapPnt1] + " pGas " + logE*pGas[1][tauKapPnt1]);
    //for (int iL = 0; iL < numLams; iL++){
@@ -1263,7 +1273,8 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
 
 //Iterate the electron densities, ionization fractions, and molecular densities:
 //
- //for (int neIter2 = 0; neIter2 < 5; neIter2++){
+//FLAG!
+ //for (int neIter2 = 0; neIter2 < 3; neIter2++){
  for (int neIter2 = 0; neIter2 < nInnerIter; neIter2++){
 
    //System.out.println("neIter2 " + neIter2);
@@ -1297,6 +1308,8 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
           }
           thisNumMols++;
        }
+//FLAG!
+//thisNumMols = 0;
      if (thisNumMols > 0){
        //Find pointer to molecule in master mname list for each associated molecule:
        for (int iMol = 0; iMol < thisNumMols; iMol++){
@@ -1477,8 +1490,12 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
                      logGroundRatio, numDeps, temp);
 
 //Load molecules into master molecular population array:
+   //System.out.println("iMol " + iMol);
       for (int iTau = 0; iTau < numDeps; iTau++){
          masterMolPops[iMol][iTau] = logNz[specA_ptr][iTau] + logNumFracAB[iTau];
+         //if (iTau%5 == 1){
+         //  System.out.println("iTau " + iTau + " logNz[specA_ptr] " + logNz[specA_ptr][iTau] + " logNumFracAB " + logNumFracAB[iTau]);
+         //}
     } //iTau loop
   } //master iMol loop
 //
@@ -1636,7 +1653,7 @@ String dataPath = "./InputData/";
  File file = new File(lineListBytes);
  int bArrSize = (int) file.length();
  byte[] barray = new byte[bArrSize];
- barray = ByteFileRead.readFileBytes(lineListBytes, bArrSize);
+ //barray = ByteFileRead.readFileBytes(lineListBytes, bArrSize);
 
 //Path path = Paths.get(dataPath + lineListFile); //java.nio.file not available in Java 6
 
@@ -2122,6 +2139,11 @@ String dataPath = "./InputData/";
             for (int iTau = 0; iTau < numDeps; iTau++){
                list2LogNums[2][iTau] = numHelp[iTau];
                list2LogNums[3][iTau] = -19.0; //upper E-level - not used - fake for testing with gS3 line treatment
+               //if ( (list2Element[gaussLine_ptr[iLine]].equals("Na")) && (list2Stage[gaussLine_ptr[iLine]] == 0) ){
+               //    if (iTau%5 == 1){
+               //       System.out.println("iTau "+ iTau+ " Na I list2LogNums[2]: "+ logE*list2LogNums[2][iTau]);
+               //    }
+               //}
             } 
 
              //Proceed only if line strong enough: 
@@ -2135,6 +2157,10 @@ String dataPath = "./InputData/";
 //                    numDeps, teff, tauRos, temp, tempSun);
             // Gaussian + Lorentzian approximation to profile (voigt()):
             double[][] listLinePoints = LineGrid.lineGridVoigt(list2Lam0[gaussLine_ptr[iLine]], list2Mass[gaussLine_ptr[iLine]], xiT, numDeps, teff, listNumCore, listNumWing);
+            //if ( (list2Element[gaussLine_ptr[iLine]].equals("Na")) && (list2Stage[gaussLine_ptr[iLine]] == 0) ){
+            //   System.out.println("iLine "+ iLine+ " gaussLine_ptr "+ gaussLine_ptr[iLine]+ " list2Lam0 "+ list2Lam0[gaussLine_ptr[iLine]]+ " list2LogAij "+ 
+          //list2LogAij[gaussLine_ptr[iLine]]+ " list2LogGammaCol "+ list2LogGammaCol[gaussLine_ptr[iLine]]+ " list2Logf "+ list2Logf[gaussLine_ptr[iLine]]);
+           // }
             if (species.equals("HI")){
  //System.out.println("Calling Stark...");
                  listLineProf = LineProf.stark(listLinePoints, list2Lam0[gaussLine_ptr[iLine]], list2LogAij[gaussLine_ptr[iLine]],
@@ -2145,8 +2171,22 @@ String dataPath = "./InputData/";
                     list2LogGammaCol[gaussLine_ptr[iLine]],
                     numDeps, teff, tauRos, temp, pGas, tempSun, pGasSun, hjertComp);
             } 
+            //if ( (list2Element[gaussLine_ptr[iLine]].equals("Na")) && (list2Stage[gaussLine_ptr[iLine]] == 0) ){
+            //   System.out.println("iLine "+ iLine+ " gaussLine_ptr "+ gaussLine_ptr[iLine]+ "list2Logf "+ list2Logf[gaussLine_ptr[iLine]]);
+            //}
             double[][] listLogKappaL = LineKappa.lineKap(list2Lam0[gaussLine_ptr[iLine]], list2LogNums[2], list2Logf[gaussLine_ptr[iLine]], listLinePoints, listLineProf,
                     numDeps, zScaleList, tauRos, temp, rho);
+            //if ( (list2Element[gaussLine_ptr[iLine]].equals("Na")) && (list2Stage[gaussLine_ptr[iLine]] == 0) ){
+            //  for (int iTau = 0; iTau < numDeps; iTau++){
+            //    if (iTau%5 == 1){
+            //        for (int iL = 0; iL < listNumPoints; iL++){
+            //            if (iL%2 == 0){
+            //                System.out.println("iTau "+ iTau+ " iL "+ iL+ " listLinePoints[0]&[1] "+ listLinePoints[0][iL]+ "  "+ listLinePoints[1][iL]+" listLineProf "+ listLineProf[iL][iTau]  + " listLogKappaL "+ logE*listLogKappaL[iL][iTau]);
+            //            }
+            //        }
+            //    }
+            //  }
+            // }
             double[] listLineLambdas = new double[listNumPoints];
             for (int il = 0; il < listNumPoints; il++) {
                 // // lineProf[gaussLine_ptr[iLine]][*] is DeltaLambda from line centre in cm
@@ -2226,6 +2266,11 @@ String dataPath = "./InputData/";
 
         double[][] jolaLogKappaL = Jola.jolaKap(logNumJola, dfBydv, jolaPoints, 
                   numDeps, temp, rho);
+            //for (int iW = 0; iW < jolaNumPoints; iW+=10){
+            //   for (int iD = 1; iD < numDeps; iD+=5){
+            //       System.out.println("iW " + iW + " iD " + iD + " jolaLogKappaL " + jolaLogKappaL[iW][iD]);
+            //   } //iD loop
+            //} //iW loop
 
 ////Q branch if DeltaLambda not equal to 0
 //         if (jolaDeltaLambda[iJola] != 0){ 
@@ -2405,6 +2450,17 @@ String dataPath = "./InputData/";
 
         masterFlux = Flux.flux3(masterIntens, sweptLams, cosTheta, phi, cgsRadius, omegaSini, macroVkm);
 
+
+        for (int il = 0; il < numKept; il++) {
+            //// Teff test - Also needed for convection module!:
+            if (il > 1) {
+                lambda2 = sweptLams[il]; // * 1.0E-7;  // convert nm to cm
+                lambda1 = sweptLams[il - 1]; // * 1.0E-7;  // convert nm to cm
+                fluxSurfBol = fluxSurfBol
+                        + masterFlux[0][il] * (lambda2 - lambda1);
+            }
+      }
+
         logFluxSurfBol = Math.log(fluxSurfBol);
         double logTeffFlux = (logFluxSurfBol - Useful.logSigma()) / 4.0;
         double teffFlux = Math.exp(logTeffFlux);
@@ -2413,9 +2469,6 @@ String dataPath = "./InputData/";
     double[] ldc = new double[numLams];
     ldc = LDC.ldc(numLams, lambdaScale, numThetas, cosTheta, contIntens);
 
-        logFluxSurfBol = Math.log(fluxSurfBol);
-        logTeffFlux = (logFluxSurfBol - Useful.logSigma()) / 4.0;
-        teffFlux = Math.exp(logTeffFlux);
         //String pattern = "0000.00";
         ////String pattern = "#####.##";
         //DecimalFormat myFormatter = new DecimalFormat(pattern);

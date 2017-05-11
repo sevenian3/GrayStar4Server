@@ -232,6 +232,7 @@ public class LineProf {
         double ln2 = Math.log(2.0);
         double ln4pi = Math.log(4.0 * Math.PI);
         double lnSqRtPi = 0.5 * Math.log(Math.PI);
+        double sqRtPi = Math.sqrt(Math.PI);
         double sqPi = Math.sqrt(Math.PI);
         //double ln100 = 2.0*Math.log(10.0);
 
@@ -251,6 +252,7 @@ public class LineProf {
         //double logFudge = Math.log(2.5);  // Van der Waals enhancement factor
 
         int tau1 = ToolBox.tauPoint(numDeps, tauRos, 1.0);
+        //System.out.println("tau1 " + tau1);
 
         //System.out.println("LINEGRID: Tau1: " + tau1);
         //logA = 2.0 * logLam0 + logGamma - ln4pi - logC - logDopp;
@@ -280,6 +282,9 @@ public class LineProf {
             //Formula from p. 56 of Radiative Transfer in Stellar Atmospheres (Rutten),
             // logarithmically with respect to solar value:
             logGamma = pGas[1][id] - pGasSun[1][tau1] + 0.7 * (tempSun[1][tau1] - temp[1][id]) + logGammaSun;
+          //if ((id%5 == 1) ){
+          //  System.out.println("id " + id + " logGamma " + logGamma);
+          //}
             //logGamma = logGamma + logFudge + logGammaCol;
             logGamma = logGamma + logGammaCol;
    //Add radiation (natural) broadning:
@@ -334,7 +339,9 @@ public class LineProf {
 //Approximate Hjerting fn with power expansion in Voigt "a" parameter
 // "Observation & Analysis of Stellar Photospeheres" (D. Gray), 3rd Ed., p. 258:
           hjertFn = Hjert0 + a*Hjert1 + a2*Hjert2 + a3*Hjert3 + a4*Hjert4;
-
+          //if ((id%5 == 1) && (il%2 == 0)){
+          //    System.out.println("il " + il + " hjertFn " + hjertFn);
+          //}
 /* Gaussian + Lorentzian approximation:
                 //if (il <= numCore) {
                 if (v[il] <= 2.0 && v[il] >= -2.0) {
@@ -368,8 +375,13 @@ public class LineProf {
                 //Convert from H(a,v) in dimensionless Voigt units to physical phi((Delta lambda) profile:
                 //logVoigt = Math.log(voigt) + 2.0 * logLam0 - lnSqRtPi - logDopp - logC;
                 //System.out.println("voigt: Before log... id " + id + " il " + il + " hjertFn " + hjertFn);
-                logVoigt = Math.log(hjertFn) + 2.0 * logLam0 - lnSqRtPi - logDopp - logC;
-                lineProf[il][id] = Math.exp(logVoigt);
+                //logVoigt = Math.log(hjertFn) + 2.0 * logLam0 - lnSqRtPi - logDopp - logC;
+                voigt = hjertFn * Math.pow(lam0, 2) /sqRtPi / doppler / c; 
+                //lineProf[il][id] = Math.exp(logVoigt);
+                lineProf[il][id] = voigt;
+                if (lineProf[il][id] <= 0.0){
+                    lineProf[il][id] = -49.0;
+                }
                // if (id == 12) {
                 //    System.out.println("il " + il + " linePoints " + 1.0e7 * linePoints[0][il] + " id " + id + " lineProf[il][id] " + lineProf[il][id]);
                // }
@@ -409,6 +421,7 @@ public class LineProf {
         double ln2 = Math.log(2.0);
         double ln4pi = Math.log(4.0 * Math.PI);
         double lnSqRtPi = 0.5 * Math.log(Math.PI);
+        double sqRtPi = Math.sqrt(Math.PI);
         double sqPi = Math.sqrt(Math.PI);
         //double ln100 = 2.0*Math.log(10.0);
 
@@ -587,17 +600,24 @@ public class LineProf {
                 //Convert from H(a,v) in dimensionless Voigt units to physical phi((Delta lambda) profile:
                 //logVoigt = Math.log(voigt) + 2.0 * logLam0 - lnSqRtPi - logDopp - logC;
                 //System.out.println("stark: Before log... id " + id + " il " + il + " hjertFn " + hjertFn);
-                logVoigt = Math.log(hjertFn) - lnSqRtPi - logDopp;
+                //logVoigt = Math.log(hjertFn) - lnSqRtPi - logDopp;
+                voigt = hjertFn / sqRtPi / doppler;                
                 logStark = logStark - logF0;
                 if (vAbs > 2.0){
                 //if (id == 24) {
                 //   System.out.println("il " + il + " v[il] " + v[il] + " logVoigt " + logE*logVoigt + " logStark " + logE*logStark);
                 //}
-                   voigt = Math.exp(logVoigt) + Math.exp(logStark);
-                   logVoigt = Math.log(voigt);
+                   //voigt = Math.exp(logVoigt) + Math.exp(logStark);
+                   voigt = voigt + Math.exp(logStark);
+                   //logVoigt = Math.log(voigt);
                 }
-                logVoigt = logVoigt + 2.0 * logLam0 - logC;
-                lineProf[il][id] = Math.exp(logVoigt);
+                //logVoigt = logVoigt + 2.0 * logLam0 - logC;
+                voigt = voigt * Math.pow(lam0, 2) / c;
+                //lineProf[il][id] = Math.exp(logVoigt);
+                lineProf[il][id] = voigt;
+                if (lineProf[il][id] <= 0.0){
+                    lineProf[il][id] = -49.0;
+                }
                 //if (id == 24) {
                 //    System.out.println("lam0In " + lam0In);
                 //    System.out.println("il " + il + " linePoints " + 1.0e7 * linePoints[0][il] + " id " + id + " lineProf[il][id] " + lineProf[il][id]);
