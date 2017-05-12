@@ -718,8 +718,13 @@ public class ChromaStarServer {
         //double F0Vtemp = 7300.0;  // Teff of F0 V star (K)                           
         double[][] temp = new double[2][numDeps];
         if (teff < F0Vtemp) {
-            //We're a cool star! - rescale from Teff=5000 reference model!
-            temp = ScaleT5000.phxRefTemp(teff, numDeps, tauRos);
+            if (logg > 3.5){
+               //We're a cool dwarf! - rescale from 5000 K reference model 
+               temp = ScaleT5000.phxRefTemp(teff, numDeps, tauRos);
+            } else {
+               //We're a cool giant - rescale from 4250g20 reference model
+               temp = ScaleT4250g20.phxRefTemp(teff, numDeps, tauRos);
+            }
         } else if (teff >= F0Vtemp) {
             //We're a HOT star! - rescale from Teff=10000 reference model! 
             temp = ScaleT10000.phxRefTemp(teff, numDeps, tauRos);
@@ -731,13 +736,20 @@ public class ChromaStarServer {
         double[][] guessNe = new double[2][numDeps];
         //double[][] guessKappa = new double[2][numDeps];
         if (teff < F0Vtemp) {
-            //We're a cool star - rescale from  Teff=5000 reference model!
-            // logAz[1] = log_e(N_He/N_H)
-            guessPGas = ScaleT5000.phxRefPGas(grav, zScale, logAz[1], numDeps, tauRos);
-            guessPe = ScaleT5000.phxRefPe(teff, grav, numDeps, tauRos, zScale, logAz[1]);
-            guessNe = ScaleT5000.phxRefNe(numDeps, temp, guessPe); 
-            //Ne = ScaleSolar.phxSunNe(grav, numDeps, tauRos, temp, kappaScale);
-            //guessKappa = ScaleSolar.phxSunKappa(numDeps, tauRos, kappaScale);
+            if (logg > 3.5){
+               //We're a cool dwarf! - rescale from 5000 K reference model 
+               // logAz[1] = log_e(N_He/N_H)
+               guessPGas = ScaleT5000.phxRefPGas(grav, zScale, logAz[1], numDeps, tauRos);
+               guessPe = ScaleT5000.phxRefPe(teff, grav, numDeps, tauRos, zScale, logAz[1]);
+               guessNe = ScaleT5000.phxRefNe(numDeps, temp, guessPe); 
+               //Ne = ScaleSolar.phxSunNe(grav, numDeps, tauRos, temp, kappaScale);
+               //guessKappa = ScaleSolar.phxSunKappa(numDeps, tauRos, kappaScale);
+             } else {
+               //We're a cool giant - rescale from 4250g20 reference model
+               guessPGas = ScaleT4250g20.phxRefPGas(grav, zScale, logAz[1], numDeps, tauRos);
+               guessPe = ScaleT4250g20.phxRefPe(teff, grav, numDeps, tauRos, zScale, logAz[1]);
+               guessNe = ScaleT4250g20.phxRefNe(numDeps, temp, guessPe);
+             }
         } else if (teff >= F0Vtemp) {
             //We're a HOT star!! - rescale from Teff=10000 reference model 
             // logAz[1] = log_e(N_He/N_H)
