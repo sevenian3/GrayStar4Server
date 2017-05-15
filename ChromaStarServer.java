@@ -950,6 +950,8 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
     for (int iD = 0; iD < numDeps; iD++){
        newNe[1][iD] = newPe[1][iD] - temp[1][iD] - Useful.logK();
        newNe[0][iD] = Math.exp(newNe[1][iD]);
+       guessNe[1][iD] = newNe[1][iD];
+       guessNe[0][iD] = newNe[0][iD];
     }
 
 //
