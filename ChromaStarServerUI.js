@@ -12,6 +12,13 @@
  * Halifax, NS, Canada
  *  * ian.short@smu.ca
  * www.ap.smu.ca/~ishort/
+ *
+ *
+ *  * Co-developers:
+ *  *
+ *  * Lindsey Burns (SMU) - 2017 - "lburns"
+ *  * Jason Bayer (SMU) - 2017 - "JB"
+ *
  * 
  * Open source pedagogical computational stellar astrophysics
  *
@@ -85,6 +92,16 @@ var logRSun = Math.log(rSun);
 var logMSun = Math.log(mSun);
 var logLSun = Math.log(lSun);
 var logAu = Math.log(au);
+
+//Links required to create elements easily
+                      //JB
+    var xmlns = "http://www.w3.org/2000/xmlns/";
+    var xmlnsLink = "xmlns:xlink";
+    var xmlnsLink2 = "http://w3.org/1999/xlink";
+    var xmlW3 = "http://www.w3.org/2000/svg";
+                      //JB
+
+
 // ********************************************
 
 //***************************  Main ******************************
@@ -173,7 +190,7 @@ var gsDuplex = function(num, logVector){
 
 //JQuery:  Independent of order of switches in HTML file?
 // Stellar atmospheric parameters
-    var numInputs = 20;
+    var numInputs = 23;
 //Make settingsId object array by hand:
 // setId() is an object constructor
     function setId(nameIn, valueIn) {
@@ -181,7 +198,7 @@ var gsDuplex = function(num, logVector){
         this.value = valueIn;
     }
     //
-    // settingId will be an array of objects
+    // settingsId will be an array of objects
     var settingsId = [];
     settingsId.length = numInputs;
     //
@@ -229,6 +246,11 @@ var gsDuplex = function(num, logVector){
     var nInnerIter = $("#nInnerIter").val(); //number of inner Pe-(ion. fraction) iterations
    //var nOuterIter = 3;
    //var nInnerIter = 3;
+    // Add new variables to hold values for new metallicity controls lburns
+    var logHeFe = 1.0 * $("#logAlphaFe").val(); // lburns
+    var logCO = 1.0 * $("#logCO").val(); // lburns
+    var logAlphaFe = 1.0 * $("#logAlphaFe").val(); // lburns
+
 
 //    
     settingsId[0] = new setId("<em>T</em><sub>eff</sub>", teff);
@@ -253,6 +275,10 @@ var gsDuplex = function(num, logVector){
     settingsId[17] = new setId("&#954<sub>Fudge</sub>", logKapFudge);
     settingsId[18] = new setId("RV", RV);
     settingsId[19] = new setId("<span style='color:green'>AtmP</span>", atmosPress);
+    settingsId[20] = new setId("<em>[He/Fe]</em>", logHeFe); // lburns
+    settingsId[21] = new setId("<em>[C/O]</em>", logCO); // lburns
+    settingsId[22] = new setId("<em>[&#945/Fe]</em>", logAlphaFe); // lburns
+
 
     var solvent = "water"; //default intialization
 
@@ -421,7 +447,7 @@ var gsDuplex = function(num, logVector){
 
 
     var switchStar = "None";
-    var numPreStars = 7;
+    var numPreStars = 9;
     //JQuery:
     // None: (default)
     if ($("#none").is(":checked")) {
@@ -461,6 +487,17 @@ var gsDuplex = function(num, logVector){
         switchStar = $("#51pegasi").val(); // radio 
     }
 
+// Proxima Centauri (lburns)
+    if ($("#alphacentc").is(":checked")) {
+      switchStar = $("#alphacentc").val(); // radio
+    }
+
+// Fomalhaut (lburns)
+    if ($("#fomalhaut").is(":checked")) {
+      switchStar = $("#fomalhaut").val(); // radio
+    }
+
+
 
 //JQuery:
     if (switchStar === "Sun") {
@@ -480,7 +517,7 @@ var gsDuplex = function(num, logVector){
         var massStar = 1.0;
         settingsId[3].value = 1.0;
         //$("#starMass").val(1.0);
-        $("#massStar").roundSlider("setValue", "1.0");
+        $("#starMass").roundSlider("setValue", "1.0");
         var xiT = 1.0;
         settingsId[6].value = 1.0;
         $("#xiT").roundSlider("setValue", "1.0");
@@ -521,7 +558,7 @@ var gsDuplex = function(num, logVector){
         var massStar = 1.1;
         settingsId[3].value = 1.1;
         //$("#starMass").val(1.1);
-        $("#massStar").roundSlider("setValue", "1.1");
+        $("#starMass").roundSlider("setValue", "1.1");
         var xiT = 2.0;
         settingsId[6].value = 2.0;
         $("#xiT").roundSlider("setValue", "2.0");
@@ -544,6 +581,9 @@ var gsDuplex = function(num, logVector){
         var logKapFudge = 0.0;
         settingsId[17].value = 0.0;
         $("#logKapFudge").val(0.0);
+        logAlphaFe = 0.3;
+        settingsId[22].value = 0.3;
+        $("#logAlphaFe").val(0.3);
     }
 
     if (switchStar === "Vega") {
@@ -562,7 +602,7 @@ var gsDuplex = function(num, logVector){
         var massStar = 2.1;
         settingsId[3].value = 2.1;
         //$("#starMass").val(2.1);
-        $("#massStar").roundSlider("setValue", "2.1");
+        $("#starMass").roundSlider("setValue", "2.1");
         var xiT = 2.0;
         settingsId[6].value = 2.0;
         $("#xiT").roundSlider("setValue", "2.0");
@@ -603,7 +643,7 @@ var gsDuplex = function(num, logVector){
         var massStar = 3.8;
         settingsId[3].value = 3.8;
         //$("#starMass").val(3.8);
-        $("#massStar").roundSlider("setValue", "3.8");
+        $("#starMass").roundSlider("setValue", "3.8");
         var xiT = 1.0;
         settingsId[6].value = 1.0;
         $("#xiT").roundSlider("setValue", "1.0");
@@ -644,7 +684,7 @@ var gsDuplex = function(num, logVector){
         var massStar = 1.4;
         settingsId[3].value = 1.4;
         //$("#starMass").val(1.4);
-        $("#massStar").roundSlider("setValue", "1.4");
+        $("#starMass").roundSlider("setValue", "1.4");
         var xiT = 1.0;
         settingsId[6].value = 1.0;
         $("#xiT").roundSlider("setValue", "1.0");
@@ -685,7 +725,7 @@ var gsDuplex = function(num, logVector){
         var massStar = 0.6;
         settingsId[3].value = 0.6;
         //$("#starMass").val(0.63);
-        $("#massStar").roundSlider("setValue", "0.6");
+        $("#starMass").roundSlider("setValue", "0.6");
         var xiT = 1.0;
         settingsId[6].value = 1.0;
         $("#xiT").roundSlider("setValue", "1.0");
@@ -726,7 +766,7 @@ var gsDuplex = function(num, logVector){
         var massStar = 1.1;
         settingsId[3].value = 1.1;
         //$("#starMass").val(1.11);
-        $("#massStar").roundSlider("setValue", "1.1");
+        $("#starMass").roundSlider("setValue", "1.1");
         var xiT = 1.0;
         settingsId[6].value = 1.0;
         $("#xiT").roundSlider("setValue", "1.0");
@@ -750,6 +790,53 @@ var gsDuplex = function(num, logVector){
         settingsId[17].value = 0.0;
         $("#logKapFudge").val(0.0);
     }
+//Alpha Centauri C added 05/24 lburns
+    if (switchStar === "Alpha Centauri C") {
+      var teff = 3050.0;
+      settingsId[0].value = 3050.0;
+      //$("#Teff").val(3050.0);
+      $("#Teff").roundSlider("setValue", "3050.0");
+      var logg = 4.6;
+      settingsId[1].value = 4.6;
+      //$("#logg").val(4.6);
+      $("#logg").roundSlider("setValue", "4.6");
+      var log10ZScale = 0.0;
+      settingsId[2].value = 0.0;
+      //$("#zScale").val(0.0);
+      $("#zScale").roundSlider("setValue", "0.0");
+      var massStar = 0.1;
+      settingsId[3].value = 0.1;
+      //$("#starMass").val(0.12);
+      $("#starMass").roundSlider("setValue", "0.1");
+      var logKapFudge = 0.0;
+      settingsId[17].value = 0.0;
+      $("#logKapFudge").val(0.0);
+    } 
+
+//Fomalhaut added 06/15 lburns
+    if (switchStar === "Fomalhaut") {
+      var teff = 8590.0;
+      settingsId[0].value = 8590.0;
+      //$("#Teff").val(8590.0);
+      $("#Teff").roundSlider("setValue", "8590.0");
+      var logg = 4.2;
+      settingsId[1].value = 4.2;
+      //$("#logg").val(4.2);
+      $("#logg").roundSlider("setValue", "4.2");
+      var log10ZScale = 0.0;
+      settingsId[2].value = 0.0;
+      //$("#zScale").val(0.0);
+      $("#zScale").roundSlider("setValue", "0.0");
+      var massStar = 1.9;
+      settingsId[3].value = 1.9;
+      //$("#starMass").val(1.92);
+      $("#starMass").roundSlider("setValue", "1.9");
+      var logKapFudge = 0.0;
+      settingsId[17].value = 0.0;
+      $("#logKapFudge").val(0.0);   
+    }
+
+
 
     var switchSolvent = "Water";
     var numSolvents = 4;
@@ -1119,7 +1206,7 @@ var gsDuplex = function(num, logVector){
     flagArr[0] = false;
 //
     var F0Vtemp = 7300.0;  // Teff of F0 V star (K)
-    var minTeff = 3200.0;
+    var minTeff = 3400.0;
     var maxTeff = 50000.0;
     if (teff === null || teff == "") {
         alert("Teff must be filled out");
@@ -1713,6 +1800,69 @@ var gsDuplex = function(num, logVector){
         $("#nInnerIter").val(12);
     }
 
+// For new metallicity commands lburns
+// For logHeFe: (lburns)
+    var flagArr = [];
+    flagArr.length = numInputs;
+    if (logHeFe === null || logHeFe === "") {
+      alert("logHeFe must be filled out");
+      return;
+    }
+    flagArr[20] = false;
+    if (logHeFe < -1.0) {
+      flagArr[20] = true;
+      logHeFe = -1.0;
+      var logHeFeStr = "-1.0";
+      settingsId[20].value = -1.0;
+      $("#logHeFe").val(-1.0);
+    }
+    if (logHeFe > 1.0) {
+      flagArr[20] = true;
+      logHeFe = 1.0;
+      var logHeFeStr = "1.0";
+      settingsId[20].value = 1.0;
+      $("#logHeFe").val(1.0);
+    }
+// For logCO: (lburns)
+    if (logCO === null || logCO === "") {
+      alert("logCO must be filled out");
+      return;
+    }
+    flagArr[21] = false;
+    if (logCO < -2.0) {
+      flagArr[21] = true;
+      logCO = -2.0;
+      var logCOStr = "-2.0";
+      settingsId[21].value = -2.0;
+      $("#logCO").val(-2.0);
+    }
+    if (logCO > 2.0) {
+      flagArr[21] = true;
+      logCO = 2.0;
+      var logCOStr = "2.0";
+      settingsId[21].value = 2.0;
+      $("#logCO").val(2.0);
+    }
+// For logAlphaFe: (lburns)
+    if (logAlphaFe === null || logAlphaFe === "") {
+      alert("logAlphaFe must be filled out");
+      return;
+    }
+    flagArr[22] = false;
+    if (logAlphaFe < -0.5) {
+      flagArr[22] = true;
+      logAlphaFe = -0.5;
+      var logAlphaFeStr = "-0.5";
+      settingsId[22].value = -0.5;
+      $("#logAlphaFe").val(-0.5);
+    }
+    if (logAlphaFe > 0.5) {
+      flagArr[22] = true;
+      logAlphaFe = 0.5;
+      var logAlphaFeStr = "0.5";
+      settingsId[22].value = 0.5;
+      $("#logAlphaFe").val(0.5);
+    }
 
 
 var url = "http://www.ap.smu.ca/~ishort/OpenStars/ChromaStarServer/ChromaStarServer.php";
@@ -1721,7 +1871,8 @@ var masterInput="teff="+teff+"&logg="+logg+"&logZScale="+logZScale+"&massStar="+
   +"&xiT="+xiT+"&lineThresh="+lineThresh+"&voigtThresh="+voigtThresh+"&lambdaStart="+lambdaStart+"&lambdaStop="+lambdaStop
   +"&sampling="+switchSampl+"&logGammaCol="+logGammaCol+"&logKapFudge="+logKapFudge
   +"&macroV="+macroV+"&rotV="+rotV+"&rotI="+rotI
-  +"&nInnerIter="+nInnerIter+"&nOuterIter="+nOuterIter+"&ifTiO="+ifTiO;
+  +"&nInnerIter="+nInnerIter+"&nOuterIter="+nOuterIter+"&ifTiO="+ifTiO
+  +"&logHeFe="+logHeFe+"&logCO="+logCO+"&logAlphaFe="+logAlphaFe;
 //console.log("masterInput " + masterInput);
 
 var xmlhttp = new XMLHttpRequest();
@@ -2233,6 +2384,9 @@ var jsonObj;
     var roundNum2 = colors[2].toFixed(2);
     var roundNum3 = colors[3].toFixed(2);
     var roundNum4 = colors[4].toFixed(2);
+    var roundNum5 = colors[5].toFixed(2);// lburns
+    var roundNum6 = colors[6].toFixed(2);//lburns
+
     txtPrint("<a href='http://en.wikipedia.org/wiki/UBV_photometric_system' title='Johnson-Cousins U-B photometric color index' target='_blank'>\n\
 <span style='color:purple'>U</span>-" +
             "<span style='color:blue'>B\n\
@@ -2258,7 +2412,20 @@ var jsonObj;
 <span style='color:red'>R</span>-" +
             "<span style='color:brown'>I\n\
 </span>\n\
-</a>: " + roundNum4, 180 + colr * xTab, 15, lineColor, textId);
+</a>: " 
+       + roundNum4, 180 + colr * xTab, 15, lineColor, textId);
+//Added another txtPrint function to display V-K and J-K. Adjusted spectralLine over to fit in these new colors. lburns 06
+    txtPrint("<a href='http://en.wikipedia.org/wiki/UBV_photometric_system' title='Johnson-Cousins V-K photometric color index' target='_blank'>\n\
+<span style='color:#00FF88'>V</span>-" +
+            "<span style='color:sienna'>K\n\
+</span>\n\
+</a>: " + roundNum5
+            + " <a href='http://en.wikipedia.org/wiki/UBV_photometric_system' title='Johnson-Cousins J-K photometric color index' target='_blank'>\n\
+<span style='color:firebrick'>J</span>-" +
+            "<span style='color:sienna'>K\n\
+</span>\n\
+</a>: " + roundNum6, 180, 40, lineColor, textId);
+
 
     // Echo back the *actual* input parameters:
     var warning = "";
@@ -2272,26 +2439,321 @@ var jsonObj;
         txtPrint(warning, 600, 10, lineColor, textId);
     }
 
+    //Add subclass to each spectral class (lburns)
     var spectralClass = " ";
-    var luminClass = "V";
+    var subClass = " "; //Create a variable for the subclass of the star. lburns
+    var luminClass = "V";//defaults to V
+//Determine the spectralClass and subClass of main sequence stars, subdwarfs and white dwarfs
+//var luminClass = "V" or luminClass = "VI" or luminClass = "WD"
+if (((logg >= 4.0) && (logg < 5.0)) || ((logg >= 5.0) && (logg < 6.0)) || (logg >= 5.0)) {
     if (teff < 3000.0) {
         spectralClass = "L";
     } else if ((teff >= 3000.0) && (teff < 3900.0)) {
         spectralClass = "M";
+        if ((teff >= 3000.0) && (teff <= 3030.0)) {
+            subClass = "6";
+        } else if ((teff > 3030.0) && (teff <= 3170.0)) {
+            subClass = "5";
+        } else if ((teff > 3170.0) && (teff <= 3290.0)) {
+            subClass = "4";
+        } else if ((teff > 3290.0) && (teff <= 3400.0)) {
+            subClass = "3";
+        } else if ((teff > 3400.0) && (teff <= 3520.0)) {
+            subClass = "2";
+        } else if ((teff > 3520.0) && (teff <= 3660.0)) {
+            subClass = "1";
+        } else if ((teff > 3660.0) && (teff < 3900.0)) {
+            subClass = "0";
+        }
     } else if ((teff >= 3900.0) && (teff < 5200.0)) {
         spectralClass = "K";
+        if ((teff >= 3900.0) && (teff <= 4150.0)) {
+            subClass = "7";
+        } else if ((teff > 4150.0) && (teff <= 4410.0)) {
+            subClass = "5";
+        } else if ((teff > 4410.0) && (teff <= 4540.0)) {
+            subClass = "4";
+        } else if ((teff > 4540.0) && (teff <= 4690.0)) {
+            subClass = "3";
+        } else if ((teff > 4690.0) && (teff <= 4990.0)) {
+            subClass = "1";
+        } else if ((teff > 4990.0) && (teff < 5200.0)) {
+            subClass = "0";
+        }
     } else if ((teff >= 5200.0) && (teff < 5950.0)) {
         spectralClass = "G";
+        if ((teff >= 5200.0) && (teff <= 5310.0)) {
+            subClass = "8";
+        } else if ((teff > 5310.0) && (teff <= 5790.0)) {
+            subClass = "2";
+        } else if ((teff > 5790.0) && (teff < 5950.0)) {
+            subClass = "0";
+        }
     } else if ((teff >= 5950.0) && (teff < 7300.0)) {
         spectralClass = "F";
+        if ((teff >= 5950.0) && (teff <= 6250.0)) {
+            subClass = "8";
+        } else if ((teff > 6250.0) && (teff <= 6650.0)) {
+            subClass = "5";
+        } else if ((teff > 6650.0) && (teff <= 7050.0)) {
+            subClass = "2";
+        } else if ((teff > 7050.0) && (teff < 7300.0)) {
+            subClass = "0";
+        }
     } else if ((teff >= 7300.0) && (teff < 9800.0)) {
         spectralClass = "A";
+        if ((teff >= 7300.0) && (teff <= 7600.0)) {
+            subClass = "8";
+        } else if ((teff > 7600.0) && (teff <= 8190.0)) {
+            subClass = "5";
+        } else if ((teff > 8190.0) && (teff <= 9020.0)) {
+            subClass = "2";
+        } else if ((teff > 9020.0) && (teff <= 9400.0)) {
+            subClass = "1";
+        } else if ((teff > 9400.0) && (teff < 9800.0)) {
+            subClass = "0";
+        }
     } else if ((teff >= 9800.0) && (teff < 30000.0)) {
         spectralClass = "B";
+        if ((teff >= 9300.0) && (teff <= 10500.0)) {
+            subClass = "9";
+        } else if ((teff > 10500.0) && (teff <= 11400.0)) {
+            subClass = "8";
+        } else if ((teff > 11400.0) && (teff <= 12500.0)) {
+            subClass = "7";
+        } else if ((teff > 12500.0) && (teff <= 13700.0)) {
+            subClass = "6";
+        } else if ((teff > 13700.0) && (teff <= 15200.0)) {
+            subClass = "5";
+        } else if ((teff > 15200.0) && (teff <= 18800.0)) {
+            subClass = "3";
+        } else if ((teff > 18800.0) && (teff <= 20900.0)) {
+            subClass = "2";
+        } else if ((teff > 20900.0) && (teff <= 25400.0)) {
+            subClass = "1";
+        } else if ((teff > 25400.0) && (teff < 30000.0)) {
+            subClass = "0";
+        }
     } else if (teff >= 30000.0) {
         spectralClass = "O";
+        if ((teff >= 30000.0) && (teff <= 35800.0)) {
+            subClass = "8";
+        } else if ((teff > 35800.0) && (teff <= 37500.0)) {
+            subClass = "7";
+        } else if ((teff > 37500.0) && (teff <= 39500.0)) {
+            subClass = "6";
+        } else if ((teff > 39500.0) && (teff <= 42000.0)) {
+            subClass = "5";
+        }
     }
+}
+//Determine the spectralClass and subClass of giants and subgiants. lburns
+//var luminClass = "III" or luminClass = "IV"
+if (((logg >= 1.5) && (logg < 3.0)) || ((logg >= 3.0) && (logg < 4.0))) {
+    if (teff < 3000.0) {
+        spectralClass = "L";
+        } else if ((teff >= 3000.0) && (teff < 3700.0))  {
+        spectralClass = "M";
+        if ((teff >= 3000.0) && (teff <= 3330.0)) {
+            subClass = "6";
+        } else if ((teff > 3330.0) && (teff <= 3380.0)) {
+            subclass = "5";
+        } else if ((teff > 3380.0) && (teff <= 3440.0)) {
+            subClass = "4";
+        } else if ((teff > 3440.0) && (teff <= 3480.0)) {
+            subClass = "3";
+        } else if ((teff > 3480.0) && (teff <= 3540.0)) {
+            subClass = "2";
+        } else if ((teff > 3540.0) && (teff <= 3600.0)) {
+            subClass = "1";
+        } else if ((teff > 3600.0) && (teff < 3700.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 3700.0) && (teff < 4700.0)) {
+        spectralClass = "K";
+        if ((teff >= 3700.0) && (teff <= 3870.0)) {
+            subClass = "7";
+        } else if ((teff > 3870.0) && (teff <= 4050.0)) {
+            subClass = "5";
+        } else if ((teff > 4050.0) && (teff <= 4150.0)) {
+            subClass = "4";
+        } else if ((teff > 4150.0) && (teff <= 4260.0)) {
+            subClass = "3";
+        } else if ((teff > 4260.0) && (teff <= 4510.0)) {
+            subClass = "1";
+        } else if ((teff > 4510.0) && (teff < 4700.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 4700.0) && (teff < 5500.0)) {
+        spectralClass = "G";
+        if ((teff >= 4700.0) && (teff <= 4800.0)) {
+            subClass = "8";
+        } else if ((teff > 4800.0) && (teff <= 5300.0)) {
+            subClass = "2";
+        } else if ((teff > 5300.0) && (teff < 5500.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 5500.0) && (teff < 7500.0)) {
+        spectralClass = "F";
+        if ((teff >= 5500.0) && (teff <= 6410.0)) {
+            subClass = "5";
+        } else if ((teff > 6410.0) && (teff <= 7000.0)) {
+            subClass = "2";
+        } else if ((teff > 7000.0) && (teff < 7500.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 7500.0) && (teff < 10300.0)) {
+        spectralClass = "A";
+        if ((teff >= 7500.0) && (teff <= 7830.0)) {
+            subClass = "8";
+        } else if ((teff > 7830.0) && (teff <= 8550.0)) {
+            subClass = "5";
+        } else if ((teff > 8550.0) && (teff <= 9460.0)) {
+            subClass = "2";
+        } else if ((teff > 9460.0) && (teff <= 9820.0)) {
+            subClass = "1";
+        } else if ((teff > 9820.0) && (teff < 10300.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 10300.0) && (teff < 29300.0)) {
+        spectralClass = "B";
+        if ((teff >= 10300.0) && (teff <= 10900.0)) {
+            subClass = "9";
+        } else if ((teff > 10900.0) && (teff <= 11700.0)) {
+            subClass = "8";
+        } else if ((teff > 11700.0) && (teff <= 12700.0)) {
+            subClass = "7";
+        } else if ((teff > 12700.0) && (teff <= 13800.0)) {
+            subClass = "6";
+        } else if ((teff > 13800.0) && (teff <= 15100.0)) {
+            subClass = "5";
+        } else if ((teff > 15100.0) && (teff <= 18300.0)) {
+            subClass = "3";
+        } else if ((teff > 18300.0) && (teff <= 20200.0)) {
+            subClass = "2";
+        } else if ((teff > 20200.0) && (teff <= 24500.0)) {
+            subClass = "1";
+        } else if ((teff > 24500.0) && (teff < 29300.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 29300.0) && (teff < 40000.0)) {
+        spectralClass = "O";
+        if ((teff >= 29300.0) && (teff <= 35000.0)) {
+            subClass = "8";
+        } else if ((teff > 35000.0) && (teff <= 36500.0)) {
+            subClass = "7";
+        } else if ((teff > 36500.0) && (teff <= 37800.0)) {
+            subClass = "6";
+        } else if ((teff > 37800.0) && (teff < 40000.0)) {
+            subClass = "5";
+        }
+    }
+}
 
+//Determine the spectralClass and subClass of supergiants and bright giants. lburns
+//var luminClass = "I" or luminClass = "II"
+if (((logg >= 0.0) && (logg < 1.0)) || ((logg >= 1.0) && (logg < 1.5))) {
+    if (teff < 2700.0) {
+        spectralClass = "L";
+        } else if ((teff >= 2700.0) && (teff < 3650.0)) {
+        spectralClass = "M";
+        if ((teff >= 2700.0) && (teff <= 2710.0)) {
+            subClass = "6";
+        } else if ((teff > 2710.0) && (teff <= 2880.0)) {
+            subClass = "5";
+        } else if ((teff > 2880.0) && (teff <= 3060.0)) {
+            subClass = "4";
+        } else if ((teff > 3060.0) && (teff <= 3210.0)) {
+            subClass = "3";
+        } else if ((teff > 3210.0) && (teff <= 3370.0)) {
+            subClass = "2";
+        } else if ((teff > 3370.0) && (teff <= 3490.0)) {
+            subClass = "1";
+        } else if ((teff > 3490.0) && (teff < 3650.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 3650.0) && (teff < 4600.0)) {
+        spectralClass = "K";
+        if ((teff >= 3650.0) && (teff <= 3830.0)) {
+            subClass = "7";
+        } else if ((teff > 3830.0) && (teff <= 3990.0)) {
+            subClass = "5";
+        } else if ((teff > 3990.0) && (teff <= 4090.0)) {
+            subClass = "4";
+        } else if ((teff > 4090.0) && (teff <= 4190.0)) {
+            subClass = "3";
+        } else if ((teff > 4190.0) && (teff <= 4430.0)) {
+            subClass = "1";
+        } else if ((teff > 4430.0) && (teff < 4600.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 4600.0) && (teff < 5500.0)) {
+        spectralClass = "G";
+        if ((teff >= 4600.0) && (teff <= 4700.0)) {
+            subClass = "8";
+        } else if ((teff > 4700.0) && (teff <= 5190.0)) {
+            subClass = "2";
+        } else if ((teff > 5190.0) && (teff < 5500.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 5500.0) && (teff < 7500.0)) {
+        spectralClass = "F";
+        if ((teff >= 5500.0) && (teff <= 5750.0)) {
+            subClass = "8";
+        } else if ((teff > 5750.0) && (teff <= 6370.0)) {
+            subClass = "5";
+        } else if ((teff > 6370.0) && (teff <= 7030.0)) {
+            subClass = "2";
+        } else if ((teff > 7030.0) && (teff < 7500.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 7500.0) && (teff < 10000.0)) {
+        spectralClass = "A";
+        if ((teff >= 7500.0) && (teff <= 7910.0)) {
+            subClass = "8";
+        } else if ((teff > 7910.0) && (teff <= 8610.0)) {
+            subClass = "5";
+        } else if ((teff > 8610.0) && (teff <= 9380.0)) {
+            subClass = "2";
+        } else if ((teff > 9380.0) && (teff < 10000.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 10000.0) && (teff < 27000.0)) {
+        spectralClass = "B";
+        if ((teff >= 10000.0) && (teff <= 10500.0)) {
+            subClass = "9";
+        } else if ((teff > 10500.0) && (teff <= 11100.0)) {
+            subClass = "8";
+        } else if ((teff > 11100.0) && (teff <= 11800.0)) {
+            subClass = "7";
+        } else if ((teff > 11800.0) && (teff <= 12600.0)) {
+            subClass = "6";
+        } else if ((teff > 12600.0) && (teff <= 13600.0)) {
+            subClass = "5";
+        } else if ((teff > 13600.0) && (teff <= 16000.0)) {
+            subClass = "3";
+        } else if ((teff > 16000.0) && (teff <= 17600.0)) {
+            subClass = "2";
+        } else if ((teff > 17600.0) && (teff <= 21400.0)) {
+            subClass = "1";
+        } else if ((teff > 21400.0) && (teff < 27000.0)) {
+            subClass = "0";
+        }
+    } else if ((teff >= 27000.0) && (teff < 42000.0)) {
+        spectralClass = "O";
+        if ((teff >= 27000.0) && (teff <= 34000.0)) {
+            subClass = "8";
+        } else if ((teff > 34000.0) && (teff <= 36200.0)) {
+            subClass = "7";
+        } else if ((teff > 36200.0) && (teff <= 38500.0)) {
+            subClass = "6";
+        } else if ((teff > 38500.0) && (teff < 42000.0)) {
+            subClass = "5";
+        }
+    }
+}
+
+//Determine luminClass based on logg
     if ((logg >= 0.0) && (logg < 1.0)) {
         luminClass = "I";
     } else if ((logg >= 1.0) && (logg < 1.5)) {
@@ -2304,14 +2766,15 @@ var jsonObj;
         luminClass = "V";
     } else if ((logg >= 5.0) && (logg < 6.0)) {
         luminClass = "VI";
-    } else if (logg >= 6.0) {
+    } else if ((logg >= 5.0)){
         luminClass = "WD";
     }
 
     var spectralType = "<a href='https://en.wikipedia.org/wiki/Stellar_classification' title='MK Spectral type' target='_blank'>" +
-            spectralClass + " " + luminClass +
+            spectralClass + subClass +  " " + luminClass +
             "</a>";
     txtPrint(spectralType, 600, 40, lineColor, textId);
+
     xTab = 140;
     var outString, fullNum, j;
     //var numReportable = numInputs - numPreStars - numPreLines - -numPrePlanets - numPerfModes - 1;

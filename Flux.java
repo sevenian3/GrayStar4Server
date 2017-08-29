@@ -279,6 +279,9 @@ public class Flux {
            for (int il = 0; il < numLams; il++){
            //for (int il = 0; il < numFine; il++){
               flx[il] = flx[il] + ( thisIntens[il] * thisThetFctr * delPhi );
+              if (flx[il] <= 0.0){
+                 flx[il] = 1.0e-49;
+              }
               //newFlx[il] = newFlx[il] + ( thisIntens[il] * thisThetFctr * delPhi );
               //console.log("il " + il + " thisIntens " + thisIntens[il] + " flx " + flx[il]);
            }

@@ -220,7 +220,7 @@ public class LineGrid {
 //
    
     public static double[][] lineGridVoigt(double lam0In, double massIn, double xiTIn,
-            int numDeps, double teff, int numCore, int numWing) {
+            int numDeps, double teff, int numCore, int numWing, String species) {
 
         double c = Useful.c;
         double logC = Useful.logC();
@@ -275,6 +275,15 @@ public class LineGrid {
         //double maxWingDeltaLogV = 1.5 * ln10; //maximum base e logarithmic shift from line centre in Doppler widths
         double minWingDeltaLogV = Math.log(maxCoreV + 1.5);
         double maxWingDeltaLogV = 9.0 + minWingDeltaLogV;
+
+      if(species=="HI" && teff>=7000){ 
+              maxCoreV = 3.5; 
+              minWingDeltaLogV = Math.log(maxCoreV + 1.5);
+              maxWingDeltaLogV = 12.0 + minWingDeltaLogV;
+
+//console.log("2)"+maxWingDeltaLogV);
+      }
+
 
         double logV, ii, jj;
 

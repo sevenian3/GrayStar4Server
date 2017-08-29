@@ -380,7 +380,7 @@ public class LineProf {
                 //lineProf[il][id] = Math.exp(logVoigt);
                 lineProf[il][id] = voigt;
                 if (lineProf[il][id] <= 0.0){
-                    lineProf[il][id] = -49.0;
+                    lineProf[il][id] = 1.0e-49;
                 }
                // if (id == 12) {
                 //    System.out.println("il " + il + " linePoints " + 1.0e7 * linePoints[0][il] + " id " + id + " lineProf[il][id] " + lineProf[il][id]);
@@ -404,7 +404,7 @@ public class LineProf {
 
     public static double[][] stark(double[][] linePoints, double lam0In, double logAij, double logGammaCol,
             int numDeps, double teff, double[][] tauRos, double[][] temp, double[][] pGas, double[][] Ne,
-            double[][] tempSun, double[][] pGasSun, double[][] hjertComp) {
+            double[][] tempSun, double[][] pGasSun, double[][] hjertComp, String lineName) {
 
         double c = Useful.c;
         double logC = Useful.logC();
@@ -468,17 +468,27 @@ public class LineProf {
    //Parameters for linear Stark broadening:
    //Assymptotic ("far wing") "K" parameters
    //Stehle & Hutcheon, 1999, A&A Supp Ser, 140, 93 and CDS data table
+   //http://vizier.cfa.harvard.edu/viz-bin/VizieR?-source=VI/98A
    //Assume K has something to do with "S" and proceed as in Observation and Analysis of
    // Stellar Photosphere, 3rd Ed. (D. Gray), Eq. 11.50,
    //
-   double logTuneStark = Math.log(1.0e9); //convert DeltaI K parameters to deltaS STark profile parameters
-   double[] logKStark = new double[5];
+   double logTuneStark = Math.log(3.16e7); //convert DeltaI K parameters to deltaS STark profile parameters
+   double[] logKStark = new double[11];
    logKStark[0] = Math.log(2.56e-03) + logTuneStark;  //Halpha
    logKStark[1] = Math.log(7.06e-03) + logTuneStark;   //Hbeta
    logKStark[2] = Math.log(1.19e-02) + logTuneStark;  //Hgamma
    logKStark[3] = Math.log(1.94e-02) + logTuneStark;  //Hdelta
    logKStark[4] = Math.log(2.95e-02) + logTuneStark;  //Hepsilon
+   logKStark[5] = Math.log(4.62e-02) + logTuneStark;  //H8 JB
+   logKStark[6] = Math.log(6.38e-02) + logTuneStark;  //H9 JB
+   logKStark[7] = Math.log(8.52e-02) + logTuneStark;  //H10 JB
+   logKStark[8] = Math.log(1.12e-01) + logTuneStark;  //H11 JB
+   logKStark[9] = Math.log(1.43e-01) + logTuneStark;  //H12 JB
+   logKStark[10] = Math.log(1.80e-01) + logTuneStark;  //H13 JB
+   //logKStark[11] = Math.log(2.11) + logTuneStark; //H30 JB
+
    double thisLogK = logKStark[4]; //default initialization
+   //double thisLogK = logKStark[10]; //default initialization
    //which Balmer line are we?  crude but effective:
    if (lam0In > 650.0e-7){
       thisLogK = logKStark[0];  //Halpha
@@ -500,6 +510,14 @@ public class LineProf {
       //System.out.println("Hepsilon");
       thisLogK = logKStark[4];  //Hepsilon
    }
+//   if ((lam0In < 390.0e-7)){
+//
+////This won't work here - "species" is always just "HI":
+//      int numberInName = (int) lineName.substring("HI".length());
+//      //console.log(numberInName);
+//      thisLogK = logKStark[numberInName-3];
+//   }
+
 
 //
    double F0, logF0, lamOverF0, logLamOverF0; //electrostatic field strength (e.s.u.)
@@ -574,7 +592,7 @@ public class LineProf {
 //Approximate Hjerting fn with power expansion in Voigt "a" parameter
 // "Observation & Analysis of Stellar Photospeheres" (D. Gray), 3rd Ed., p. 258:
           hjertFn = Hjert0 + a*Hjert1 + a2*Hjert2 + a3*Hjert3 + a4*Hjert4;
-          logStark = -49.0; //re-initialize
+          logStark = -49; //re-initialize
 
             if (vAbs > 2.0) {
 
@@ -616,7 +634,7 @@ public class LineProf {
                 //lineProf[il][id] = Math.exp(logVoigt);
                 lineProf[il][id] = voigt;
                 if (lineProf[il][id] <= 0.0){
-                    lineProf[il][id] = -49.0;
+                    lineProf[il][id] = 1.0e-49;
                 }
                 //if (id == 24) {
                 //    System.out.println("lam0In " + lam0In);

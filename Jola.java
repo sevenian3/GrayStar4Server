@@ -298,6 +298,9 @@ public class Jola{
 
 //extinction coefficient in cm^2 g^-1:
           logKappaJola[iW][iD] = logSigma + jolaLogNums[iD] - rho[1][iD] + Math.log(stimEm); 
+          if (logKappaJola[iW][iD] > 49.0){
+            logKappaJola[iW][iD] = 49.0;
+          }
           //logKappaJola[iW][iD] = -999.0; 
           //if (iD%10 == 1){
             //System.out.println("iD " + iD + " iW " + iW + " logFreq " + log10E*logFreq + " logW " + log10E*logW + " logStimEm " + log10E*Math.log(stimEm));

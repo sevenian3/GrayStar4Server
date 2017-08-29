@@ -20,6 +20,9 @@ $rotI = "";
 $nInnerIter = "";
 $nOuterIter = "";
 $ifTiO = "";
+$logHeFe = "";
+$logCO = "";
+$logAlphaFe = "";
 
 
 $teff = $_POST['teff'];
@@ -40,6 +43,9 @@ $rotI = $_POST['rotI'];
 $nInnerIter = $_POST['nInnerIter'];
 $nOuterIter = $_POST['nOuterIter'];
 $ifTiO = $_POST['ifTiO'];
+$logHeFe = $_POST['logHeFe'];
+$logCO = $_POST['logCO'];
+$logAlphaFe = $_POST['logAlphaFe'];
 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -60,6 +66,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
    $nInnerIter = test_input($_POST['nInnerIter']);
    $nOuterIter = test_input($_POST['nOuterIter']);
    $ifTiO = test_input($_POST['ifTiO']);  
+   $logHeFe = test_input($_POST['logHeFe']);
+   $logCO = test_input($_POST['logCO']);
+   $logAlphaFe = test_input($_POST['logAlphaFe']);
 }
 
 //validation and sanitization
@@ -71,9 +80,7 @@ function test_input($data) {
 }
 
 
-
 // WARNING: Must be consistent with values in ChromaStar!
-
 
 /*
 ////hard-wired values for testing:
@@ -96,11 +103,13 @@ $rotI = "90.0";
 $nInnerIter = "2";
 $nOuterIter = "2";
 $ifTiO = "0";
+$logHeFe = "0.0";
+$logCO = "0.0";
+$logAlphaFe = "0.0";
 */
 
-
 //echo $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh  . ' ' . $lambdaStart  . ' ' . $lambdaStop;
-$argLine = 'java -cp ./chromastarserver -jar ChromaStarServer.jar ' . ' ' . $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh . ' ' . $lambdaStart . ' ' . $lambdaStop  . ' ' . $sampling . ' ' . $logGammaCol  . ' ' . $logKapFudge . ' ' . $macroV . ' ' . $rotV . ' ' . $rotI . ' ' . $nOuterIter . ' ' . $nInnerIter . ' ' . $ifTiO; 
+$argLine = 'java -cp ./chromastarserver -jar ChromaStarServer.jar ' . ' ' . $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh . ' ' . $lambdaStart . ' ' . $lambdaStop  . ' ' . $sampling . ' ' . $logGammaCol  . ' ' . $logKapFudge . ' ' . $macroV . ' ' . $rotV . ' ' . $rotI . ' ' . $nOuterIter . ' ' . $nInnerIter . ' ' . $ifTiO . ' ' . $logHeFe . ' ' . $logCO . ' ' . $logAlphaFe; 
 
 //print_r($argLine);
 exec($argLine, $outArray, $returnVar);

@@ -252,6 +252,16 @@ public class ChromaStarServer {
         String ifTiOStr = args[17];
         int ifTiO = (Integer.valueOf(ifTiOStr)).intValue();
         //int ifTiO = 1; //test
+//Argument 19 Helium abundance [He/Fe]:
+        String logHeFeStr = args[18];
+        double logHeFe = (Double.valueOf(logHeFeStr)).doubleValue();
+//Argument 20: Carbon-to-Oxygen abundance ratio:
+        String logCOStr = args[19];
+        double logCO = (Double.valueOf(logCOStr)).doubleValue();
+//Argument 21: alpha enhancement:
+        String logAlphaFeStr = args[20];
+        double logAlphaFe = (Double.valueOf(logAlphaFeStr)).doubleValue();
+
 
 //
         if (macroV < 0.0) {
@@ -300,6 +310,38 @@ public class ChromaStarServer {
             nInnerIter = 12;
             nInnerIterStr = "12";
         }
+
+// For new metallicity commands lburns
+// For logHeFe: (lburns)
+    if (logHeFe < -1.0) {
+        logHeFe = -1.0;
+        logHeFeStr = "-1.0";
+    }
+    if (logHeFe > 1.0) {
+        logHeFe = 1.0;
+        logHeFeStr = "1.0";
+    }
+
+// For logCO: (lburns)
+    if (logCO < -2.0) {
+        logCO = -2.0;
+        logCOStr = "-2.0";
+    }
+    if (logCO > 2.0) {
+        logCO = 2.0;
+        logCOStr = "2.0";
+    }
+
+// For logAlphaFe: (lburns)
+    if (logAlphaFe < -0.5) {
+        logAlphaFe = -0.5;
+        logAlphaFeStr = "-0.5";
+    }
+    if (logAlphaFe > 0.5) {
+        logAlphaFe = 0.5;
+        logAlphaFeStr = "0.5";
+    }
+
 
 //For rotation:
     double inclntn = Math.PI * rotI / 180;  //degrees to radians
@@ -651,6 +693,32 @@ public class ChromaStarServer {
 
   double ATot = 0.0;
   double thisAz, eheuScale;
+
+     // Set value of eheuScale for new metallicity options. 06/17 lburns
+      if (logHeFe != 0.0) {
+           eheu[1] = eheu[1] + logHeFe;
+        }
+        if (logAlphaFe != 0.0) {
+           eheu[7] = eheu[7] + logAlphaFe;
+           eheu[9] = eheu[9] + logAlphaFe;
+           eheu[11] = eheu[11] + logAlphaFe;
+           eheu[13] = eheu[13] + logAlphaFe;
+           eheu[15] = eheu[15] + logAlphaFe;
+           eheu[17] = eheu[17] + logAlphaFe;
+           eheu[19] = eheu[19] + logAlphaFe;
+           eheu[21] = eheu[21] + logAlphaFe;
+        }
+        if (logCO > 0.0) {
+           eheu[5] = eheu[5] + logCO;
+           //console.log("logCO " + logCO);
+        }
+        if (logCO < 0.0) {
+           eheu[7] = eheu[7] + Math.abs(logCO);
+           //console.log("logCO " + logCO);
+        }
+        //console.log("logCO " + logCO);
+
+
   for (int i = 0; i < nelemAbnd; i++){
      eheuScale = eheu[i];  //default initialization //still base 10
      if (i > 1){ //if not H or He
@@ -821,10 +889,11 @@ public class ChromaStarServer {
   double[][] tauOneStagePops = new double[nelemAbnd][numStages];
   double unity = 1.0;
   double zScaleList = 1.0; //initialization   
-  double[][] log10UwAArr = new double[numStages][2];
+  double[][] log10UwAArr = new double[numStages][5];
   for (int i = 0; i < numStages; i++){
-    log10UwAArr[i][0] = 0.0; //default initialization - logarithmic
-    log10UwAArr[i][1] = 0.0; //default initialization - logarithmic
+    for (int k = 0; k < log10UwAArr[0].length; k++){
+        log10UwAArr[i][k] = 0.0; //lburns default initialization - logarithmic
+    }
   }
  
 //Ground state ionization E - Stage I (eV) 
@@ -883,7 +952,7 @@ public class ChromaStarServer {
 //for diatomic molecules
   double[][] logNumBArr = new double[numAssocMols][numDeps];
 //We will interpolate in atomic partition fns tabulated at two temperatures
-  double[][] log10UwBArr = new double[numAssocMols][2]; //base 10 log
+  double[][] log10UwBArr = new double[numAssocMols][5]; //base 10 log
 
   double[] dissEArr = new double[numAssocMols];
 //We will interpolate in molecular partition fns tabulated at five temperatures
@@ -905,8 +974,8 @@ public class ChromaStarServer {
 // converging the Pgas-Pe-N_H-N_He relation for computing the mean opacity for HSE
 //
 double[] thisTemp = new double[2];
-double[] log10UwUArr = new double[2];
-double[] log10UwLArr = new double[2];
+double[] log10UwUArr = new double[5];
+double[] log10UwLArr = new double[5];
 double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOverPe, logPeNumerTerm, logPeDenomTerm;
 //Begin Pgas-kapp iteration
     for (int pIter = 0; pIter < nOuterIter; pIter++){
@@ -929,9 +998,9 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
            chiI = IonizationEnergy.getIonE(species);
     //THe following is a 2-element vector of temperature-dependent partitio fns, U, 
     // that are base 10 log_10 U
-           log10UwLArr = PartitionFn.getPartFn(species); //base 10 log_10 U
+           log10UwLArr = PartitionFn.getPartFn2(species); //base 10 log_10 U
            species = cname[iElem] + "II";
-           log10UwUArr = PartitionFn.getPartFn(species); //base 10 log_10 U
+           log10UwUArr = PartitionFn.getPartFn2(species); //base 10 log_10 U
            logPhi = LevelPopsServer.sahaRHS(chiI, log10UwUArr, log10UwLArr, thisTemp);
            logPhiOverPe = logPhi - guessPe[1][iD];
            logOnePlusPhiOverPe = Math.log(1.0 + Math.exp(logPhiOverPe)); 
@@ -974,8 +1043,9 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
            for (int j = 0; j < numDeps; j++){
                logNumBArr[i][j] = -49.0;
            }
-           log10UwBArr[i][0] = 0.0;
-           log10UwBArr[i][1] = 0.0;
+           for (int k = 0; k < log10UwBArr[i].length; k++){
+                log10UwBArr[i][k] = 0.0; // default initialization lburns
+           }
            dissEArr[i] = 29.0;  //eV
            for (int kk = 0; kk < 5; kk++){ 
                logQwABArr[i][kk] = Math.log(300.0);
@@ -1021,22 +1091,22 @@ double chiI, peNumerator, peDenominator, logPhi, logPhiOverPe, logOnePlusPhiOver
        chiIArr[0] = IonizationEnergy.getIonE(species);
     //THe following is a 2-element vector of temperature-dependent partitio fns, U, 
     // that are base 10 log_10 U
-       log10UwAArr[0] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[0] = PartitionFn.getPartFn2(species); //base 10 log_10 U
        species = cname[iElem] + "II";
        chiIArr[1] = IonizationEnergy.getIonE(species);
-       log10UwAArr[1] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[1] = PartitionFn.getPartFn2(species); //base 10 log_10 U
        species = cname[iElem] + "III";
        chiIArr[2] = IonizationEnergy.getIonE(species);
-       log10UwAArr[2] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[2] = PartitionFn.getPartFn2(species); //base 10 log_10 U
        species = cname[iElem] + "IV";
        chiIArr[3] = IonizationEnergy.getIonE(species);
-       log10UwAArr[3] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[3] = PartitionFn.getPartFn2(species); //base 10 log_10 U
        species = cname[iElem] + "V";
        chiIArr[4] = IonizationEnergy.getIonE(species);
-       log10UwAArr[4] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[4] = PartitionFn.getPartFn2(species); //base 10 log_10 U
        species = cname[iElem] + "VI";
        chiIArr[5] = IonizationEnergy.getIonE(species);
-       log10UwAArr[5] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[5] = PartitionFn.getPartFn2(species); //base 10 log_10 U
        //double logN = (eheu[iElem] - 12.0) + logNH;
 
        int thisNumMols = 0; //default initialization
@@ -1084,7 +1154,7 @@ thisNumMols = 0;
           }
           dissEArr[iMol] = IonizationEnergy.getDissE(mname[mname_ptr[iMol]]);
           species = cname[specB_ptr[iMol]] + "I"; //neutral stage
-          log10UwBArr[iMol] = PartitionFn.getPartFn(species); //base 10 log_10 U
+          log10UwBArr[iMol] = PartitionFn.getPartFn2(species); //base 10 log_10 U
           //logQwABArr[iMol] = defaultQwAB;
           logQwABArr[iMol] = PartitionFn.getMolPartFn(mname[mname_ptr[iMol]]);
           //Compute the reduced mass, muAB, in g:
@@ -1170,7 +1240,7 @@ thisNumMols = 0;
 
  } //end Pgas-kappa iteration, nOuter
 
-//diagnostic
+//diagnostic for ChromaStarDB paper (May 2017):
    ////int tauKapPnt01 = ToolBox.tauPoint(numDeps, tauRos, 0.01);
    ////System.out.println("logTauRos " + logE*tauRos[1][tauKapPnt01] + " temp " + temp[0][tauKapPnt01] + " pGas " + logE*pGas[1][tauKapPnt01]);
    //System.out.println("tau " + " temp " + " logPgas " + " logPe " + " logRho "); 
@@ -1186,11 +1256,11 @@ thisNumMols = 0;
    //        //System.out.println(" " + logE*(logKappa[iL][iD]));  //cm^2/g
    //    }
    //} 
-   //int tauKapPnt1 = ToolBox.tauPoint(numDeps, tauRos, 1.0);
-   //System.out.println("logTauRos " + logE*tauRos[1][tauKapPnt1] + " temp " + temp[0][tauKapPnt1] + " pGas " + logE*pGas[1][tauKapPnt1]);
-   //for (int iL = 0; iL < numLams; iL++){
-   //    //System.out.println(" " + lambdaScale[iL] + " " + logE*logKappa[iL][tauKapPnt1]); 
-   //} 
+   ////int tauKapPnt1 = ToolBox.tauPoint(numDeps, tauRos, 1.0);
+   ////System.out.println("logTauRos " + logE*tauRos[1][tauKapPnt1] + " temp " + temp[0][tauKapPnt1] + " pGas " + logE*pGas[1][tauKapPnt1]);
+   ////for (int iL = 0; iL < numLams; iL++){
+   ////    //System.out.println(" " + lambdaScale[iL] + " " + logE*logKappa[iL][tauKapPnt1]); 
+   ////} 
 
         // Then construct geometric depth scale from tau, kappa and rho
         depths = DepthScale.depthScale(numDeps, tauRos, kappaRos, rho);
@@ -1249,8 +1319,9 @@ thisNumMols = 0;
            for (int j = 0; j < numDeps; j++){
                logNumBArr[i][j] = -49.0;
            }
-           log10UwBArr[i][0] = 0.0;
-           log10UwBArr[i][1] = 0.0;
+           for (int k = 0; k < log10UwBArr[i].length; k++){
+                log10UwBArr[i][k] = 0.0; // default initialization lburns
+           }
            dissEArr[i] = 29.0;  //eV
            for (int kk = 0; kk < 5; kk++){
                logQwABArr[i][kk] = Math.log(300.0);
@@ -1267,9 +1338,10 @@ thisNumMols = 0;
    //For element A of main molecule being treated in *molecular* equilibrium:
    //For safety, assign default values where possible
        double nmrtrDissE = 15.0; //prohitively high by default
-       double[] nmrtrLog10UwB = new double[2];
-       nmrtrLog10UwB[0] = 0.0;
-       nmrtrLog10UwB[1] = 0.0;
+       double[] nmrtrLog10UwB = new double[5];
+       for (int k = 0; k < nmrtrLog10UwB.length; k++){
+            nmrtrLog10UwB[k] = 0.0; // default initialization lburns
+       }
        double nmrtrLog10UwA = 0.0;
        double[] nmrtrLogQwAB = new double[5];
        for (int kk = 0; kk < 5; kk++){
@@ -1298,22 +1370,22 @@ thisNumMols = 0;
        chiIArr[0] = IonizationEnergy.getIonE(species);
     //THe following is a 2-element vector of temperature-dependent partitio fns, U,
     // that are base 10 log_10 U
-       log10UwAArr[0] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[0] = PartitionFn.getPartFn2(species); //base 10 log_10 U
        species = cname[iElem] + "II";
        chiIArr[1] = IonizationEnergy.getIonE(species);
-       log10UwAArr[1] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[1] = PartitionFn.getPartFn2(species); //base 10 log_10 U
        species = cname[iElem] + "III";
        chiIArr[2] = IonizationEnergy.getIonE(species);
-       log10UwAArr[2] = PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[2] = PartitionFn.getPartFn2(species); //base 10 log_10 U
        species = cname[iElem] + "IV";
        chiIArr[3] = IonizationEnergy.getIonE(species);
-       log10UwAArr[3]= PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[3]= PartitionFn.getPartFn2(species); //base 10 log_10 U
        species = cname[iElem] + "V";
        chiIArr[4] = IonizationEnergy.getIonE(species);
-       log10UwAArr[4]= PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[4]= PartitionFn.getPartFn2(species); //base 10 log_10 U
        species = cname[iElem] + "VI";
        chiIArr[5] = IonizationEnergy.getIonE(species);
-       log10UwAArr[5]= PartitionFn.getPartFn(species); //base 10 log_10 U
+       log10UwAArr[5]= PartitionFn.getPartFn2(species); //base 10 log_10 U
 
        int thisNumMols = 0; //default initialization
        for (int iMol = 0; iMol < numAssocMols; iMol++){
@@ -1358,7 +1430,7 @@ thisNumMols = 0;
           }
           dissEArr[iMol] = IonizationEnergy.getDissE(mname[mname_ptr[iMol]]);
           species = cname[specB_ptr[iMol]] + "I"; //neutral stage
-          log10UwBArr[iMol] = PartitionFn.getPartFn(species); //base 10 log_10 U
+          log10UwBArr[iMol] = PartitionFn.getPartFn2(species); //base 10 log_10 U
           //logQwABArr[iMol] = defaultQwAB;
           logQwABArr[iMol] = PartitionFn.getMolPartFn(mname[mname_ptr[iMol]]);
           //Compute the reduced mass, muAB, in g:
@@ -1388,7 +1460,7 @@ thisNumMols = 0;
 // element A
 // mname_ptr[] is an array of pointers pointing to the molecules themselves that are
 // associated with element A
-   double[] log10UwA = new double[2];
+   double[] log10UwA = new double[5];
    for (int iMol = 0; iMol < nMols; iMol++){
 
  //Find elements A and B in master atomic element list:
@@ -1402,7 +1474,7 @@ thisNumMols = 0;
     }
 // Get its partition fn:
     species = cname[specA_ptr] + "I"; //neutral stage
-    log10UwA = PartitionFn.getPartFn(species); //base 10 log_10 U
+    log10UwA = PartitionFn.getPartFn2(species); //base 10 log_10 U
     for (int jj = 0; jj < nelemAbnd; jj++){
        if (mnameB[iMol] == cname[jj]){
          specB2_ptr = jj;
@@ -1465,7 +1537,7 @@ thisNumMols = 0;
           }
           dissEArr[im] = IonizationEnergy.getDissE(mname[mname_ptr[im]]);
           species = cname[specB_ptr[im]] + "I";
-          log10UwBArr[im] = PartitionFn.getPartFn(species); //base 10 log_10 U
+          log10UwBArr[im] = PartitionFn.getPartFn2(species); //base 10 log_10 U
           //logQwABArr[im] = defaultQwAB;
           logQwABArr[im] = PartitionFn.getMolPartFn(mname[mname_ptr[im]]);
           //Compute the reduced mass, muAB, in g:
@@ -1476,8 +1548,9 @@ thisNumMols = 0;
  // the population - pick this out for the numerator in the master fraction:
           if (mname[mname_ptr[im]] == mname[iMol]){
               nmrtrDissE = dissEArr[im];
-              nmrtrLog10UwB[0] = log10UwBArr[im][0];
-              nmrtrLog10UwB[1] = log10UwBArr[im][1];
+               for (int k = 0; k < nmrtrLog10UwB.length; k++){
+                   nmrtrLog10UwB[k] = log10UwBArr[im][k]; // default initialization lburns
+              }
               for (int kk = 0; kk < 5; kk++){
                   nmrtrLogQwAB[kk] = logQwABArr[im][kk];
               }
@@ -1872,9 +1945,11 @@ String dataPath = "./InputData/";
         boolean isFirstLine = true; //initialization
         int firstLine = 0; //default initialization
 // This holds 2-element temperature-dependent base 10 logarithmic parition fn:
-        double[] thisUwV = new double[2];
-        thisUwV[0] = 0.0; //default initialization
-        thisUwV[1] = 0.0;
+        double[] thisUwV = new double[5];
+   // Below created a loop to initialize each value to zero for the five temperatures lburns
+   for (int i = 0; i < thisUwV.length; i++) {
+        thisUwV[i] = 0.0;
+   }
         for (int iLine = 0; iLine < numLines2; iLine++) {
 
             //No! ifThisLine[iLine] = false;
@@ -1923,7 +1998,7 @@ String dataPath = "./InputData/";
                   species = cname[jj] + "VI";
                   logNums_ptr = 7;
                 }
-                thisUwV = PartitionFn.getPartFn(species); //base 10 log_10 U
+                thisUwV = PartitionFn.getPartFn2(species); //base 10 log_10 U
                  break;   //we found it
              }
              iAbnd++;
@@ -2082,8 +2157,9 @@ String dataPath = "./InputData/";
         double[][] hjertComp = HjertingComponents.hjertingComponents();
 
 // This holds 2-element temperature-dependent base 10 logarithmic parition fn:
-        thisUwV[0] = 0.0; //default initialization
-        thisUwV[1] = 0.0;
+        for (int k = 0; k < thisUwV.length; k++){
+           thisUwV[k] = 0.0; //default initialization
+        }
 
         double[][] listLineProf = new double[listNumPoints][numDeps];
 
@@ -2134,7 +2210,7 @@ String dataPath = "./InputData/";
                   species = cname[jj] + "VI";
                   logNums_ptr = 7;
                 }
-                thisUwV = PartitionFn.getPartFn(species); //base 10 log_10 U
+                thisUwV = PartitionFn.getPartFn2(species); //base 10 log_10 U
                  break;   //we found it
                  }
              iAbnd++;
@@ -2170,7 +2246,7 @@ String dataPath = "./InputData/";
 //            double[][] listLineProf = LineProf.gauss(listLinePoints, list2Lam0[gaussLine_ptr[iLine]],
 //                    numDeps, teff, tauRos, temp, tempSun);
             // Gaussian + Lorentzian approximation to profile (voigt()):
-            double[][] listLinePoints = LineGrid.lineGridVoigt(list2Lam0[gaussLine_ptr[iLine]], list2Mass[gaussLine_ptr[iLine]], xiT, numDeps, teff, listNumCore, listNumWing);
+            double[][] listLinePoints = LineGrid.lineGridVoigt(list2Lam0[gaussLine_ptr[iLine]], list2Mass[gaussLine_ptr[iLine]], xiT, numDeps, teff, listNumCore, listNumWing, species);
             //if ( (list2Element[gaussLine_ptr[iLine]].equals("Na")) && (list2Stage[gaussLine_ptr[iLine]] == 0) ){
             //   System.out.println("iLine "+ iLine+ " gaussLine_ptr "+ gaussLine_ptr[iLine]+ " list2Lam0 "+ list2Lam0[gaussLine_ptr[iLine]]+ " list2LogAij "+ 
           //list2LogAij[gaussLine_ptr[iLine]]+ " list2LogGammaCol "+ list2LogGammaCol[gaussLine_ptr[iLine]]+ " list2Logf "+ list2Logf[gaussLine_ptr[iLine]]);
@@ -2179,7 +2255,7 @@ String dataPath = "./InputData/";
  //System.out.println("Calling Stark...");
                  listLineProf = LineProf.stark(listLinePoints, list2Lam0[gaussLine_ptr[iLine]], list2LogAij[gaussLine_ptr[iLine]],
                     list2LogGammaCol[gaussLine_ptr[iLine]],
-                    numDeps, teff, tauRos, temp, pGas, newNe, tempSun, pGasSun, hjertComp);
+                    numDeps, teff, tauRos, temp, pGas, newNe, tempSun, pGasSun, hjertComp, species);
             } else {
                  listLineProf = LineProf.voigt(listLinePoints, list2Lam0[gaussLine_ptr[iLine]], list2LogAij[gaussLine_ptr[iLine]],
                     list2LogGammaCol[gaussLine_ptr[iLine]],
@@ -2196,10 +2272,10 @@ String dataPath = "./InputData/";
             //        for (int iL = 0; iL < listNumPoints; iL++){
             //            if (iL%2 == 0){
             //                System.out.println("iTau "+ iTau+ " iL "+ iL+ " listLinePoints[0]&[1] "+ listLinePoints[0][iL]+ "  "+ listLinePoints[1][iL]+" listLineProf "+ listLineProf[iL][iTau]  + " listLogKappaL "+ logE*listLogKappaL[iL][iTau]);
-            //            }
-            //        }
-            //    }
-            //  }
+             //           }
+             //       }
+             //   }
+             // }
             // }
             double[] listLineLambdas = new double[listNumPoints];
             for (int il = 0; il < listNumPoints; il++) {
@@ -2221,6 +2297,16 @@ String dataPath = "./InputData/";
             }
           //No! } //ifThisLine strength condition
         } //numLines loop
+
+       //  for (int iL = 0; iL < numNow; iL++) {
+       //      System.out.println("logMasterKaps iL " + iL + " masterLams " + masterLams[iL]);
+       //      for (int iD = 0; iD < numDeps; iD+=5) {
+       //          //Still need to put in multi-Gray levels here:
+       //          System.out.println(" " + logMasterKaps[iL][iD]);
+       //      }
+       //  }
+
+
 ////
 
  if (teff <= jolaTeff){

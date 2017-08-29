@@ -38,8 +38,8 @@ c******************************************************************************
 
          double[][] masterRScat = new double[numLams][numDeps];
 
-         double[] logUH1 = new double[2];
-         double[] logUHe1 = new double[2];
+         double[] logUH1 = new double[5];
+         double[] logUHe1 = new double[5];
 
          double logStatWH1 = 0.0;
          double logStatWHe1 = 0.0;
@@ -55,29 +55,43 @@ c******************************************************************************
          double[] sigHe1 = new double[numDeps];
 
          species = "HI";
-         logUH1 = PartitionFn.getPartFn(species);
+         logUH1 = PartitionFn.getPartFn2(species);
          species = "HeI";
-         logUHe1 = PartitionFn.getPartFn(species);
+         logUHe1 = PartitionFn.getPartFn2(species);
 
          //System.out.println("iD     PopsH1     PopsHe1");
          for (int iD = 0; iD < numDeps; iD++){
-//neutral stage
-//Assumes ground state stat weight, g_1, is 1.0
-            theta = 5040.0 / temp[0][iD];
-// U[0]: theta = 1.0, U[1]: theta = 0.5
-            if (theta <= 0.5){
-               logStatWH1 = logUH1[1];
-               logStatWHe1 = logUHe1[1];
-            } else if ( (theta < 1.0) && (theta > 0.5) ){
-               logStatWH1 = ( (theta-0.5) * logUH1[0] ) + ( (1.0-theta) * logUH1[1] );
-               logStatWHe1 = ( (theta-0.5) * logUHe1[0] ) + ( (1.0-theta) * logUHe1[1] );
-               //divide by common factor of interpolation interval of 0.5 = (1.0 - 0.5):
-               logStatWH1 = 2.0 * logStatWH1; 
-               logStatWHe1 = 2.0 * logStatWHe1; 
+// NEW Interpolation with temperature for new partition function: lburns
+            double thisTemp = temp[0][iD];
+            if (thisTemp <= 130){
+                logStatWH1 = logUH1[0];
+                logStatWHe1 = logUHe1[0];
+            } else if (thisTemp > 130 && thisTemp <= 500){
+                logStatWH1 = logUH1[1] * (thisTemp - 130)/(500 - 130)
+                           + logUH1[0] * (500 - thisTemp)/(500 - 130);
+                logStatWHe1 = logUHe1[1] * (thisTemp - 130)/(500 - 130)
+                            + logUHe1[0] * (500 - thisTemp)/(500 - 130);
+            } else if (thisTemp > 500 && thisTemp <= 3000){
+                logStatWH1 = logUH1[2] * (thisTemp - 500)/(3000 - 500)
+                           + logUH1[1] * (3000 - thisTemp)/(3000 - 500);
+                logStatWHe1 = logUHe1[2] * (thisTemp - 500)/(3000 - 500)
+                            + logUHe1[1] * (3000 - thisTemp)/(3000 - 500);
+            } else if (thisTemp > 3000 && thisTemp <= 8000){
+                logStatWH1 = logUH1[3] * (thisTemp - 3000)/(8000 - 3000)
+                           + logUH1[2] * (8000 - thisTemp)/(8000 - 3000);
+                logStatWHe1 = logUHe1[3] * (thisTemp - 3000)/(8000 - 3000)
+                            + logUHe1[2] * (8000 - thisTemp)/(8000 - 3000);
+            } else if (thisTemp > 8000 && thisTemp < 10000){
+                logStatWH1 = logUH1[4] * (thisTemp - 8000)/(10000 - 8000)
+                           + logUH1[3] * (10000 - thisTemp)/(10000 - 8000);
+                logStatWHe1 = logUHe1[4] * (thisTemp - 8000)/(10000 - 8000)
+                            + logUHe1[3] * (10000 - thisTemp)/(10000 - 8000);
             } else {
-               logStatWH1 = logUH1[0];
-               logStatWHe1 = logUHe1[0];
-            }  
+            // for temperatures of greater than or equal to 10000K lburns
+                logStatWH1 = logUH1[4];
+                logStatWHe1 = logUHe1[4];
+            }
+
             logGroundPopsH1[iD] = stagePops[0][0][iD] - logStatWH1; 
             logGroundPopsHe1[iD] = stagePops[1][0][iD] - logStatWHe1; 
 

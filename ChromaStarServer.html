@@ -135,7 +135,7 @@
                     handleShape: "round",
                     sliderType: "min-range",
                     value: "5777",
-                    min: "3200",
+                    min: "3400",
                     max: "50000",
                     step: "1",
                     showTooltip: "true",
@@ -149,7 +149,7 @@
                     sliderType: "min-range",
                     value: "4.44",
                     min: "0.00",
-                    max: "7.00",
+                    max: "5.50",
                     step: "0.01",
                     showTooltip: "true",
                     editableTooltip: "true"
@@ -336,7 +336,7 @@
                             <td>
                                 <span title="Surface temperature of spherical blackbody radiation emitter of equivalent bolometric surface flux, in Kelvins (K)"> 
                                     <a href="http://en.wikipedia.org/wiki/Effective_temperature" target="_blank">Effective temperature, <em>T</em><sub>eff</sub></a> <br />
-                                    (3200-50000)</span> 
+                                    (3400-50000)</span> 
                                     <a href="http://en.wikipedia.org/wiki/Kelvin" target="_blank">K</a>) <br />
                                     <!-- <input id="Teff" type="number" name="Teff" value=5800 size="5" min="3500" max="25000" step="25"/> -->
                                     <!-- <input id="Teff" type="range" name="Teff" value="5800" min="3500" max="25000" step="10" onchange="displayTeff()"/> -->
@@ -349,7 +349,7 @@
                             <td>
                                 <span title="log(GM/R^2; M=mass, R=radius, cgs units, 2.0: Giant, 5.0: Dwarf">
                                     <a href="http://en.wikipedia.org/wiki/Surface_gravity" target="_blank">Log<sub>10</sub> surface gravity, log(<em>g</em>)</a> <br />
-                                    (0.0 - 7.0 cm s<sup>-2</sup> = dynes g<sup>-1</sup>) <br />
+                                    (0.0 - 5.5 cm s<sup>-2</sup> = dynes g<sup>-1</sup>) <br />
                                     <!-- <input id="logg" type="number" name="logg" value=4.5 size="3" min="1.5" max="5.5" step="0.25"/><br /> -->
                                     <!-- <input id="logg" type="range" name="logg" value=4.5 min="1.5" max="5.5" step="0.25" onchange="displayLogg()"/>-->
                                 </span>
@@ -398,6 +398,31 @@
                                 <span title="Logarithmic mass extinction adjustment - can be positive or negative">
                                     &#954<sub>Fudge</sub> log<sub>10</sub> mass extinction (-2.0 - 2.0 log cm<sup>2</sup> g<sup>-1</sup>) <br />
                                     <input id="logKapFudge" type="number" name="logKapFudge" value="0.0" size="3" min="-2.0" max="2.0" step="0.1"/>
+                                </span>
+                            </td>
+                                <!-- Below are the new metallicity controls lburns June 2017 -->
+                                <!-- [He/Fe] lburns -->
+                            <td>
+                                <span title="log_10(N_He/N_Fe) - log_10(N_He/N_Fe)_Sun">
+                                    <a href="https://en.wikipedia.org/wiki/Metallicity" target="_blank">[He/Fe]</a>
+                                    (-1 - 1)<br />
+                                    <input id="logHeFe" type="number" name="logHeFe" value="0.0" size="3" min="-1.0" max="1.0" step="0.1" />
+                                </span>
+                            </td>
+                                <!-- [C/O] lburns -->
+                            <td>
+                                <span title="log_10(N_C/N_O) - log_10(N_C/N_O)_Sun">
+                                    <a href="https://en.wikipedia.org/wiki/Metallicity" target="_blank">[C/O]</a>
+                                    (-2 - 2)<br />
+                                    <input id="logCO" type="number" name="logCO" value="0.0" size="3" min="-2.0" max="2.0" step="0.1" />
+                                </span>
+                            </td>
+                                <!-- [alpha/Fe] lburns -->
+                            <td>
+                                <span title="log_10(N_alpha/N_Fe) - log_10(N_alpha/N_Fe)_Sun">
+                                    <a href="https://en.wikipedia.org/wiki/Metallicity" target="_blank">[&#945/Fe]</a>
+                                    (-0.5 - 0.5)<br />
+                                    <input id="logAlphaFe" type="number" name="logAlphaFe" value="0.0" size="3" min="-0.5" max="0.5" step="0.1" />
                                 </span>
                             </td>
                         </tr>
@@ -630,6 +655,9 @@
                                     <a href="http://en.wikipedia.org/wiki/Procyon" target="_blank">Procyon</a>
                                 </span>
                             </td>
+                            <th style="font-size:14px">
+                                Planet hosts
+                            </th>
                             <td>
                                 <span title="Planet host: 51 Pegasi, HD 217014, HR 8729, G5 V">
                                     <input id="51pegasi" type="radio" name="switchStar" value="51Pegasi" />
@@ -641,7 +669,21 @@
                                     <input id="61cygnia" type="radio" name="switchStar" value="61CygniA" />
                                     <a href="https://en.wikipedia.org/wiki/61_Cygni" target="_blank">61 Cygni A</a>
                                 </span>
-                            </td>                             
+                            </td>
+                            <td>
+                                <!-- Proxima Centauri added 05/24 lburns -->
+                                <span title="Planet host: Alpha Centauri C, M6 V">
+                                    <input id="alphacentc" type="radio" name="switchStar" value="Alpha Centauri C" />
+                                    <a href="https://en.wikipedia.org/wiki/Proxima_Centauri" target="_blank">Proxima Centauri</a>
+                                </span>
+                            </td>
+                            <td>
+                                <!-- Fomalhaut added 06/19 lburns -->
+                                <span title="Planet host: Fomalhaut, A3 V">
+                                    <input id="fomalhaut" type="radio" name="switchStar" value="Fomalhaut" />
+                                    <a href="https://en.wikipedia.org/wiki/Fomalhaut" target="_blank">Fomalhaut</a>
+                                </span>
+                            </td>
                             <!-- (<a href="http://en.wikipedia.org/wiki/Photometry_%28astronomy%29" target="_blank">Photometric</a> zero) -->
                         </tr>
                         <tr>

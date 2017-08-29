@@ -103,6 +103,9 @@ public class FormalSoln {
                 //        }
                 // Extended rectangle rule:
                 increment = integrand * delta;
+                if (increment < 0.0){
+                  increment = 0;
+                }
                 newInt = newInt + increment;
 
                 // the following break-out condition is not so simple if using a closed formula: 
@@ -126,6 +129,9 @@ public class FormalSoln {
             //   increment = (1.0 / 3.0) * integrand * delta;
             //   newInt = newInt + increment;
             intens[it] = newInt;
+            if (intens[it] <= 0.0){
+              intens[it] = 1.0e-49;
+            }
 
         }   //it - theta loop
 
