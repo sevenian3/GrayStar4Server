@@ -82,16 +82,25 @@ public class SpecSyn {
         //double[][] kappa2 = new double[2][numTot];
         //double[][] lineKap2 = new double[2][numTot];
         //double kappa2, lineKap2, totKap;
-        double logKappa2, logLineKap2, totKap;
-        logLineKap2 = -49.0; //initialization
+        double totKap;
 
         //int numCnt = lambdaScale.length;
         //int numLine = lineLambdas.length - 1;
         //double[] kappa1D = new double[numNow];
         //double[] lineKap1D = new double[numPoints];
+        double[] logKappa2 = new double[numTot];
+        double[] logLineKap2 = new double[numTot];
+//
         double[] logKappa1D = new double[numNow];
+        double[]  thisMasterLams = new double[numNow];
         double[] logLineKap1D = new double[numPoints];
         //System.out.println("iL   masterLams    logMasterKappa");
+
+        for (int k =0; k < numNow; k++){
+           thisMasterLams[k] = masterLams[k];
+        }
+
+
         for (int iD = 0; iD < numDeps; iD++) {
 
             //Extract 1D *linear* opacity vectors for interpol()
@@ -103,37 +112,22 @@ public class SpecSyn {
             for (int k = 0; k < numPoints; k++) {
                 //lineKap1D[k] = Math.exp(listLogKappaL[k][iD]);
                 logLineKap1D[k] = listLogKappaL[k][iD];
-           //     if (iD%10 == 1){
-          //        System.out.println("iD " + iD + " k " + k + " listLineLambdas " + listLineLambdas[k] + " lineKap1D " + lineKap1D[k]);
-            //     }
             }
 
             //Interpolate continuum and line opacity onto master lambda scale, and add them lambda-wise:
             for (int iL = 0; iL < numTot; iL++) {
-                //kappa2 = ToolBox.interpol(masterLams, kappa1D, masterLamsOut[iL]);
-                logKappa2 = ToolBox.interpol(masterLams, logKappa1D, masterLamsOut[iL]);
-                //lineKap2 = 1.0e-49; //re-initialization
-                logLineKap2 = -49.0; //re-initialization
-                if ( (masterLamsOut[iL] >= listLineLambdas[0]) && (masterLamsOut[iL] <= listLineLambdas[numPoints-1]) ) {
-                    //lineKap2 = ToolBox.interpol(listLineLambdas, lineKap1D, masterLamsOut[iL]);
-                    logLineKap2 = ToolBox.interpol(listLineLambdas, logLineKap1D, masterLamsOut[iL]);
-                    //if (lineKap2 <= 0.0){
-                    //   lineKap2 = 1.0e-49;
-                    //}
-                    //lineKap2 = 1.0e-99;  //test
+                logLineKap2[iL] = -49.0; //re-initialization
                 }
-                //test lineKap2 = 1.0e-99;  //test
-               // if (iD%10 == 1){
-               //   System.out.println("iD " + iD + " iL " + iL + " masterLamsOut " + masterLamsOut[iL] + " kappa2 " + kappa2 + " lineKap2 " + lineKap2);
-                //}
-                //totKap = kappa2 + lineKap2;
-                totKap = Math.exp(logKappa2) + Math.exp(logLineKap2);
+
+            logKappa2 = ToolBox.interpolV(logKappa1D, thisMasterLams, masterLamsOut);
+            logLineKap2 = ToolBox.interpolV(logLineKap1D, listLineLambdas, masterLamsOut);
+
+            for (int iL = 0; iL < numTot; iL++) {
+                totKap = Math.exp(logKappa2[iL]) + Math.exp(logLineKap2[iL]);
                 logMasterKapsOut[iL][iD] = Math.log(totKap);
-                //if (iD == 36) {
-                //    System.out.format("%02d   %12.8e   %12.8f%n", iL, masterLams[iL], logE * logMasterKappa[iL][iD]);
-                //}
             }
-        }
+
+         } //iD loop
 
         return logMasterKapsOut;
     }

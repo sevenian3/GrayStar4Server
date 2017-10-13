@@ -1448,13 +1448,13 @@ var gsDuplex = function(num, logVector){
         //$("#Albedo").val(0.0);
         $("#Albedo").roundSlider("setValue", 0.0);
     }
-    if (albedo > 1.0) {
+    if (albedo > 0.95) {
         flagArr[5] = true;
-        albedo = 1.0;
-        var albedoStr = "1.0";
-        settingsId[5].value = 1.0;
-        //$("#Albedo").val(1.0);
-        $("#Albedo").roundSlider("setValue", 1.0);
+        albedo = 0.95;
+        var albedoStr = "0.95";
+        settingsId[5].value = 0.95;
+        //$("#Albedo").val(0.95);
+        $("#Albedo").roundSlider("setValue", 0.95);
     }
 
 

@@ -699,6 +699,8 @@ var filterSet = function() {
     filterCurves[5][1][23] = 0.000;
     filterCurves[5][0][24] = 920.0;
     filterCurves[5][1][24] = 0.000;
+//HJK from Johnson, H.L, 1965, ApJ 141, 923
+//http://ulisse.pd.astro.it/Astro/ADPS/Systems/Sys_033/index_033.html
 //H lburns /06
     filterCurves[6][0][0] = 1460;
     filterCurves[6][1][0] = 0.000;
