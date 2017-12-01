@@ -1,4 +1,4 @@
-cd graystar3server
+cd chromastarserver
 
 # DJL's version
 javac *.java
@@ -10,5 +10,5 @@ javac *.java
 cd ..
 #cp  GrayStar3Server.jar GrayStar3Server.jar.bak
 #jar cvmf mymanifest GrayStar3Server.jar graystar3server/*.class
-jar cvmf mymanifest test.jar graystar3server/*.class
+jar cvmf mymanifest test.jar chromastarserver/*.class
 

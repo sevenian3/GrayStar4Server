@@ -45,7 +45,7 @@ public class Photometry {
         //double[] vegaColors = {-0.059805, -0.182563, 0.181314, -0.357444, -0.538758};
         //double[] vegaColors = {0.0, 0.0, 0.0, 0.0, 0.0}; //For re-calibrating with raw Vega colours
         // Aug 2015 - with 14-line linelist:
-        double[] vegaColors = {0.289244, -0.400324, 0.222397, -0.288568, -0.510965};
+        double[] vegaColors = {0.37, -0.57, 0.01, -0.07, -0.08};
 
         double deltaLam, newY, product;
 
@@ -127,7 +127,7 @@ public class Photometry {
         // Stellar parameters of Castelli, F.; Kurucz, R. L., 1994, A&A, 281, 817
         // Teff = 9550 K, log(g) = 3.95, ([Fe/H] = -0.5 - not directly relevent):
         //double[] vegaColors = {-0.26780757714225084, -0.44742241728817694, -0.3522368134585257, -0.9642954846002414, -0.6120586711417157}; //raw
-        double[] vegaColors = {0.163003, -0.491341, 0.161940, -0.464265, -0.626204};
+        //double[] vegaColors = {0.163003, -0.491341, 0.161940, -0.464265, -0.626204};
         //double[] vegaColors = {0.0, 0.0, 0.0, 0.0, 0.0}; //For re-calibrating with raw Vega colours
 
         double deltaLam, newY, product, raw;

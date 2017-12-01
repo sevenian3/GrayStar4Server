@@ -19,7 +19,9 @@ package chromastarserver;
 // temp structure 
 public class LevelPopsServer{
 
-    public static double[] levelPops(double lam0In, double[] logNStage, double chiL, double[] log10UwStage, 
+    //public static double[] levelPops(double lam0In, double[] logNStage, double chiL, double[] log10UwStage, 
+    //                double gwL, int numDeps, double[][] temp) {
+    public static double[] levelPops(double lam0In, double[] logNStage, double chiL, double[] logUw, 
                     double gwL, int numDeps, double[][] temp) {
         double c = Useful.c;
         double logC = Useful.logC();
@@ -41,11 +43,11 @@ public class LevelPopsServer{
 // Convert to natural logs:
         double thisLogUw, Ttheta;
         thisLogUw = 0.0; //default initialization
-        double[] logUw = new double[5];
+        //double[] logUw = new double[5];
         double logE10 = Math.log(10.0);
-        for (int kk = 0; kk < logUw.length; kk++){
-            logUw[kk] = logE10*log10UwStage[kk]; // lburns new loop
-        }
+        //for (int kk = 0; kk < logUw.length; kk++){
+        //    logUw[kk] = logE10*log10UwStage[kk]; // lburns new loop
+        //}
         double logGwL = Math.log(gwL);
 
         //System.out.println("chiL before: " + chiL);
@@ -154,8 +156,11 @@ public class LevelPopsServer{
 // Atomic element "A" is the one whose ionization fractions are being computed
 //  Element "B" refers to array of other species with which A forms molecules "AB" 
 
-    public static double[][] stagePops2(double[] logNum, double[][] Ne, double[] chiIArr, double[][] log10UwAArr,  //species A data - ionization equilibrium of A
-                 int numMols, double[][] logNumB, double[] dissEArr, double[][] log10UwBArr, double[][] logQwABArr, double[] logMuABArr,  //data for set of species "B" - molecular equlibrium for set {AB}
+    //public static double[][] stagePops2(double[] logNum, double[][] Ne, double[] chiIArr, double[][] log10UwAArr,  //species A data - ionization equilibrium of A
+    //             int numMols, double[][] logNumB, double[] dissEArr, double[][] log10UwBArr, double[][] logQwABArr, double[] logMuABArr,  //data for set of species "B" - molecular equlibrium for set {AB}
+    //             int numDeps, double[][] temp) {
+    public static double[][] stagePops2(double[] logNum, double[][] Ne, double[] chiIArr, double[][] logUw,  //species A data - ionization equilibrium of A
+                 int numMols, double[][] logNumB, double[] dissEArr, double[][] logUwB, double[][] logQwABArr, double[] logMuABArr,  //data for set of species "B" - molecular equlibrium for set {AB}
                  int numDeps, double[][] temp) {
 
 
@@ -181,17 +186,17 @@ public class LevelPopsServer{
 
         double logE10 = Math.log(10.0);
 //We need one more stage in size of saha factor than number of stages we're actualy populating
-        double[][] logUw = new double[numStages+1][5];
-        for (int i  = 0; i < numStages; i++){
-           for (int kk = 0; kk < 5; kk++){
-                logUw[i][kk] = logE10*log10UwAArr[i][kk];
-           } // lburns- what variable can we use instead of 5?
-        } 
+        //double[][] logUw = new double[numStages+1][5];
+        //for (int i  = 0; i < numStages; i++){
+        //   for (int kk = 0; kk < 5; kk++){
+        //        logUw[i][kk] = logE10*log10UwAArr[i][kk];
+        //   } // lburns- what variable can we use instead of 5?
+        //} 
         //Assume ground state statistical weight (or partition fn) of highest stage is 1.0;
         //var logGw5 = 0.0;
-        for (int kk = 0; kk < 5; kk++){
-            logUw[numStages][kk] = 0.0;
-        } // lburns
+        //for (int kk = 0; kk < 5; kk++){
+        //    logUw[numStages][kk] = 0.0;
+        //} // lburns
 
         //System.out.println("chiL before: " + chiL);
         // If we need to subtract chiI from chiL, do so *before* converting to tiny numbers in ergs!
@@ -254,13 +259,13 @@ public class LevelPopsServer{
         } // lburns
       }
 // Array of elements B for all molecular species AB:
-       double[][] logUwB = new double[numMols][5];
+       //double[][] logUwB = new double[numMols][5];
       //if (numMols > 0){
-        for (int iMol  = 0; iMol < numMols; iMol++){
-           for (int kk = 0; kk < 5; kk++){
-                logUwB[iMol][kk] = logE10*log10UwBArr[iMol][kk];
-           } // lburns new loop
-        }
+       // for (int iMol  = 0; iMol < numMols; iMol++){
+       //    for (int kk = 0; kk < 5; kk++){
+       //         logUwB[iMol][kk] = logE10*log10UwBArr[iMol][kk];
+       //    } // lburns new loop
+       // }
       //}
 //// Molecular partition functions:
 //       double[] logQwAB = new double[numMols];
@@ -477,7 +482,9 @@ public class LevelPopsServer{
 
     //public static double[] sahaRHS(double chiI, double[] log10UwUArr, double[] log10UwLArr,
     //             int numDeps, double[][] temp) {
-    public static double sahaRHS(double chiI, double[] log10UwUArr, double[] log10UwLArr,
+    //public static double sahaRHS(double chiI, double[] log10UwUArr, double[] log10UwLArr,
+    //              double[] temp) {
+    public static double sahaRHS(double chiI, double[] logUwU, double[] logUwL,
                   double[] temp) {
 
 
@@ -500,11 +507,11 @@ public class LevelPopsServer{
 
         double logE10 = Math.log(10.0);
 //We need one more stage in size of saha factor than number of stages we're actualy populating
-        double[] logUwU = new double[5];
-        double[] logUwL = new double[5];
+        //double[] logUwU = new double[5];
+        //double[] logUwL = new double[5];
            for (int kk = 0; kk < logUwL.length; kk++){
-                logUwU[kk] = logE10*log10UwUArr[kk];
-                logUwL[kk] = logE10*log10UwLArr[kk];
+                logUwU[kk] = logUwL[kk];
+                //logUwL[kk] = logE10*log10UwLArr[kk];
            }
 
 
@@ -597,8 +604,11 @@ public class LevelPopsServer{
 //   in the denominator of the master fraction
 //  Element "B" refers to array of other sintpecies with which A forms molecules "AB" 
 
-    public static double[] molPops(double[] nmrtrLogNumB, double nmrtrDissE, double[] log10UwA, double[] nmrtrLog10UwB, double[] nmrtrLogQwAB, double nmrtrLogMuAB,  //species A data - ionization equilibrium of A
-                 int numMolsB, double[][] logNumB, double[] dissEArr, double[][] log10UwBArr, double[][] logQwABArr, double[] logMuABArr,  //data for set of species "B" - molecular equlibrium for set {AB}
+    //public static double[] molPops(double[] nmrtrLogNumB, double nmrtrDissE, double[] log10UwA, double[] nmrtrLog10UwB, double[] nmrtrLogQwAB, double nmrtrLogMuAB,  //species A data - ionization equilibrium of A
+     //            int numMolsB, double[][] logNumB, double[] dissEArr, double[][] log10UwBArr, double[][] logQwABArr, double[] logMuABArr,  //data for set of species "B" - molecular equlibrium for set {AB}
+      //           double[] logGroundRatio, int numDeps, double[][] temp) {
+    public static double[] molPops(double[] nmrtrLogNumB, double nmrtrDissE, double[] logUwA, double[] nmrtrLogUwB, double[] nmrtrLogQwAB, double nmrtrLogMuAB,  //species A data - ionization equilibrium of A
+                 int numMolsB, double[][] logNumB, double[] dissEArr, double[][] logUwB, double[][] logQwABArr, double[] logMuABArr,  //data for set of species "B" - molecular equlibrium for set {AB}
                  double[] logGroundRatio, int numDeps, double[][] temp) {
 
 
@@ -639,20 +649,20 @@ public class LevelPopsServer{
 
 //For clarity: neutral stage of atom whose ionization equilibrium is being computed is element A
 // for molecule formation:
-        double[] logUwA = new double[5];
-        double[] nmrtrLogUwB = new double[5];
-        for (int kk = 0; kk < logUwA.length; kk++){
-            logUwA[kk] = logE10*log10UwA[kk];
-            nmrtrLogUwB[kk] = logE10*nmrtrLog10UwB[kk];
-        } // lburns new loop
+        //double[] logUwA = new double[5];
+        //double[] nmrtrLogUwB = new double[5];
+        //for (int kk = 0; kk < logUwA.length; kk++){
+        //    logUwA[kk] = logE10*log10UwA[kk];
+        //    nmrtrLogUwB[kk] = logE10*nmrtrLog10UwB[kk];
+        //} // lburns new loop
 // Array of elements B for all molecular species AB:
-       double[][] logUwB = new double[numMolsB][5];
+      // double[][] logUwB = new double[numMolsB][5];
       //if (numMolsB > 0){
-        for (int iMol  = 0; iMol < numMolsB; iMol++){
-           for (int kk = 0; kk < 5; kk++){
-                logUwB[iMol][kk] = logE10*log10UwBArr[iMol][kk];
-           } // lburns new loop
-        }
+      //  for (int iMol  = 0; iMol < numMolsB; iMol++){
+      //     for (int kk = 0; kk < 5; kk++){
+      //          logUwB[iMol][kk] = logE10*log10UwBArr[iMol][kk];
+      //     } // lburns new loop
+      //  }
       //}
 // Molecular partition functions:
 //       double nmrtrLogQwAB = logE10*nmrtrLog10QwAB;

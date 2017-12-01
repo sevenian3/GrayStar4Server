@@ -32,7 +32,9 @@ public class LineKappa {
 // rho structure
 // Level population now computed in LevelPops.levelPops()
     public static double[][] lineKap(double lam0In, double[] logNums, double logFluIn, double[][] linePoints, double[][] lineProf,
-            int numDeps, double zScale, double[][] tauRos, double[][] temp, double[][] rho) {
+            int numDeps, double zScale, double[][] tauRos, double[][] temp, double[][] rho, double logFudgeTune) {
+
+        double logE10 = Math.log(10.0); //natural log of 10
 
         double c = Useful.c;
         double logC = Useful.logC();
@@ -113,11 +115,10 @@ public class LineKappa {
 // **********************
 //  Opacity problem #2 
 //
-//Line opacity needs to be multipied by fudge factor ~e^4.0 = 55 for Fraunhofer lines in Sun to have even
-//approximately the right strength - actually W_lambda is *still* to small!
-//  - related to Opacity problem #1 (logFudgeTune in GrayStarServer3.java) - ??
 //
-                logKappaL[il][id] = logKappaL[il][id] + Math.log(4.0);
+// #//Line opacity needs to be enhanced by same factor as the continuum opacity
+// #//  - related to Opacity problem #1 (logFudgeTune in GrayStarServer3.java) - ??
+                logKappaL[il][id] = logKappaL[il][id]  + logE10*logFudgeTune;
 
                  //if (id == 12) {
                  //  System.out.println("LINEKAPPA: id, il " + id + " " + il + " logKappaL " + logE * logKappaL[il][id]

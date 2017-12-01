@@ -2445,6 +2445,8 @@ var jsonObj;
     var luminClass = "V";//defaults to V
 //Determine the spectralClass and subClass of main sequence stars, subdwarfs and white dwarfs
 //var luminClass = "V" or luminClass = "VI" or luminClass = "WD"
+//#// Based on the data in Appendix G of An Introduction to Modern Astrophysics, 2nd Ed. by
+//#// Carroll & Ostlie
 if (((logg >= 4.0) && (logg < 5.0)) || ((logg >= 5.0) && (logg < 6.0)) || (logg >= 5.0)) {
     if (teff < 3000.0) {
         spectralClass = "L";
@@ -4180,6 +4182,8 @@ if (((logg >= 0.0) && (logg < 1.0)) || ((logg >= 1.0) && (logg < 1.5))) {
         var numZone = 7;
         var radii = [];
         radii.length = numZone;
+        //Safety defaults:
+        radii = [radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU ]
         rrI = saveRGB[0];
         ggI = saveRGB[1];
         bbI = saveRGB[2];
@@ -4188,7 +4192,7 @@ if (((logg >= 0.0) && (logg < 1.0)) || ((logg >= 1.0) && (logg < 1.5))) {
         colors.length = numZone;
 
         // Key raii in order of *DECREASING* size (important!):
-        if (radiusPx1AU > (radiusPxIce + 3)){
+        if (radiusPx1AU >= (radiusPxIce + 3)){
            radii = [radiusPx1AU+1, radiusPx1AU, radiusPxIce + 3, radiusPxIce, radiusPxSteam, radiusPxSteam - 3, radiusPx];
            colors = ["#000000", wDiskColor, "#0000FF", "#00FF88", "#FF0000", wDiskColor, starRGBHex];
         }
