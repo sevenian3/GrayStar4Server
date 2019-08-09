@@ -135,7 +135,7 @@
                     handleShape: "round",
                     sliderType: "min-range",
                     value: "5777",
-                    min: "3400",
+                    min: "1000",
                     max: "50000",
                     step: "1",
                     showTooltip: "true",
@@ -199,7 +199,7 @@
                     handleSize: "24,12",
                     handleShape: "round",
                     sliderType: "min-range",
-                    value: "105.0",
+                    value: "101.5",
                     min: "0.6",
                     max: "22000.0",
                     step: "0.1",
@@ -259,7 +259,7 @@
         *
         * Open source pedagogical computational stellar astrophysics
         *
-        * 1D, static, plane-parallel, LTE, multi-gray stellar atmospheric model 
+        * 1D, static, plane-parallel, LTE stellar atmospheric model 
         * and spectrum synthesis
         * Server-side modeling in Java + client side UI in JavaScript and HTML
         * Voigt spectral line profile
@@ -285,8 +285,8 @@
           <span style="font-size:small">(formerly "GrayStarServer")</span>
         </h2> 
         <span style="color:#8888FF" title="The openStars project"><strong>OpenStars</strong></span> 
-        approximate <a href="http://en.wikipedia.org/wiki/Model_photosphere" target="_blank">stellar atmosphere</a> and spectrum synthesis modeling in Java.
-        User interface in JavaScript + HTML<span style="color:red">5</span>.  <span style="color:#AA00AA">Hover for tips.  <command>Ctrl +/-</command> to zoom</span> <br />
+        approximate <a href="http://en.wikipedia.org/wiki/Model_photosphere" target="_blank">stellar atmosphere</a> and spectrum synthesis modeling in Java. <br />
+        User interface in JavaScript + HTML<span style="color:red">5</span>.  <span style="color:#AA00AA">Hover for tips.  Click for data coordinates. <command>Ctrl +/-</command> to zoom</span> <br />
 
         <!--
         <p>
@@ -336,7 +336,7 @@
                             <td>
                                 <span title="Surface temperature of spherical blackbody radiation emitter of equivalent bolometric surface flux, in Kelvins (K)"> 
                                     <a href="http://en.wikipedia.org/wiki/Effective_temperature" target="_blank">Effective temperature, <em>T</em><sub>eff</sub></a> <br />
-                                    (3400-50000)</span> 
+                                    (1000-50000)</span> 
                                     <a href="http://en.wikipedia.org/wiki/Kelvin" target="_blank">K</a>) <br />
                                     <!-- <input id="Teff" type="number" name="Teff" value=5800 size="5" min="3500" max="25000" step="25"/> -->
                                     <!-- <input id="Teff" type="range" name="Teff" value="5800" min="3500" max="25000" step="10" onchange="displayTeff()"/> -->
@@ -835,7 +835,7 @@
                                 </span>
                             </td>
                              <td>
-                                <span title="Ten &#923 iterations with multi-gray opacity and scattering - best for cooler stars">
+                                <span title="Ten &#923 iterations with opacity and scattering - best for cooler stars">
                                     <input id="tcorr" type="checkbox" name="tcorr" /><em>T</em> Corrections
                                 </span>
                             </td> 
@@ -924,9 +924,9 @@
                 <span title="Turn radiation field plots on/off - slow if many lines included">
                     <input id="showRad" type="checkbox" name="showRad" />Radiation field 
                 </span>       
-                <span title="Turn ionization equilibrium plot on/off">
+<!--                <span title="Turn ionization equilibrium plot on/off"> -->
                     <!-- <input id="showLogNums" type="checkbox" name="showLogNums" /a>Ion equilibrium -->
-                    <select id="showLogNums" name = "showLogNums">
+<!--                    <select id="showLogNums" name = "showLogNums">
                        <option value = "None">None</option>
                        <option value = "H">H</option>
                        <option value = "He">He</option>
@@ -945,7 +945,7 @@
                        <option value = "Fe">Fe</option>
                        <option value = "Co">Co</option>
                        <option value = "Ni">Ni</option>
-                    </select>Ionization Eq
+                    </select>Ionization Eq -->
                 </span> 
                 
             </fieldset>
@@ -1011,76 +1011,68 @@
 //
 --> 
 
-        <!-- Stellar disk -->
-        <div id="plotSeven">
-            <canvas id="plotSevenCnvs" width="450" height="350"></canvas>
-        </div> 
+       <!-- Stellar disk -->
+        <div id="plotSeven" class="radPanel">
+            <svg id="plotSevenCnvs" width="450" height="350"></svg>
+        </div>
 
-        <!-- Direct image of spectrum -->
-        <div id="plotTen">
-            <canvas id="plotTenCnvs" width="450" height="350"></canvas>
-        </div> 
+       <!-- Direct image of spectrum -->
+        <div id="plotTen" class="radPanel">
+            <svg id="plotTenCnvs" width="450" height="350"></svg>
+        </div>
 
         <!-- Life zone -->
-        <div id="plotEleven">
-            <canvas id="plotElevenCnvs" width="450" height="350"></canvas>
+        <div id="plotEleven" class="radPanel">
+            <svg id="plotElevenCnvs" width="450" height="350"></svg>
         </div>
 
         <!-- Tunable monochromatic image -->
-        <div id="plotTwelve">
-            <canvas id="plotTwelveCnvs" width="450" height="350"></canvas>
-        </div>        
-
-        <!-- HR DIagram -->
-        <div id="plotNine">
-            <canvas id="plotNineCnvs" width="450" height="350"></canvas>
-        </div> 
+        <div id="plotTwelve" class="radPanel">
+            <svg id="plotTwelveCnvs" width="450" height="350"></svg>
+        </div>
 
         <!-- SED: I_lambda, F_lambda(lambda) -->
         <div id="plotFive" class="radPanel">
-            <canvas id="plotFiveCnvs" width="450" height="350"></canvas>
-        </div>         
+            <svg id="plotFiveCnvs" width="450" height="350"></svg>
+        </div>
 
         <!-- Synthetic spectrum -->
         <div id="plotThirteen">
-            <canvas id="plotThirteenCnvs" width="1350" height="350"></canvas>
-        </div> 
+            <svg id="plotThirteenCnvs" width="1350" height="350"></svg>
+        </div>
 
         <!-- Limb darkening: I_lambda(theta) -->
-        <div id="plotFour" class="radPanel" style="display:none">
-            <canvas id="plotFourCnvs" width="450" height="350"></canvas>
-        </div> 
+        <div id="plotFour" class="radPanel">
+            <svg id="plotFourCnvs" width="450" height="350"></svg>
+        </div>
+
+        <!-- HR DIagram -->
+        <div id="plotNine" class="radPanel">
+            <svg id="plotNineCnvs" width="450" height="350"></svg>
+        </div>
 
         <!-- Fourier transform of I(theta/(pi/2)) -->
-        <div id="plotFifteen">
-            <canvas id="plotFifteenCnvs" width="450" height="350"></canvas>
+        <div id="plotFifteen" class="radPanel">
+            <svg id="plotFifteenCnvs" width="450" height="350"></svg>
         </div>
 
-        <!-- Tkin vs log(Tau) -->
-        <div id="plotTwo" class="atmosPanel"style=" display:none">
-            <canvas id="plotTwoCnvs" width="450" height="350"></canvas>
-        </div> 
+       <!-- Tkin vs log(Tau) -->
+        <div id="plotTwo" class="radPanel">
+            <svg id="plotTwoCnvs" width="450" height="350"></svg>
+        </div>
 
         <!-- Pgas, Prad vs log(Tau) -->
-        <div id="plotThree" class="atmosPanel" style="display:none">
-            <canvas id="plotThreeCnvs" width="450" height="350"></canvas>
-        </div> 
+        <div id="plotThree" class="radPanel">
+            <svg id="plotThreeCnvs" width="450" height="350"></svg>
+        </div>
 
         <!-- Opacity vs depth -->
-        <div id="plotFourteen">
-            <canvas id="plotFourteenCnvs" width="450" height="350"></canvas>
+        <div id="plotFourteen" class="radPanel">
+            <svg id="plotFourteenCnvs" width="450" height="350"></svg>
         </div>
 
-        <!-- Ionization equilibrium -->
-        <div id="plotEight" class="ionPanel" style="display:none">
-            <canvas id="plotEightCnvs" width="450" height="350"></canvas>
-        </div>         
 
-<!--
-        <div id="plotOne" class="atmosPanel" style="display:none">
-            <canvas id="plotOneCnvs" width="450" height="350"></canvas>
-        </div>
--->
+
 
         <!-- Print-out panel -->
         <div id="printModel" style="display:block"></div>
