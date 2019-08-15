@@ -376,7 +376,7 @@ var gsDuplex = function(num, logVector){
     var ifShowAtmos = false;
     var ifShowRad = false;
     var ifShowLine = false;
-    var ifShowLogNums = false;
+    var ifShowLogPP = false;
     //
     var ifPrintNone = true;
     var ifPrintAtmos = false;
@@ -384,6 +384,7 @@ var gsDuplex = function(num, logVector){
     var ifPrintIntens = false;
     var ifPrintLine = false;
     var ifPrintLDC = false;
+    var ifPrintPP = false;
     var ifPrintAbnd = false;
     var ifPrintLogNums = false;
     var ifPrintJSON = false;
@@ -448,6 +449,14 @@ var gsDuplex = function(num, logVector){
     if ($("#showLine").is(":checked")) {
         ifShowLine = true; // checkbox
     }
+
+    var ppSpecies = "None"; //default
+    ppSpecies = $("#showLogPP").val();
+    if (ppSpecies != "None") {
+        ifShowLogPP = true; // checkbox
+    }
+
+
     ////if ($("#showLogNums").is(":checked")) {
     ////    ifShowLogNums = true; // checkbox
     //// }
@@ -479,8 +488,8 @@ var gsDuplex = function(num, logVector){
     if ($("#printAbnd").is(":checked")) {
         ifPrintAbnd = true; // checkbox
     }
-    if ($("#printLogNums").is(":checked")) {
-        ifPrintLogNums = true; // checkbox
+    if ($("#printPP").is(":checked")) {
+        ifPrintPP = true; // checkbox
     }
     if ($("#printJSON").is(":checked")) {
         ifPrintJSON = true; // checkbox
@@ -1302,7 +1311,9 @@ var gsDuplex = function(num, logVector){
     }
     var minLogg = 3.0; //safe initialization
     var minLoggStr = "3.0";
-    if (teff <= 4000.0) {
+      if (teff <= 3000.0){
+        minLogg = 4.0; //Brown dwarf regime
+    } else if ((teff > 3000.0) && (teff <= 4000.0)) {
         minLogg = 0.0;
         minLoggStr = "0.0";
     } else if ((teff > 4000.0) && (teff <= 5000.0)) {
@@ -1987,6 +1998,8 @@ var jsonObj;
     var cnvsFourteenId = document.getElementById("plotFourteenCnvs");
     var plotFifteenId = document.getElementById("plotFifteen");
     var cnvsFifteenId = document.getElementById("plotFifteenCnvs");
+    var plotSixteenId = document.getElementById("plotSixteen");
+    var cnvsSixteenId = document.getElementById("plotSixteenCnvs");
                                 //JB
 
     var printModelId = document.getElementById("printModel"); //detailed model print-out area
@@ -1997,15 +2010,24 @@ var jsonObj;
         //plotOneId.style.display = "block";
         plotTwoId.style.display = "block";
         plotThreeId.style.display = "block";
+        if($("#showLogPP").val()=="None"){
+           plotSixteenId.style.display = "none";
+        }
+
     }
     if (ifShowRad === true) {
         plotFourId.style.display = "block";
         plotFiveId.style.display = "block";
         plotFifteenId.style.display = "block";
+        if($("#showLogPP").val()=="None"){
+           plotSixteenId.style.display = "none";
+        }
+
     }
-    if (ifShowLogNums === true) {
-        //plotSixId.style.display = "block";
-//        plotEightId.style.display = "block";
+    if (ifShowLogPP === true) {
+        if($("#showLogPP").val()=="None"){
+           plotSixteenId.style.display = "none";
+        }
     }
     if (ifShowAtmos === false) {
         //plotOneId.style.display = "none";
@@ -2025,7 +2047,7 @@ var jsonObj;
             (ifPrintIntens === true) ||
             (ifPrintLDC === true) ||
             (ifPrintLine === true) || 
-            (ifPrintLogNums === true) || 
+            (ifPrintPP === true) || 
             (ifPrintJSON === true) || 
             (ifPrintAbnd === true)) {
         printModelId.style.display = "block";
@@ -2048,8 +2070,13 @@ var jsonObj;
         var numLams = Number(jsonObj.numLams); //number of continuum SED lambda points
         var numSpecies = Number(jsonObj.numSpecies); //number of chemical speecies (ionization stages) 
         var nelemAbnd = Number(jsonObj.nelemAbnd); //number of chemical elements 
+//Variables for Phil Bennett's GAS ChemEquil/IonizEquil/EOS package: 
+        var numGasDepths = Number(jsonObj.numGasDepths); //number of depths at which GAS partial pressures reported 
+        var numGas = Number(jsonObj.numGas); //number of chemical species in GAS (incl. molecules) 
       //console.log("numDeps " + numDeps + " numMaster " + numMaster + " numThetas " + numThetas 
       //        + " numGaussLines " + numGaussLines);
+      //console.log("numGas " + numGas + " numGasDepths " + numGasDepths);
+
 
     var grav = Math.pow(10.0, logg);
     var zScale = Math.pow(10.0, logZScale);
@@ -2111,6 +2138,17 @@ var jsonObj;
          var logKappaAjax = gsAjaxParser(numDeps, jsonObj.logKappa);
          var kappaRos = gsDuplex(numDeps, logKappaAjax);
 
+//Special Tau_Ros axis to go with GAS parital pressure - must be consistent with depth sampling of partial pressure
+//report from ChromaStarServer
+//
+    var logTauRosGas = [];
+    logTauRosGas.length = numGasDepths; 
+    var count = 0;
+    for (var i = 1; i < numDeps; i+=4){
+       logTauRosGas[count] = tauRos[1][i];
+       count++;
+    } 
+
 // Recover partial electron pressure for plot:
     var k = 1.3806488E-16; // Boltzmann constant in ergs/K
     var logK = Math.log(k);
@@ -2123,6 +2161,33 @@ var jsonObj;
     for (var i = 0; i < numDeps; i++){
        Pe[1][i] = Ne[1][i] + logK + temp[1][i]; 
     }
+
+     // set up GAS species and partial pressure arrays 
+     var gsSpec = [];
+     gsSpec.length = numGas;
+     var log10GasPpAjax = [];
+     log10GasPpAjax.length = numGasDepths;
+     var log10GasPp = [];
+     log10GasPp.length = numGas;
+     for (var i = 0; i < numGas; i++){
+        log10GasPp[i] = [];
+        log10GasPp[i].length = numGasDepths;
+     }
+ 
+     for (var i = 0; i < numGas; i++){
+        var gsSpecKey = "Gas"+i;
+        gsSpec[i] = jsonObj[gsSpecKey]; 
+        //console.log("i " + i + " gsSpecKey " + gsSpecKey + " gsSpec " + gsSpec[i]);
+        var prtlPrsKey = "PrtlPrs"+i;
+        var log10GasPpAjax = gsAjaxParser(numGasDepths, jsonObj[prtlPrsKey]);
+        for (var j = 0; j < numGasDepths; j++){
+           log10GasPp[i][j] = log10GasPpAjax[j];
+        }  //j 
+      }  //i
+
+     //for (var i = 0; i < numGasDepths; i++){
+     //    console.log("logTauRosGas " + logTauRosGas[i] + " log10GasPp " + log10GasPp[0][i]);
+     //}
 
     var lineMode;
     //
@@ -2498,9 +2563,24 @@ var jsonObj;
 //var luminClass = "V" or luminClass = "VI" or luminClass = "WD"
 //#// Based on the data in Appendix G of An Introduction to Modern Astrophysics, 2nd Ed. by
 //#// Carroll & Ostlie
-if (((logg >= 4.0) && (logg < 5.0)) || ((logg >= 5.0) && (logg < 6.0)) || (logg >= 5.0)) {
-    if (teff < 3000.0) {
+//Brown dwarf calibration loosely estimated from Fig. L4.2 of "M dwarfs, L dwarfs and T dwarfs"
+//by Neill Reid??  http://www.stsci.edu/~inr/ldwarf3.html
+if ((logg >= 4.0) && (logg <= 6.0)){
+      if (teff <= 1200.0){
+        spectralClass = "T";
+    } else if ((teff > 1200.0) && (teff < 3000.0)) {
         spectralClass = "L";
+        if ((teff > 1200.0) && (teff <= 1400.0)) {
+           subClass = "8";
+        } else if ((teff > 1400.0) && (teff <= 1600.0)) {
+           subClass = "6";
+        } else if ((teff > 1600.0) && (teff <= 1800.0)) {
+           subClass = "4";
+        } else if ((teff > 1800.0) && (teff <= 2100.0)) {
+           subClass = "2";
+        } else if ((teff > 2200.0) && (teff <= 2500.0)) {
+           subClass = "0";
+        }
     } else if ((teff >= 3000.0) && (teff < 3900.0)) {
         spectralClass = "M";
         if ((teff >= 3000.0) && (teff <= 3030.0)) {
@@ -2602,7 +2682,7 @@ if (((logg >= 4.0) && (logg < 5.0)) || ((logg >= 5.0) && (logg < 6.0)) || (logg 
 }
 //Determine the spectralClass and subClass of giants and subgiants. lburns
 //var luminClass = "III" or luminClass = "IV"
-if (((logg >= 1.5) && (logg < 3.0)) || ((logg >= 3.0) && (logg < 4.0))) {
+if ((logg >= 1.5) && (logg < 4.0)){
     if (teff < 3000.0) {
         spectralClass = "L";
         } else if ((teff >= 3000.0) && (teff < 3700.0))  {
@@ -2705,7 +2785,7 @@ if (((logg >= 1.5) && (logg < 3.0)) || ((logg >= 3.0) && (logg < 4.0))) {
 
 //Determine the spectralClass and subClass of supergiants and bright giants. lburns
 //var luminClass = "I" or luminClass = "II"
-if (((logg >= 0.0) && (logg < 1.0)) || ((logg >= 1.0) && (logg < 1.5))) {
+if ((logg >= -0.5) && (logg < 1.5)){
     if (teff < 2700.0) {
         spectralClass = "L";
         } else if ((teff >= 2700.0) && (teff < 3650.0)) {
@@ -3628,7 +3708,7 @@ if (((logg >= 0.0) && (logg < 1.0)) || ((logg >= 1.0) && (logg < 1.5))) {
 // 
 //        2       13 Synth Spec    <==> 13 Synth Spec  <==> 13 Synth Spec  
 // 
-//        3        4 Limb darkng     |  15 Four trnsfrm  |   
+//        3        4 Limb darkng     |  15 Four trnsfrm  | 16 GAS partial press   
 // 
 //        4        2 T_kin(tau)      |   3 P(tau)        |  14 kap(tau)
 // 
@@ -6540,6 +6620,178 @@ panelX = panelOrigin[0];
     }
 
 
+    //
+    //
+    //  *****   PLOT SIXTEEN / PLOT 16 
+    //
+    //
+    // Plot sixteen: log(Tau) vs log(Species Partial Pressure)
+
+    if ( (ifShowAtmos === true) && (ppSpecies != "None") ) {
+
+        var plotRow = 3;
+        var plotCol = 2;
+        var minXData = logE * logTauRosGas[0];
+        var maxXData = logE * logTauRosGas[numGasDepths - 1];
+        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> <em>&#964</em><sub>Ros</sub></a></span>";
+
+//Find the GAS package species we want to plot:
+
+          var iPP = 0; //initialization
+          for (var jj = 0; jj < numGas; jj++){
+             if (ppSpecies.trim() == gsSpec[jj].trim()){
+                   break;   //we found it
+                 }
+             iPP++;
+          } //jj loop
+          //console.log("ppSpecies "+ ppSpecies + " iPP " + iPP + " gsSpec " + gsSpec[iPP]);
+ 
+        var log10P = [];
+        log10P.length = numGasDepths;
+        for (var i = 0; i < numGasDepths; i++) {
+            log10P[i] = (log10GasPp[iPP][i]);
+            //console.log(" i " + i + " log10P " + log10P[i]);
+        }
+       var iPPMinMax = minMax(log10P);
+       //var iLamMinMaxBroad = minMax2(masterFluxBroad2);
+       var iPPMax = iPPMinMax[1];
+       var iPPMin = iPPMinMax[0];
+        //var minYData = logE * logPTot[0] - 2.0; // Avoid upper boundary condition [i]=0
+        var minYData = log10P[iPPMin] - 1.0;
+        var maxYData = log10P[iPPMax] + 1.0;
+        var yAxisName = "Log<sub>10</sub> <em>P</em> <br />(dynes <br />cm<sup>-2</sup>)";
+        //console.log("minYData " + minYData + " maxYData " + maxYData);
+        //washer(xRange, xOffset, yRange, yOffset, wDefaultColor, plotThreeId);
+
+        var fineness = "normal";
+        //var cnvsCtx = washer(plotRow, plotCol, wDefaultColor, plotThreeId, cnvsId);
+				//JB
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotSixteenId, cnvsSixteenId);
+				//JB
+        panelX = panelOrigin[0];
+        panelY = panelOrigin[1];
+	cnvsSixteenId.setAttribute('fill', wDefaultColor);
+        var xAxisParams = XAxis(panelX, panelY, xAxisLength,
+                minXData, maxXData, xAxisName, fineness,
+                plotSixteenId, cnvsSixteenId);
+        var yAxisParams = YAxis(panelX, panelY,
+                minYData, maxYData, yAxisName,
+                fineness, plotSixteenId, cnvsSixteenId);
+
+        //xOffset = xAxisParams[0];
+        //yOffset = xAxisParams[4];
+        var rangeXData16 = xAxisParams[1];
+        var deltaXData16 = xAxisParams[2];
+        var deltaXPxl16 = xAxisParams[3];
+        var rangeYData16 = yAxisParams[1];
+        var deltaYData16 = yAxisParams[2];
+        var deltaYPxl16 = yAxisParams[3];
+        var xLowerYOffset16 = xAxisParams[5];
+        var minXData16 = xAxisParams[6]; //updated value
+        var minYData16 = yAxisParams[6]; //updated value
+        var maxXData16 = xAxisParams[7]; //updated value
+        var maxYData16 = yAxisParams[7]; //updated value        
+        yFinesse = 0;       
+        xFinesse = 0;       
+        //
+        titleX = panelX + titleOffsetX;
+        titleY = panelY + titleOffsetY;
+					//JB
+        txtPrint("log Pressure: <span style='color:blue' title='Partial pressure'><strong><em>P</em><sub>i</sub></strong></span> "
+                + gsSpec[iPP],
+                titleOffsetX, titleOffsetY, 300, lineColor, plotSixteenId);
+
+					//JB
+        //Data loop - plot the result!
+
+        var dSizeCnvs = 2.0; //plot point size
+        var dSizeGCnvs = 1.0;
+        var opac = 1.0; //opacity
+        // RGB color
+        // PTot:
+        var r255 = 0;
+        var g255 = 0;
+        var b255 = 255; //blue 
+        // PGas:
+        var r255G = 0;
+        var g255G = 255;
+        var b255G = 100; //green
+        // PRad:
+        var r255R = 255;
+        var g255R = 0;
+        var b255R = 0; //red
+
+//initializations:
+        var ii;
+        var xTickPosCnvs = xAxisLength * (logE*logTauRosGas[0] - minXData16) / rangeXData16; // pixels   
+        var yTickPosCnvs = yAxisLength * (log10P[0] - minYData16) / rangeYData16; // pixels   
+
+        // horizontal position in pixels - data values increase rightward:
+         var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
+
+         var lastYTickPosCnvs = yAxisLength * (log10P[0] - minYData16) / rangeYData16;
+         // vertical position in pixels - data values increase upward:
+         var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
+
+        // Avoid upper boundary at i=0
+        for (var i = 1; i < numGasDepths; i++) {
+
+            ii = 1.0 * i;
+            var xTickPosCnvs = xAxisLength * (logE*logTauRosGas[i] - minXData16) / rangeXData16; // pixels   
+
+            // horizontal position in pixels - data values increase rightward:
+            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
+
+            var yTickPosCnvs = yAxisLength * (logE * log10P[i] - minYData16) / rangeYData16;
+            // vertical position in pixels - data values increase upward:
+            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
+
+		
+            		
+            //console.log("lastXShiftCnvs " + lastXShiftCnvs + " lastYShiftCnvs " + lastYShiftGCnvs + " xShiftCnvs " + xShiftCnvs + " yShiftCnvs " + yShiftGCnvs);
+
+            var thisLine = document.createElementNS(xmlW3, 'line');
+            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
+            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
+            thisLine.setAttributeNS(null, 'y1', lastYShiftCnvs);
+            thisLine.setAttributeNS(null, 'y2', yShiftCnvs);
+            thisLine.setAttributeNS(null, 'stroke', "#0000FF");
+            thisLine.setAttributeNS(null, 'stroke-width', 2);
+            cnvsSixteenId.appendChild(thisLine);
+
+				//JB
+            lastXShiftCnvs = xShiftCnvs;
+            lastYShiftCnvs = yShiftCnvs;
+        }
+
+    //cnvsThreeId.addEventListener("mouseover", function() { 
+    cnvsSixteenId.addEventListener("click", function() {
+       //dataCoords(event, plotThreeId);
+       var xyString = dataCoords(event, cnvsSixteenId, xAxisLength, minXData16, rangeXData16, xAxisXCnvs,
+                               yAxisLength, minYData16, rangeYData16, yAxisYCnvs);
+       txtPrint(xyString, titleOffsetX+200, titleOffsetY+320, 150, lineColor, plotSixteenId);
+    }); 
+
+
+// Tau=1 cross-hair
+
+        var tTau1 = tauPoint(numDeps, tauRos, 1.0);
+        var barWidth = 1.0;
+        var barColor = "#777777";
+        yFinesse = 0.0;
+				//JB
+        xShift = YBar(logE * tauRos[1][tTau1], minXData16, maxXData16, xAxisLength, barWidth, yAxisLength,
+                yFinesse, barColor, plotSixteenId, cnvsSixteenId);
+        barHeight = 1.0;
+        yShift = XBar(logE * logPTot[tTau1], minYData16, maxYData16, xAxisLength, barHeight,
+                xFinesse, barColor, plotSixteenId, cnvsSixteenId);
+        txtPrint("<span style='font-size:small; color:#444444'><em>&#964</em><sub>Ros</sub>=1</span>",
+                xShift, yShift, 300, lineColor, plotSixteenId);
+
+				//JB
+    }
+
+
 
 // ****************************************
 
@@ -6767,6 +7019,36 @@ panelX = panelOrigin[0];
         numPrint(value, 10 + xTab, yTab, txtColor, printModelId);
      }
    }
+
+    if (ifPrintPP == true) {
+
+        var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";
+        txtPrint(modelBanner, 10, yOffsetPrint, 500, txtColor, printModelId);
+        txtPrint("Partial pressures every 4th depth", 10, yOffsetPrint + lineHeight, 400, txtColor, printModelId);
+        //Column headings:
+
+        var xTab = 100;
+        txtPrint("log<sub>10</sub><em>&#964</em> ", 10, yOffsetPrint + 2*lineHeight, 400, txtColor, printModelId);
+        txtPrint("log<sub>10</sub><em>P</em><sub>i</sub>(<em>&#964</em>) (log<sub>10</sub> dynes cm<sup>-2</sup>)",
+                200 + xTab, yOffsetPrint + lineHeight, 400, txtColor, printModelId);
+        for (var j = 0; j < numGas; j++) {
+            value = gsSpec[j];
+            txtPrint(value, 10 + (j + 1) * xTab, yOffsetPrint + 3 * lineHeight, 400, txtColor, printModelId);
+        }
+
+        for (var i = 0; i < numGasDepths; i++) {
+            yTab = yOffsetPrint + vOffset + (i+2) * lineHeight;
+            value = logE*logTauRosGas[i];
+            value = value.toPrecision(5);
+            numPrint(value, 10, yTab, txtColor, printModelId);
+            for (var j = 0; j < numGas; j ++) {
+                value = log10GasPp[j][i];
+                value = value.toPrecision(7);
+                numPrint(value, 10 + (j + 1) * xTab, yTab, txtColor, printModelId);
+            }
+        }
+    }
+
 
   if (ifPrintJSON == true){
         var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun";

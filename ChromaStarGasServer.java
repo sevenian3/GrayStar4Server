@@ -1096,11 +1096,25 @@ int[] csp2gas = new int[nelemAbnd];
 for (int i = 0; i < nelemAbnd; i++){
    csp2gas[i] = -1;
 }
+int[] csp2gasIon1 = new int[nelemAbnd];
+for (int i = 0; i < nelemAbnd; i++){
+   csp2gasIon1[i] = -1;
+}
+int[] csp2gasIon2 = new int[nelemAbnd];
+for (int i = 0; i < nelemAbnd; i++){
+   csp2gasIon2[i] = -1;
+}
 
 for (int i = 0; i < nelemAbnd; i++){
     for (int j = 0; j < gsNspec; j++){
-        if (cname[i].trim() == gsName[j].trim()){
+        if ( cname[i].trim().equals(gsName[j].trim()) ){
             csp2gas[i] = j;
+        }
+        if ( (cname[i].trim()+"+").equals(gsName[j].trim()) ){
+            csp2gasIon1[i] = j;
+        }
+        if ( (cname[i].trim()+"++").equals(gsName[j].trim()) ){
+            csp2gasIon2[i] = j;
         }
     }
 }
@@ -1442,17 +1456,25 @@ int neq;
 double gsPe0, gsPe, gsMu, gsRho;
 
 double[] gsP0 = new double[40];
+double[] topP0 = new double[40];
 double[] gsPp = new double[150];
 
 //#For reporting purposes only:
 double[][] log10MasterGsPp = new double[gsNspec][numDeps];
+for (int iD = 0; iD < numDeps; iD++){
+   for (int iSpec = 0; iSpec < gsNspec; iSpec++){
+       log10MasterGsPp[iSpec][iD] = -99.0;
+   }
+}
 double thisN;
+
+double GAStemp = 6000.0;
 
 //Begin Pgas-kapp iteration
   for (int pIter = 0; pIter < nOuterIter; pIter++){
 //
 
-    if (teff <= F0Vtemp){
+    if (teff <= GAStemp){
     //#if (teff <= 100000.0):   #test
         
         for (int iD = 0; iD < numDeps; iD++){
@@ -1465,7 +1487,21 @@ double thisN;
             for (int k99 = 2; k99 < 42; k99++){
                gsP0[k99-2] = returnGasEst[k99];
             }
-        
+       
+            if (iD == 1){
+                for (int iSpec = 0; iSpec < 40; iSpec++){
+                   topP0[iSpec] = 0.5 * gsP0[iSpec]; 
+                }
+            } 
+                
+            //#Upper boundary causes problems:
+            if (pIter > 0 && iD == 0){
+                gsPe0 = 0.5 * newPe[0][1];
+                for (int iSpec = 0; iSpec < 40; iSpec++){
+                   gsP0[iSpec] = topP0[iSpec]; 
+                }
+            }
+ 
             //System.out.println("iD "+ iD+ " gsPe0 "+ gsPe0+ " gsP0[0] "+ gsP0[0]+ " neq "+ neq);
 
             double[] returnGas = CSGas.gas(isolv, temp[0][iD], guessPGas[0][iD], gsPe0, gsP0, neq, tol, maxit);
@@ -1558,9 +1594,9 @@ double thisN;
         }
      }
         
-   } // end teff <= F0Vtemp     
+   } // end teff <= GAStemp     
 
-   if (teff > F0Vtemp){  //#teff > FoVtemp:
+   if (teff > GAStemp){  //#teff > FoVtemp:
 
 //  Converge Pg-Pe relation starting from intital guesses at Pg and Pe
 //  - assumes all free electrons are from single ionizations
@@ -1679,7 +1715,7 @@ double thisN;
      mmw[i] = Math.exp(logMmw); 
     }
 
- } //end teff > F0Vtemp
+ } //end teff > GAStemp
 
 //H & He only for now... we only compute H, He, and e^- opacity sources: 
       logKappaHHe = Kappas.kappas2(numDeps, newPe, zScale, temp, rho,
@@ -1823,7 +1859,7 @@ double thisN;
 //#Final run through Phil's GAS EOS/Chemic equil. for consistency with last HSE call above:
 
     
-if (teff <= F0Vtemp){
+if (teff <= GAStemp){
         
     for (int iD = 0; iD < numDeps; iD++){    
         
@@ -1846,7 +1882,10 @@ if (teff <= F0Vtemp){
         for (int k99 = 3; k99 < 153; k99++){
             gsPp[k99-3] = returnGas[k99];
         }
-        
+     
+        for (int iSpec = 0; iSpec < gsNspec; iSpec++){
+            log10MasterGsPp[iSpec][iD] = Math.log10(gsPp[iSpec]); 
+        }
         
         newPe[0][iD] = gsPe;
         newPe[1][iD] = Math.log(gsPe);
@@ -1934,9 +1973,9 @@ if (teff <= F0Vtemp){
 
  } //iElem loop
 
-} //end if teff <= F0Vtemp 
+} //end if teff <= GAStemp 
 
-if (teff > F0Vtemp){
+if (teff > GAStemp){
 
 //Iterate the electron densities, ionization fractions, and molecular densities:
 //
@@ -1980,6 +2019,21 @@ if (teff > F0Vtemp){
        tauOneStagePops[iElem][iStage] = logNums[iStage][iTauOne];
     } //iStage loop
 
+    // #Fill in in PP report:
+    for (int iTau = 0; iTau < numDeps; iTau++){
+
+       if (csp2gas[iElem] != -1){
+          log10MasterGsPp[csp2gas[iElem]][iTau] = logE*(logNums[0][iTau] + temp[1][iTau] + Useful.logK());
+       }
+       if (csp2gasIon1[iElem] != -1){
+          log10MasterGsPp[csp2gasIon1[iElem]][iTau] = logE*(logNums[1][iTau] + temp[1][iTau] + Useful.logK());
+       }
+       if (csp2gasIon2[iElem] != -1){
+          log10MasterGsPp[csp2gasIon2[iElem]][iTau] = logE*(logNums[2][iTau] + temp[1][iTau] + Useful.logK());
+       }
+
+    } //iTau loop        
+
   } //iElem loop
 
    double[] log10UwA = new double[5];
@@ -2005,7 +2059,7 @@ if (teff > F0Vtemp){
 
   } //end Ne - ionzation fraction -molecular equilibrium iteration neIter2
 
-} // end teff > F0Vtemp if
+} // end teff > GAStemp if
 
 //
 
@@ -3020,12 +3074,18 @@ String dataPath = "./InputData/";
    int numSpecSyn = iStop - iStart;
  
   int numSpecies = nelemAbnd * numStages; 
+//Count the number of depths at which we'll report GAS partial pressures *carefully*:
+//Skip upper boundary
+    int numGasDepths = 0;
+    for (int i = 1; i < numDeps; i+=4){
+        numGasDepths++;
+    }
      //Block 1: Array dimensions
      //keys:
-        System.out.println("numDeps,numMaster,numThetas,numGaussLines,numLams,nelemAbnd,numSpecies"); 
+        System.out.println("numDeps,numMaster,numThetas,numGaussLines,numLams,nelemAbnd,numSpecies,numGasDepths,numGas"); 
      //values:
-        System.out.format("%03d,%07d,%03d,%06d,%07d,%05d,%04d%n", 
-            numDeps, numKept, numThetas, numGaussLines, numLams, nelemAbnd, numSpecies);
+        System.out.format("%03d,%07d,%03d,%06d,%07d,%05d,%04d,%03d,%05d%n", 
+            numDeps, numKept, numThetas, numGaussLines, numLams, nelemAbnd, numSpecies, numGasDepths, gsNspec);
 
     //Block 2: Atmosphere
      //keys:
@@ -3058,8 +3118,8 @@ String dataPath = "./InputData/";
        //Structure: One major vectorized block per theta with the 
       // cos(theta) value followed by the intensity spectrum for that theta: 
         for (int i = 0; i < numThetas; i++){
-        System.out.println("cosTheta" + i);  //key
-           System.out.format("%11.6f%n", cosTheta[1][i]);  //value
+            System.out.println("cosTheta" + i);  //key
+            System.out.format("%11.6f%n", cosTheta[1][i]);  //value
             System.out.println("Intensity" + i); //key 
             //for (int j = 0; j < numMaster; j++){
             for (int j = 0; j < numKept; j++){
@@ -3161,6 +3221,25 @@ String dataPath = "./InputData/";
        System.out.format("%7s,%03d,%9.3f,%13.8f%n", cname[iElem], iStage, thisChiI, tauOneStagePops[iElem][iStage]);
     } //iStage loop
   } //iElem loop
+
+
+// Block 11 for Phil Bennett's GAS package output
+
+       //Structure: One major vectorized block per species with the 
+      // species name followed by the partial pressure depth structure for that species: 
+        for (int i = 0; i < gsNspec; i++){
+            System.out.println("Gas" + i);  //key
+            System.out.format("%6s%n", gsName[i]);  //key
+            System.out.println("PrtlPrs" + i); //key 
+            //for (int j = 0; j < numMaster; j++){
+            for (int j = 1; j < numDeps; j+=4){
+ //Do quality control here:
+              if ( log10MasterGsPp[i][j] < logE*logTiny ){
+                 log10MasterGsPp[i][j] = logE*logTiny;
+              }
+               System.out.format("%13.8f%n", log10MasterGsPp[i][j]); //value
+            }
+        }
 
            
 //        System.out.println("areNoLines");

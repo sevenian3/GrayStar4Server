@@ -109,7 +109,7 @@ $logAlphaFe = "0.0";
 */
 
 //echo $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh  . ' ' . $lambdaStart  . ' ' . $lambdaStop;
-$argLine = 'java -cp ./chromastarserver -jar ChromaStarServer.jar ' . ' ' . $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh . ' ' . $lambdaStart . ' ' . $lambdaStop  . ' ' . $sampling . ' ' . $logGammaCol  . ' ' . $logKapFudge . ' ' . $macroV . ' ' . $rotV . ' ' . $rotI . ' ' . $nOuterIter . ' ' . $nInnerIter . ' ' . $ifTiO . ' ' . $logHeFe . ' ' . $logCO . ' ' . $logAlphaFe; 
+$argLine = 'java -cp ./chromastarserver -jar test.jar ' . ' ' . $teff . ' ' . $logg . ' ' . $logZScale . ' ' . $massStar . ' ' . $xiT . ' ' . $lineThresh . ' ' . $voigtThresh . ' ' . $lambdaStart . ' ' . $lambdaStop  . ' ' . $sampling . ' ' . $logGammaCol  . ' ' . $logKapFudge . ' ' . $macroV . ' ' . $rotV . ' ' . $rotI . ' ' . $nOuterIter . ' ' . $nInnerIter . ' ' . $ifTiO . ' ' . $logHeFe . ' ' . $logCO . ' ' . $logAlphaFe; 
 
 //print_r($argLine);
 exec($argLine, $outArray, $returnVar);
@@ -132,6 +132,7 @@ $rowPntr = 0;
  $keyArr = explode(",", $outArray[$rowPntr]);
  $rowPntr++;
  $numKeys = count($keyArr);
+//echo $keyArr[0];
 //echo "numKeys= " . $numKeys;
     $rowArr = explode(",", $outArray[$rowPntr]);
     $rowPntr++;
@@ -161,6 +162,12 @@ $rowPntr = 0;
        if ($keyArr[$j] == "numSpecies"){
           $numSpecies = $rowArr[$j];
            }
+       if ($keyArr[$j] == "numGasDepths"){
+          $numGasDepths = $rowArr[$j];
+           }
+       if ($keyArr[$j] == "numGas"){
+          $numGas = $rowArr[$j];
+           }
     } // $j - loop over columns 
  // Add last value at end of row (with no trailing comma appended!) 
        if ($keyArr[$numKeys-1] == "numDeps"){
@@ -186,6 +193,12 @@ $rowPntr = 0;
            }
        if ($keyArr[$numKeys-1] == "numSpecies"){
           $numSpecies = $rowArr[$numKeys-1];
+           }
+       if ($keyArr[$numKeys-1] == "numGasDepths"){
+          $numGasDepths = $rowArr[$numKeys-1];
+           }
+       if ($keyArr[$numKeys-1] == "numGas"){
+          $numGas = $rowArr[$numKeys-1];
            }
 
 // package up the associative array:
@@ -287,7 +300,7 @@ for ($j = 0; $j < $numKeys; $j++){
      for ($j = 0; $j < $numMaster-1; $j++){
          $intensVal = $intensVal . $outArray[$rowPntr] . ","; 
          $rowPntr++;
-           }  // lambda loop $j
+      }  // lambda loop $j
   //last line - no trailing comma:
        $intensVal = $intensVal . $outArray[$rowPntr];
        $rowPntr++;
@@ -524,6 +537,39 @@ for ($j = 0; $j < $numKeys; $j++){
 for ($j = 0; $j < $numKeys; $j++){
    $inputArr[$keyArr[$j]] = $valArr[$j];
 }
+
+
+//
+// BLOCK 11 - Partial pressures from Phil Bennett's GAS EOS/ChemEqil/IonEquil package:
+//
+
+  for ($i = 0; $i < $numGas; $i++){
+     //echo $i . "</br>";  
+     $gasSpecKey = $outArray[$rowPntr];
+     //echo "gasSpecKey " . $gasSpecKey . "</br>";
+     $rowPntr++;
+     $gasSpecVal = $outArray[$rowPntr];
+     //echo "gasSpecVal " . $gasSpecVal . "</br>";
+     $rowPntr++;
+     $inputArr[$gasSpecKey] = $gasSpecVal;
+     $prtlPrsKey = $outArray[$rowPntr];
+     //echo "prtlPrsKey " . $prtlPrsKey . "</br>";
+     $rowPntr++;
+     $prtlPrsVal = ""; //Initialize string
+     for ($j = 0; $j < $numGasDepths-1; $j++){
+         $prtlPrsVal = $prtlPrsVal . $outArray[$rowPntr] . ","; 
+         $rowPntr++;
+      }  // depth loop $j
+  //last line - no trailing comma:
+       $prtlPrsVal = $prtlPrsVal . $outArray[$rowPntr];
+       $rowPntr++;
+
+// package up the associative array:
+// one key and string value per column variable: 
+   $inputArr[$prtlPrsKey] = $prtlPrsVal;
+
+  } //numGas loop $i
+
 
 
 //Encode associative array with all output data as JSON

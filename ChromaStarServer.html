@@ -921,6 +921,117 @@
                 <span title="Turn atmospheric structure plots on/off">
                     <input id="showAtmos" type="checkbox" name="showAtmos" />Atmosphere
                 </span>
+               <span title="Turn partial pressure plot on/off - requires that 'Atmospheric plots' are selected">
+                    <!-- <input id="showLogNums" type="checkbox" name="showLogNums" /a>Ion equilibrium -->
+                    <select id="showLogPP" name = "showLogPP">
+                       <option value = "None">None</option>
+                       <option value = "H">H</option>
+                       <option value = "H+">H+</option>
+                       <option value = "H-">H-</option>
+                       <option value = "He">He</option>
+                       <option value = "He+">He+</option>
+                       <option value = "C">C</option>
+                       <option value = "C+">C+</option>
+                       <option value = "N">N</option>
+                       <option value = "N+">N+</option>
+                       <option value = "O">O</option>
+                       <option value = "O+">O+</option>
+                       <option value = "Ne">Ne</option>
+                       <option value = "Ne+">Ne+</option>
+                       <option value = "Na">Na</option>
+                       <option value = "Na+">Na+</option>
+                       <option value = "Mg">Mg</option>
+                       <option value = "Mg+">Mg+</option>
+                       <option value = "Mg++">Mg++</option>
+                       <option value = "Al">Al</option>
+                       <option value = "Al+">Al+</option>
+                       <option value = "Si">Si</option>
+                       <option value = "Si+">Si+</option>
+                       <option value = "S">S</option>
+                       <option value = "S+">S+</option>
+                       <option value = "Cl">Cl</option>
+                       <option value = "Cl+">Cl+</option>
+                       <option value = "K">K</option>
+                       <option value = "K+">K+</option>
+                       <option value = "Ca">Ca</option>
+                       <option value = "Ca+">Ca+</option>
+                       <option value = "Ca++">Ca++</option>
+                       <option value = "Sc">Sc</option>
+                       <option value = "Sc+">Sc+</option>
+                       <option value = "Ti">Ti</option>
+                       <option value = "Ti+">Ti+</option>
+                       <option value = "V">V</option>
+                       <option value = "V+">V+</option>
+                       <option value = "Cr">Cr</option>
+                       <option value = "Cr+">Cr+</option>
+                       <option value = "Mn">Mn</option>
+                       <option value = "Mn+">Mn+</option>
+                       <option value = "Fe">Fe</option>
+                       <option value = "Fe+">Fe+</option>
+                       <option value = "Co">Co</option>
+                       <option value = "Co+">Co+</option>
+                       <option value = "Ni">Ni</option>
+                       <option value = "Ni+">Ni+</option>
+                       <option value = "Sr">Sr</option>
+                       <option value = "Sr+">Sr+</option>
+                       <option value = "Y">Y</option>
+                       <option value = "Y+">Y+</option>
+                       <option value = "Zr">Zr</option>
+                       <option value = "Zr+">Zr+</option>
+                       <option value = "Zr+">Zr+</option>
+                       <option value = "H2">H2 </option> 
+                       <option value = "H2+">H2+</option> 
+                       <option value = "C2">C2</option> 
+                       <option value = "C3">C3</option> 
+                       <option value = "N2">N2</option> 
+                       <option value = "O2">O2</option> 
+                       <option value = "CH">CH</option> 
+                       <option value = "C2H2">C2H2</option> 
+                       <option value = "NH">NH</option> 
+                       <option value = "NH2">NH2</option> 
+                       <option value = "NH3">NH3</option> 
+                       <option value = "OH">OH</option> 
+                       <option value = "H2O">H2O</option> 
+                       <option value = "MgH">MgH</option> 
+                       <option value = "AlH">AlH</option> 
+                       <option value = "SiH">SiH</option> 
+                       <option value = "HS">HS</option> 
+                       <option value = "H2S">H2S</option> 
+                       <option value = "HCl">HCl</option> 
+                       <option value = "CaH">CaH</option> 
+                       <option value = "CN">CN</option> 
+                       <option value = "NO">NO</option> 
+                       <option value = "CO">CO</option> 
+                       <option value = "CO2">CO2</option> 
+                       <option value = "MgO">MgO</option> 
+                       <option value = "AlO">AlO</option> 
+                       <option value = "SiO">SiO</option> 
+                       <option value = "SO">SO</option> 
+                       <option value = "CaO">CaO</option> 
+                       <option value = "ScO">ScO</option> 
+                       <option value = "ScO2">ScO2</option> 
+                       <option value = "TiO">TiO</option> 
+                       <option value = "VO">VO</option> 
+                       <option value = "VO2">VO2</option> 
+                       <option value = "YO">YO</option> 
+                       <option value = "YO2">YO2</option> 
+                       <option value = "ZrO">ZrO</option> 
+                       <option value = "ZrO2">ZrO2</option> 
+                       <option value = "CS">CS</option> 
+                       <option value = "SiS">SiS</option> 
+                       <option value = "TiS">TiS</option> 
+                       <option value = "SiC">SiC</option> 
+                       <option value = "SiC2">SiC2</option> 
+                       <option value = "NaCl">NaCl</option> 
+                       <option value = "MgCl">MgCl</option> 
+                       <option value = "AlCl">AlCl</option> 
+                       <option value = "CaCl">CaCl</option> 
+                       <option value = "HCN">HCN</option> 
+                       <option value = "HCO">HCO</option> 
+                       <option value = "MgOH">MgOH</option> 
+                       <option value = "AlOH">AlOH</option> 
+                       <option value = "CaOH">CaOH</option> 
+                    </select>Chem Eq (<span style="font-size:x-small"><em>if</em> Atmos plots <strong>ON</strong></span>)
                 <span title="Turn radiation field plots on/off - slow if many lines included">
                     <input id="showRad" type="checkbox" name="showRad" />Radiation field 
                 </span>       
@@ -969,9 +1080,9 @@
                 <span title="Linear monochromatic continuum limb darkening coefficients (LDC)">
                     <input id="printLDC" type="radio" name="whichPrint" value="ldc"/>Limb darkening coeffs
                 </span>   
-                <!-- <span title="Ionization equilibrium">
-                    <input id="printLogNums" type="radio" name="whichPrint" value="logNums"/>Ionization equilibrium
-                </span> -->
+                <span title="Partial pressures">
+                    <input id="printPP" type="radio" name="whichPrint" value="logPP"/>Partial pressures
+                </span> 
                 <span title="Abundances (A_12=log_10(N_X/N_H))">
                     <input id="printAbnd" type="radio" name="whichPrint" value="abnd"/><em>A</em><sub>12</sub> abundances
                 </span>   
@@ -1069,6 +1180,11 @@
         <!-- Opacity vs depth -->
         <div id="plotFourteen" class="radPanel">
             <svg id="plotFourteenCnvs" width="450" height="350"></svg>
+        </div>
+
+        <!-- GAS species partial pressure vs depth -->
+        <div id="plotSixteen" class="radPanel">
+            <svg id="plotSixteenCnvs" width="450" height="350"></svg>
         </div>
 
 
