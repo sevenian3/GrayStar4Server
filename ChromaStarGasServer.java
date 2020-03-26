@@ -674,7 +674,7 @@ public static int[] type0 = new int[150];
   cname[39]="Cs";
   cname[40]="Ge";
 
-//Variable declaration and set-up for Phil Bennett's
+//Variable declaration and set-up for Phil Bennett's GAS package
 
 double kbol = CSGasInit.kbol;
 double hmass = CSGasInit.hmass;
@@ -998,6 +998,35 @@ name[104] = "CaOH"; ipr[104] = 2; nch[104] =  0; nel[104] = 3; nat[0][104] = 1; 
     //#Ends file read loop "with open(infile...??)
 
     //#After read loop:
+//#GAS composition should be corrected to CSPy values at this point:
+    //#CSPy/Phoenix eheu[] values on A_12 scale where
+    //# eheu[i] = log_10(N_i/N_H) + 12
+    //# I *think* GAS comp[] value are comp[i] = N_i/N_tot
+    //#print("n ", n)
+    double CSNiOverNH = 0.0;
+    double convTerm = 0.0;
+    double invComp = 1.0;
+    //#skip Hydrogen
+    for (int i=0; i<n; i++){
+        //#if (name[i].strip() != 'H'):
+            //#print("element: name ", name[i], " comp[] ", comp[iat[i]])
+            for (int j=0; j<cname.length; j++){
+                //#print("element: name ", name[i], " cname ", cname[j])
+                if ( name[i].trim().equals(cname[j].trim()) ){
+                    CSNiOverNH = Math.pow(10.0, (eheu[j]-12.0));
+                    //#Assumes 1st GAS element is H
+                    for (int k=1; k<n; k++){
+                        convTerm += comp[iat[k]]/comp[iat[i]];
+                    }
+                    invComp = 1.0/CSNiOverNH + convTerm;
+                    comp[iat[i]] = 1.0 / invComp;
+                    //#print("Abundance fix element: name ", name[i], " cname ", cname[j], " newComp ", comp[iat[i]])
+                    convTerm = 0.0; //#reset accumulator
+                }
+            }
+    }
+//#c
+
 
 //#c
 //#c Normalize abundances such that SUM(COMP) = 1
@@ -1018,8 +1047,9 @@ name[104] = "CaOH"; ipr[104] = 2; nch[104] =  0; nel[104] = 3; nat[0][104] = 1; 
     //#print("GsRead: nspec ", nspec, " natom ", natom)
     if (nspec != 0){
 
+        //System.out.println("natom " + natom);
         for (int j99 = 0; j99 < natom; j99++){
-            natsp[j99] = - 1;
+            natsp[j99] = -1;
             comp[j99] = comp[j99]/tcomp;
         }
 
@@ -1033,6 +1063,7 @@ name[104] = "CaOH"; ipr[104] = 2; nch[104] =  0; nel[104] = 3; nat[0][104] = 1; 
             sum0 = 0.0e0;
             iprt = ipr[n99];
 
+            //System.out.println("nelt " + nelt);
             for (int i = 0; i < nelt; i++){
 
                 //#print("i ", i, " n ", n, " zat ", zat[i][n]-1, " indzat ", indzat[zat[i][n]-1])
@@ -1041,6 +1072,7 @@ name[104] = "CaOH"; ipr[104] = 2; nch[104] =  0; nel[104] = 3; nat[0][104] = 1; 
                 nn = indsp[gsJ];
                 //#print(" nn ", nn)
                 natsp[gsJ] = natsp[gsJ] + 1;
+                //System.out.println("gsJ " + gsJ+ " natsp " + natsp[gsJ]);
                 iatsp[gsJ][natsp[gsJ]] = n99;
                 sum0 = sum0 + nat[i][n99]*awt[nn];
                 if (ipr[nn] > iprt){
@@ -1079,7 +1111,6 @@ String[] gsName = new String[nspec];
 for (int i = 0; i < nspec; i++){
    gsName[i] = name[i];
 }
-//#GAS composition shoudl be corrected to CSPy values at this point:
 //# Number of atomic elements in GAS package:
 int gsNumEls = comp.length;
 double[] gsComp = new double[gsNumEls];
@@ -1448,8 +1479,8 @@ double log2 = Math.log(2.0);
 
 //#GAS package parameters:
 int isolv = 1;
-double tol = 1.0e-4;
-int maxit = 100;
+double tol = 1.0e-2;
+int maxit = 10;
 
 //#GAS package interface variables:
 int neq;
@@ -1536,6 +1567,9 @@ double GAStemp = 6000.0;
                     //#element is in GAS package:
                     thisN = gsPp[csp2gas[iElem]] / Useful.k / temp[0][iD];
                     masterStagePops[iElem][0][iD] = Math.log(thisN);
+                    //if (iD == 10 && iElem == 0){
+                    //   console.log("iD " + iD + " iElem " + iElem + " mSP[][] " + masterStagePops[iElem][0][iD];
+                    //}
                 }
             }
  
