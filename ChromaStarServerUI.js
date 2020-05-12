@@ -74,6 +74,9 @@ var mSun = 1.9891e33; // solar masses to g
 var lSun = 3.846e33; // solar bolometric luminosities to ergs/s
 var au = 1.4960e13; // 1 AU in cm
 
+var rEarth = 6.371e8;  //# cm
+var logREarth = Math.log(rEarth);
+
 //Methods:
 //Natural logs more useful than base 10 logs - Eg. Formal soln module: 
 // Fundamental constants
@@ -99,7 +102,11 @@ var logAu = Math.log(au);
     var xmlnsLink = "xmlns:xlink";
     var xmlnsLink2 = "http://w3.org/1999/xlink";
     var xmlW3 = "http://www.w3.org/2000/svg";
-                      //JB
+              //JB
+
+var tiny = 1.0e-49;
+var logTiny = Math.log(tiny);
+
 
 var lineColor = "#000000"; //black
 var lineThick = 1;
@@ -256,7 +263,7 @@ var gsDuplex = function(num, logVector){
 
 //JQuery:  Independent of order of switches in HTML file?
 // Stellar atmospheric parameters
-    var numInputs = 23;
+    var numInputs = 26;
 //Make settingsId object array by hand:
 // setId() is an object constructor
     function setId(nameIn, valueIn) {
@@ -313,10 +320,12 @@ var gsDuplex = function(num, logVector){
    //var nOuterIter = 3;
    //var nInnerIter = 3;
     // Add new variables to hold values for new metallicity controls lburns
-    var logHeFe = 1.0 * $("#logAlphaFe").val(); // lburns
+    var logHeFe = 1.0 * $("#logHeFe").val(); // lburns
     var logCO = 1.0 * $("#logCO").val(); // lburns
     var logAlphaFe = 1.0 * $("#logAlphaFe").val(); // lburns
-
+    var rOrbit = 1.0 * $("#rOrbit").val();  //transiting planet orbital radius (AU)
+    var rPlanet = 1.0 * $("#rPlanet").val(); //transiting planet radius (R_Earth)
+    var orbI = 1.0 * $("#orbI").val(); //planet's orbital inclincation wrt line-of-sight (degrees)
 
 //    
     settingsId[0] = new setId("<em>T</em><sub>eff</sub>", teff);
@@ -344,7 +353,9 @@ var gsDuplex = function(num, logVector){
     settingsId[20] = new setId("<em>[He/Fe]</em>", logHeFe); // lburns
     settingsId[21] = new setId("<em>[C/O]</em>", logCO); // lburns
     settingsId[22] = new setId("<em>[&#945/Fe]</em>", logAlphaFe); // lburns
-
+    settingsId[23] = new setId("<em>r</em><sub>Orb</sub>", rOrbit);
+    settingsId[24] = new setId("<em>r</em><sub>Planet</sub>", rPlanet);
+    settingsId[25] = new setId("<em>I</em><sub>Orb</sub>", orbI);
 
     var solvent = "water"; //default intialization
 
@@ -385,6 +396,7 @@ var gsDuplex = function(num, logVector){
     var ifPrintLine = false;
     var ifPrintLDC = false;
     var ifPrintPP = false;
+    var ifPrintTrans = false;
     var ifPrintAbnd = false;
     var ifPrintLogNums = false;
     var ifPrintJSON = false;
@@ -490,6 +502,9 @@ var gsDuplex = function(num, logVector){
     }
     if ($("#printPP").is(":checked")) {
         ifPrintPP = true; // checkbox
+    }
+    if ($("#printTrans").is(":checked")) {
+        ifPrintTrans = true; // checkbox
     }
     if ($("#printJSON").is(":checked")) {
         ifPrintJSON = true; // checkbox
@@ -1941,6 +1956,10 @@ var gsDuplex = function(num, logVector){
       $("#logAlphaFe").val(0.5);
     }
 
+//For exo-planet light curve:
+  var inclntn = Math.PI * rotI / 180;  //degrees to radians
+  var ifTransit = true;
+
 
 var url = "http://www.ap.smu.ca/~ishort/OpenStars/ChromaStarServer/ChromaStarServer.php";
 //var masterInput="teff="+teff+"&logg="+logg+"&logZScale="+logZScale+"&massStar="+massStar;
@@ -2000,7 +2019,8 @@ var jsonObj;
     var cnvsFifteenId = document.getElementById("plotFifteenCnvs");
     var plotSixteenId = document.getElementById("plotSixteen");
     var cnvsSixteenId = document.getElementById("plotSixteenCnvs");
-                                //JB
+    var plotNineteenId = document.getElementById("plotNineteen");
+    var cnvsNineteenId = document.getElementById("plotNineteenCnvs");                                //JB
 
     var printModelId = document.getElementById("printModel"); //detailed model print-out area
 
@@ -2020,7 +2040,7 @@ var jsonObj;
         plotFiveId.style.display = "block";
         plotFifteenId.style.display = "block";
         if($("#showLogPP").val()=="None"){
-           plotSixteenId.style.display = "none";
+           plotSixteenId.style.display = "block";
         }
 
     }
@@ -2048,6 +2068,7 @@ var jsonObj;
             (ifPrintLDC === true) ||
             (ifPrintLine === true) || 
             (ifPrintPP === true) || 
+            (ifPrintTrans === true) ||
             (ifPrintJSON === true) || 
             (ifPrintAbnd === true)) {
         printModelId.style.display = "block";
@@ -2107,11 +2128,98 @@ var jsonObj;
     var logNH = 17.0;
     var logE = logTen(Math.E); // for debug output
 
-    //Vega parameters (of Phoenix model- Teff not quite right!)
-    var teffVega = 9950.0;
-    var loggVega = 3.95;
-    var gravVega = Math.pow(10.0, loggVega);
-    var zScaleVega = 0.333;
+//    //Vega parameters (of Phoenix model- Teff not quite right!)
+//    var teffVega = 9550.0;
+//    var loggVega = 3.95;
+//    var gravVega = Math.pow(10.0, loggVega);
+//    var zScaleVega = 0.333;
+
+    flagArr[24] = false;
+var rPlanetSol = rPlanet * rEarth / rSun; //#Earth radii to solar radii
+if (rPlanetSol > 0.1*radius){
+    rPlanetSol = 0.1*radius;
+    rPlanet = rPlanetSol * rSun / rEarth;
+    flagArr[24] = true;
+    var rPlanStr = rPlanet.toString(2);
+    settingsId[24].value = rPlanet;
+    $("#rPlanet").val(rPlanet);
+    }
+if (rPlanet <= 0.0){
+    rPlanetSol = 0.001*radius;
+    rPlanet = rPlanetSol * rSun / rEarth;
+    flagArr[24] = true;
+    var rPlanStr = rPlanet.toString(2);
+    settingsId[24].value = rPlanet;
+    $("#rPlanet").val(rPlanet);
+    }
+
+    flagArr[23] = false;
+var rOrbitSol = rOrbit * au / rSun;
+if (rOrbitSol < radius){
+    rOrbitSol = radius;
+    rOrbit = rOrbitSol * rSun / au;
+    flagArr[23] = true;
+    var rOrbStr = rOrbit.toString(2);
+    settingsId[23].value = rOrbit;
+    $("#rOrbit").val(rOrbit);
+    }
+if (rOrbit > 100.0){
+    rOrbit = 100.0;
+    flagArr[23] = true;
+    var rOrbStr = rOrbit.toString(2);
+    settingsId[23].value = rOrbit;
+    $("#rOrbit").val(rOrbit);
+    }
+
+    if (orbI === null || orbI === "") {
+        alert("orbI must be filled out");
+        return;
+    }
+    flagArr[25] = false;
+    if (orbI < 0.0) {
+        flagArr[25] = true;
+        orbI = 0.0;
+        var orbIStr = "0.0";
+        settingsId[25].value = 0.0;
+        $("#orbI").val(0.0);
+    }
+    if (orbI > 90.0) {
+        flagArr[25] = true;
+        orbI = 90.0;
+        var orbIStr = "90.0";
+        settingsId[25].value = 90.0;
+        $("#orbI").val(90.0);
+    }
+
+
+
+var logMassStar = Math.log(massStar) + logMSun; //#MSun to g
+//#print("MassStar ", Math.exp(logMassStar))
+var logROrbCm = Math.log(rOrbit) + logAu; //#AU to cm
+//#print("ROrbCm ", Math.exp(logROrbCm))
+
+//#linear velocity of planetary orbit from Kepler's 3rd law
+//#Assumes planet at same distance as stellar surface
+var logVtransSq = logGConst + logMassStar - logROrbCm;
+var logVtrans = 0.5*logVtransSq;
+var vTrans = Math.exp(logVtrans);  //#cm/s approximately at star's surface
+//#print("vTrans ", vTrans)
+
+//#For period calculation only:
+//#angular velocity of planetary orbit from Kepler's 3rd law
+var logOmegaSq = logGConst + logMassStar - 3*logROrbCm;
+var logOmega = 0.5 * logOmegaSq;  //# RAD/s
+//#print("Omega ", Math.exp(logOmega))
+
+//#Orbital period - for interest
+var logPplanet = Math.log(2.0) + Math.log(Math.PI) - logOmega;
+var pPlanet = Math.exp(logPplanet);
+//console.log("Planetary orbital period (s) " + pPlanet);  //# in s
+var pPlanetYrs = pPlanet / (3600.0 * 24.0 * 365.25);
+//#Establish ephemeris with zero epoch (phase = 0) at mid-transit
+//#time interval should be equal to or less than time taken for plane to
+//#move through its own diameter - time interval of ingress or egress
+var ingressT = ( 2.0*rPlanet*rEarth ) / vTrans;
 
 
 //
@@ -2138,7 +2246,7 @@ var jsonObj;
          var logKappaAjax = gsAjaxParser(numDeps, jsonObj.logKappa);
          var kappaRos = gsDuplex(numDeps, logKappaAjax);
 
-//Special Tau_Ros axis to go with GAS parital pressure - must be consistent with depth sampling of partial pressure
+//Special Tau_Ros axis to go with GAS partial pressure - must be consistent with depth sampling of partial pressure
 //report from ChromaStarServer
 //
     var logTauRosGas = [];
@@ -2355,6 +2463,170 @@ var jsonObj;
       }
 */    
 
+//#Planetary transit quantities
+//#Angle of orbital axis wrt plane-of-sky
+var iPrime = 90.0 - orbI;
+
+//#Degrees to RAD
+var iPrimeRad = iPrime * Math.PI / 180.0;
+
+//#Right angle triangle with hypoteneuse = rOrbit
+//#  angle = orbIRad,
+//#  and opposite = planet's minimum impact parameters wrt substellar point
+//#impact parameter (minimum offset from substellar point)in AU
+//console.log("rOrbit " + rOrbit + " iPrimeRad " + iPrimeRad);
+var impct = rOrbit * Math.sin(iPrimeRad);
+//#impact parameter in solar radii
+var impct = impct * au / rSun;
+//#print("orbI ", orbI, " iPrime ", iPrime, " iPrimeRad ", iPrimeRad,\
+if ( impct >= (radius-(2*rPlanetSol)) ){
+    //#There is no eclipse (transit)
+    ifTransit = false;
+    console.log("ifTransit turned OFF " + ifTransit);
+}
+
+
+//#      " impct/radius ", impct/radius)
+//#thetaMinRad is also the minimum theta of the eclipse path chord, in RAD
+var ingressT1 = 0.0;
+//#Duration of ingress (and egress) from planetary mid-point contact to 2nd contact
+var ingressT2 = 0.0;
+var numTransThetas = 0.0;
+var thetaMinRad = 1.0;
+var iFirstTheta = 0;
+var contact1x = 0.0;
+var contact2x = 0.0;
+var contactMidx = 0.0;
+var cosThetaMax = 0.0;
+var midContAngle = 0.0;
+var halfHelpAngle = 0.0;
+var logOmegaLens = logTiny;
+//#omegaLens = 0.0
+
+if (ifTransit){
+    //#First contact position along cord, in solar radii:
+    contact1x = Math.sqrt( (radius + rPlanetSol)**2 - impct**2 );
+    //#Planetary mid-point contact
+    contactMidx = Math.sqrt(radius**2 - impct**2);
+    //#Second contact position along cord in solar radii:
+    contact2x = Math.sqrt( (radius - rPlanetSol)**2 - impct**2 );
+    //#ingressT = ( (contact1x - contact2x)*Useful.rSun() ) / vTrans
+    ingressT1 = ( (contact1x - contactMidx)*rSun ) / vTrans;
+    ingressT2 = ( (contactMidx - contact2x)*rSun ) / vTrans;
+   // console.log("New ingressT1 "+ ingressT1+ " ingressT2 "+ ingressT2)
+    //#cos(theta) *decreases* with increasing theta in Quadrant I:
+    thetaMinRad =  Math.asin(impct/radius);
+    cosThetaMax = Math.cos(thetaMinRad);
+
+    //console.log(" thetaMinRad "+ thetaMinRad+ " cosThetaMax "+ cosThetaMax);
+
+    //#quantities for computing the blocking factor at planetary mid-point contact
+    //#Angle at planet's centre of lens-shaped occultation area:
+    halfHelpAngle = Math.atan( (rPlanetSol/2.0)/radius );
+    midContAngle = ( Math.PI - (2.0*halfHelpAngle) ) / 2.0;
+    //#Area of lens-shaped area occulted at planetary mid-point contact in solar-radii^2
+    //# - (2*angle/2*Pi) * Pi*rPlanet^2 = angle*rPlanet^2
+    logOmegaLens = Math.log(midContAngle) + 2.0*Math.log(rPlanetSol);
+    //#As fraction of host star projected radius
+    logOmegaLens = logOmegaLens - Math.log(Math.PI) - 2.0*Math.log(radius);
+    //console.log("log midContBlock/radius^2 "+ logOmegaLens)
+    //#omegaLens = Math.exp(logOmegaLens)
+}
+i = 0;
+
+//#ifFirst = False
+//#for i in range(numThetas):
+//#cosTheta[1] *decreases* (ie. theta increases) with increasing array number
+if (ifTransit){
+    while ( (cosTheta[1][i] >= cosThetaMax)
+           & (i < numThetas) ){
+        //#print("In while loop: i ", i, " cosTheta[1] ", cosTheta[1][i])
+        //#if (ifFirst == False):
+        //#    iFirstTheta = i
+        //#    ifFirst = True
+        //# We are on the eclipse semi-chord:
+        i+=1;
+    }
+    iFirstTheta = i;
+}
+numTransThetas = numThetas - i;
+var numTransThetas2 = (2*numTransThetas + 4);
+//#print("iFirstTheta ", iFirstTheta, " numTransThetas ", numTransThetas, " numTransThetas2 ", numTransThetas2)
+
+var transit = [];
+transit.length = numTransThetas;
+var transit2 = [];
+transit2.length = numTransThetas2;
+for (var i = 0; i < numTransThetas; i++){
+   transit[i] = 0.0;
+}
+for (var i = 0; i < numTransThetas2; i++){
+   transit2[i] = 0.0;
+}
+var transDuration = 0.0
+var transTime0 = 0.0
+var transTime1 = 0.0
+var totalDuration = 0.0
+var deltaT = 1.0
+var numEpochs = 1
+var ephemT = [];
+//# blocking factor should be projected planet area over that annulus area
+//#transit[][] is array of distances traveled, r, along semi-chord from position of
+//#minimum impact parameter, and corresponding theta values:
+//# 2D array of 2 x numThetas
+//#row 0 is log_e of ratio of projected planet area to area of annulus for each theta being transited
+//#row 1 is times corresponding to linear distance travelled along transit
+//#  semi-path at surface of star in solar radii
+
+//#transit = [[numpy.double(0.0) for i in range(numTransThetas)] for j in range(2)] # Default
+//#Row 0 is logarithmic ratio of planet area to annulus area
+//# - set default value to log of neglible value:
+//#transit[0] = [logTiny for i in range(numThetas)]
+if (ifTransit){
+    //console.log("radius " + radius + " vTrans " + vTrans + " iFirstTheta " + iFirstTheta + " numTransThetas " + numTransThetas + " impct" + impct);
+    transit = transLight2(radius, cosTheta, vTrans, iFirstTheta, numTransThetas, impct);
+    //#print("numTransThetas ", numTransThetas)
+    //#reflect the half-transit profile and add the first and last points just before
+    //#ingress and just after egress
+    for (var i = 0; i < numTransThetas; i++){
+        transit2[2+i] = -1.0 * transit[(numTransThetas-1)-i];
+        //#print("1st half: i ", i, " (numTransThetas-1)-i ", (numTransThetas-1)-i)
+    }
+    for (var i = 0; i < numTransThetas; i++){
+        transit2[2+(numTransThetas+i)] = transit[i];
+        //#print("2nd half: i ", i)
+    }
+    transit2[1] = transit2[2] - ingressT2;
+    transit2[0] = transit2[1] - ingressT1;
+    transit2[numTransThetas2-2] = transit2[numTransThetas2-3] + ingressT2;
+    transit2[numTransThetas2-1] = transit2[numTransThetas2-2] + ingressT1;
+
+    transDuration = transit2[numTransThetas2-1] - transit2[0];
+    //#print("transit2[0] ", transit2[0], " transit2[numTransThetas2-1] ", transit2[numTransThetas2-1])
+    transTime0 = transit2[0] - transDuration/4;
+    transTime1 = transit2[numTransThetas2-1] + transDuration/4;
+    totalDuration = transTime1 - transTime0;
+    //console.log("transTime0 "+ transTime0+ " transTime1 "+ transTime1)
+    //console.log("transDuration "+ transDuration/3600.0+ " totalDuration "+ totalDuration/3600.0)
+    //#numEpochs = 200
+    //#deltaT = transDuration / numEpochs
+    //#Make time sampling interval equal to the time of ingress/egress
+    var ingressHelp = [ingressT1, ingressT2];
+    var deltaTHelp = minMax(ingressHelp); //#/ 2.0;
+    //console.log("deltaTHelp " + deltaTHelp);
+    deltaT = ingressHelp[deltaTHelp[0]];
+    numEpochs = Math.ceil(totalDuration / deltaT);
+    //#print("deltaT ", deltaT, " numEpochs ", numEpochs)
+    //#ephemeris in time units (s)
+}
+
+ephemT.length = numEpochs;
+for (var i = 0; i < numEpochs; i++){
+   ephemT[i] = (i*deltaT)+transTime0;;
+}
+//console.log("numEpochs " + numEpochs + " deltaT " + deltaT);
+
+
 //Apply corrections to wavelength scale before filter integrations:
 // - do them in the order nature does them in...
 //
@@ -2394,8 +2666,76 @@ var jsonObj;
        }
      }
 
+var masterFluxTrans = [];
+masterFluxTrans.length = 2;
+for (var j = 0; j < 2; j++){
+   masterFluxTrans[j] = [];
+   masterFluxTrans[j].length = numMaster;
+   for (var k = 0; k < numMaster; k++){
+      masterFluxTrans[j][k] = [];
+      masterFluxTrans[j][k].length = numTransThetas;
+      for (var i = 0; i < numTransThetas; i++){
+         masterFluxTrans[j][k][i] = 0.0;
+      }
+   }
+}
 
-    var colors =  UBVRI(masterLams2, masterFlux, numDeps, tauRos, temp);
+var masterFluxTrans2 = [];
+masterFluxTrans2.length = 2;
+for (var j = 0; j < 2; j++){
+   masterFluxTrans2[j] = [];
+   masterFluxTrans2[j].length = numMaster;
+   for (var k = 0; k < numMaster; k++){
+      masterFluxTrans2[j][k] = [];
+      masterFluxTrans2[j][k].length = numTransThetas2;
+      for (var i = 0; i < numTransThetas2; i++){
+         masterFluxTrans2[j][k][i] = 0.0;
+      }
+   }
+}
+
+var helper = 0.0
+var logHelper = 0.0;
+
+if (ifTransit){
+    //console.log("fluxTrans called radius " + radius + " iFirstTheta " + iFirstTheta + " numTransThetas " + numTransThetas + " rPlanet " + rPlanet);
+    masterFluxTrans = fluxTrans(masterIntens, masterFlux, masterLams, cosTheta,
+          radius, iFirstTheta, numTransThetas, rPlanet);
+    //#reflect the half-transit profile and add the first and last points just before
+    //#ingress and just after egress
+    for (var j = 0; j < numMaster; j++){
+        //#lens-shaped occultation area at planetary mid-point contact:
+        //#Ingress:
+        //#Subtracting the very small from the very large - let's be sophisticated about it:
+        logHelper = Math.log(masterIntens[j][numThetas-1]) + logOmegaLens - masterFlux[1][j];
+        helper = 1.0 - Math.exp(logHelper);
+        masterFluxTrans2[1][j][0] = masterFlux[1][j];
+        masterFluxTrans2[0][j][0] = masterFlux[0][j];
+        masterFluxTrans2[1][j][1] = masterFlux[1][j] + Math.log(helper);
+        masterFluxTrans2[0][j][1] = Math.exp(masterFluxTrans2[1][j][1]);
+        //#Full occultation:
+        //#Ingress to minimum impact parameter
+        for (var i =0; i < numTransThetas; i++){
+            masterFluxTrans2[1][j][2+i] = masterFluxTrans[1][j][(numTransThetas-1)-i];
+            masterFluxTrans2[0][j][2+i] = masterFluxTrans[0][j][(numTransThetas-1)-i];
+        }
+        //#Minimum impact parameter to egress
+        for (var i = 0; i < numTransThetas; i++){
+            masterFluxTrans2[1][j][2+(numTransThetas+i)] = masterFluxTrans[1][j][i];
+            masterFluxTrans2[0][j][2+(numTransThetas+i)] = masterFluxTrans[0][j][i];
+        }
+        //#Egress:
+        masterFluxTrans2[1][j][numTransThetas2-2] = masterFlux[1][j] + Math.log(helper);
+        masterFluxTrans2[0][j][numTransThetas2-2] = Math.exp(masterFluxTrans2[1][j][numTransThetas2-2]);
+        masterFluxTrans2[1][j][numTransThetas2-1] = masterFlux[1][j];
+        masterFluxTrans2[0][j][numTransThetas2-1] = masterFlux[0][j];
+    }
+}
+
+
+    //var colors =  UBVRI(masterLams2, masterFlux, numDeps, tauRos, temp);
+        var bandFlux =  UBVRIraw(masterLams, masterFlux);
+        var colors = UBVRI(bandFlux);
 
     // UBVRI band intensity annuli - for disk rendering:
     var bandIntens = iColors(masterLams2, masterIntens, numThetas, numMaster); 
@@ -2410,6 +2750,62 @@ var jsonObj;
     //Fourier transform of narrow band image:
     var ft = fourier(numThetas, cosTheta, tuneBandIntens);
     var numK = ft[0].length;
+
+//#Planetary transit light curves as seen through photometric filters:
+var numBands = bandFlux.length;
+//#Sigh - I don't know how to directly assign a 2D list column slice (2nd index):
+var bandFluxTransit = [];
+bandFluxTransit.length = numBands;
+for (var j = 0; j < numBands; j++){
+   bandFluxTransit[j] = [];
+   bandFluxTransit[j].length = numTransThetas2;
+   for (var i = 0; i < numTransThetas2; i++){
+      bandFluxTransit[j][i] = 0.0;
+   }
+}
+var helpBandFlux = [];
+helpBandFlux.length = numBands;
+for (var j = 0; j < numBands; j++){
+   helpBandFlux[j] = 0.0;
+}
+var helpMasterFlux = [];
+helpMasterFlux.length = 2;
+for (var j = 0; j < 2; j++){
+   helpMasterFlux[j] = [];
+   helpMasterFlux[j].length = numMaster;
+   for (var i = 0; i < numMaster; i++){
+      helpMasterFlux[j][i] = 0.0;
+   }
+}
+for (var iEpoch = 0; iEpoch < numTransThetas2; iEpoch++){
+    for (var il = 0; il < numMaster; il++){
+        helpMasterFlux[1][il] = masterFluxTrans2[1][il][iEpoch];
+        helpMasterFlux[0][il] = masterFluxTrans2[0][il][iEpoch];
+        //if (il == 150){
+        //  console.log("masterFluxTrans2[1][il][iEpoch] " + masterFluxTrans2[1][il][iEpoch]);
+        //}
+    }
+    helpBandFlux = UBVRIraw(masterLams, helpMasterFlux);
+    for (var iBand = 0; iBand < numBands; iBand++){
+        bandFluxTransit[iBand][iEpoch] = helpBandFlux[iBand];
+        //if (iBand == 0){
+        //  console.log("bandFluxTransit[iBand][iEpoch] " + bandFluxTransit[iBand][iEpoch]);
+        //}
+    }
+}
+var bandFluxTransit2 = [];
+bandFluxTransit2.length = numBands;
+for (var j = 0; j < numBands; j++){
+   bandFluxTransit2[j] = [];
+   bandFluxTransit2[j].length = numEpochs;
+   for (var i = 0; i < numEpochs; i++){
+      bandFluxTransit2[j][i] = 0.0;
+   }
+}
+//#Interpolate transit light curves onto total duration we are following:
+for (var iBand = 0; iBand < numBands; iBand++){
+    bandFluxTransit2[iBand] = interpolV(bandFluxTransit[iBand], transit2, ephemT);
+}
 
 
 //
@@ -2491,6 +2887,16 @@ var jsonObj;
 </span> ",
             20 + colr * xTab, 40, 200, lineColor, textId);
 // 
+//
+// Planetary orbital period:
+    roundNum = pPlanetYrs.toFixed(1);
+    txtPrint("<span title='Planets orbital period'>\n\
+<em>P</em><sub>Orb</sub>: \n\
+</span>"
+            + roundNum
+            + " <span >\n\ yrs\n\
+</span>",
+            350, 40, 200, lineColor, textId);
 
     // UBVRI indices
     var xTab = 80;
@@ -3100,6 +3506,7 @@ if ((logg >= -0.5) && (logg < 1.5)){
 //  function washer() creates and inserts a panel into the HTML doc 
 //   AND erases it by "gray-washing" it upon each re-execution of the script 
     var washer = function(plotRow, plotCol, thisPanelWidth, wColor, areaId, cnvsId) {
+
         // Very first thing on each load: gray-wash the canvas!!
 
 // Browser viewport coordinates for upper left corner of panel:
@@ -4193,7 +4600,7 @@ if ((logg >= -0.5) && (logg < 1.5)){
 
 // Plot twelve - image of limb-darkened and limb-colored TUNABLE MONOCHROMATIC stellar disk
 
-        var plotRow = 1;
+        var plotRow = 5;
         var plotCol = 0;
 
 //radius parameters in pixel all done above now:
@@ -6154,8 +6561,8 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
         steamTemp = steamTemp - greenHouse;
         iceTemp = iceTemp - greenHouse;
         var logSteamLine, logIceLine;
-        var au = 1.4960e13; // 1 AU in cm
-        var rSun = 6.955e10; // solar radii to cm
+//        var au = 1.4960e13; // 1 AU in cm
+//        var rSun = 6.955e10; // solar radii to cm
         var log1AULine = logAu - logRSun; // 1 AU in solar radii
         //Steam line:
         //Set steamTemp equal to planetary surface temp and find distance that balances stellar irradiance 
@@ -6168,6 +6575,9 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
         var steamLineAU = Math.exp(logSteamLine) * rSun / au;
         iceLineAU = iceLineAU.toPrecision(3);
         steamLineAU = steamLineAU.toPrecision(3);
+//Transiting exo-planet orbit:
+        var rOrbitAU = rOrbit.toPrecision(3); //in AU
+        var logTransLine = Math.log(rOrbit) + logAu - logRSun; //in soalr radii
         var steamTempRound = steamTemp.toPrecision(3);
 
         // Convert solar radii to pixels:
@@ -6188,21 +6598,32 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
         radiusPxIce = Math.ceil(radiusPxIce);
         var radiusPx1AU = logScale * logTen(radiusScale * radius * Math.exp(log1AULine));
         radiusPx1AU = Math.ceil(radiusPx1AU);
+//Transiting exo-planet orbit:
+        var radiusPxTrans = logScale * logTen(radiusScale * radius * Math.exp(logTransLine));
+        radiusPxTrans = Math.ceil(radiusPxTrans);
+
     //console.log("radius " + radius + " radiusPx " + radiusPx + " radiusPxSteam " + radiusPxSteam + " radiusPxIce " + radiusPxIce + " radiusPx1AU " + radiusPx1AU)
         // Key radii in order of *DECREASING* size (important!):
-        var numZone = 7;
-        var radii = [];
-        radii.length = numZone;
-// Safety defaults:
-        radii = [radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU];
+        //var numZone = 7;
+        //var radii = [];
+        //radii.length = numZone;
+//// Safety defaults:
+        //radii = [radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU, radiusPx1AU];
         rrI = saveRGB[0];
         ggI = saveRGB[1];
         bbI = saveRGB[2];
         var starRGBHex = "rgb(" + rrI + "," + ggI + "," + bbI + ")";
-        var colors = [];
-        colors.length = numZone;
+        //var colors = [];
+        //colors.length = numZone;
 
-        if (radiusPx1AU >= (radiusPxIce + 3)){
+        //radii = [radiusPx1AU+1, radiusPx1AU, radiusPxIce + 3, radiusPxIce, radiusPxSteam, radiusPxSteam - 3, radiusPx];
+        var lzWdthPx = radiusPxIce - radiusPxSteam; //life zone width in pixels
+        lzWdthPx = Math.round(lzWdthPx);
+        var lzRdsPx = ( radiusPxSteam + radiusPxIce ) / 2.0;
+        lzRdsPx = Math.round(lzRdsPx);
+
+
+/*        if (radiusPx1AU >= (radiusPxIce + 3)){
            radii = [radiusPx1AU+1, radiusPx1AU, radiusPxIce + 3, radiusPxIce, radiusPxSteam, radiusPxSteam - 3, radiusPx];
            colors = ["#000000", wDiskColor, "#0000FF", "#00FF88", "#FF0000", wDiskColor, starRGBHex];
            //console.log("If branch 1");
@@ -6237,7 +6658,7 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
            colors = ["#0000FF", "#00FF88", "#FF0000", wDiskColor, starRGBHex, "#000000", starRGBHex];
            //console.log("If branch 6");
            //console.log("radii " + radii);
-        }
+        }*/
 
      //console.log("radii " + radii)
         //
@@ -6263,6 +6684,7 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
                 + " <span style='color:#FF0000'>Steam line</span> " + steamLineAU + " <a href='https://en.wikipedia.org/wiki/Astronomical_unit' title='1 AU = Earths average distance from center of Sun'> AU</a><br /> "
                 + " <span style='color:#00FF88'><strong>Life zone</strong></span><br /> "
                 + " <span style='color:#0000FF'>Ice line</span> " + iceLineAU + " <a href='https://en.wikipedia.org/wiki/Astronomical_unit' title='1 AU = Earths average distance from center of Sun'> AU</a><br /> " 
+                + " <span style='color:#990099'>Transit Orbit</span> " + rOrbitAU + " <a href='https://en.wikipedia.org/wiki/Methods_of_detecting_exoplanets#Transit_photometry' title='Orbit of transiting exoplanet'> AU</a><br /> "
                 + " <span style='color:#000000'>Reference line: 1 <a href='https://en.wikipedia.org/wiki/Astronomical_unit' title='1 AU = Earths average distance from center of Sun'>AU</a></span>",
                 legendX, legendY, 300, lineColor, plotElevenId);
 //
@@ -6272,9 +6694,14 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
         // moved earlier var intcolors = iColors(lambdaScale, intens, numDeps, numThetas, numLams, tauRos, temp);
 			//JB
 
+// Adjust position to center star:
+// Radius is really the *diameter* of the symbol
+            var yCenterCnvs = panelHeight / 2;
+            var xCenterCnvs = panelWidth / 2;
+
         //  Loop over radial zones - largest to smallest
    //console.log("cx " + xCenterCnvs + " cy " + yCenterCnvs);
-        for (var i = 0; i < radii.length; i++) { // for (var i = parseFloat(radii.length); i > 2; i--) {
+/*        for (var i = 0; i < radii.length; i++) { // for (var i = parseFloat(radii.length); i > 2; i--) {
        //console.log(i, radii[i])
             var radiusStr = numToPxStrng(radii[i]);
             // Adjust position to center star:
@@ -6303,6 +6730,87 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
 				//JB
 				
         }  //i loop (thetas)
+*/
+
+//Add host star:
+
+        var thisCirc = document.createElementNS(xmlW3, 'circle');
+        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
+        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
+        thisCirc.setAttributeNS(null, 'r', radiusPx);
+        thisCirc.setAttributeNS(null, 'stroke', starRGBHex);
+        thisCirc.setAttributeNS(null, 'stroke-width', 2);
+        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
+        thisCirc.setAttributeNS(null, 'fill', starRGBHex);
+        thisCirc.setAttributeNS(null, 'fill-opacity', 1);
+        cnvsElevenId.appendChild(thisCirc);
+
+//Add life zone:
+
+        var thisCirc = document.createElementNS(xmlW3, 'circle');
+        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
+        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
+        thisCirc.setAttributeNS(null, 'r', lzRdsPx);
+        thisCirc.setAttributeNS(null, 'stroke', "#00FF88");
+        thisCirc.setAttributeNS(null, 'stroke-width', lzWdthPx);
+        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
+        thisCirc.setAttributeNS(null, 'fill', "#FFFFFF");
+        thisCirc.setAttributeNS(null, 'fill-opacity', 0);
+        cnvsElevenId.appendChild(thisCirc);
+
+//Add steam line:
+
+        var thisCirc = document.createElementNS(xmlW3, 'circle');
+        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
+        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
+        thisCirc.setAttributeNS(null, 'r', radiusPxSteam);
+        thisCirc.setAttributeNS(null, 'stroke', "#FF0000");
+        thisCirc.setAttributeNS(null, 'stroke-width', 2);
+        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
+        thisCirc.setAttributeNS(null, 'fill', "#FFFFFF");
+        thisCirc.setAttributeNS(null, 'fill-opacity', 0);
+        cnvsElevenId.appendChild(thisCirc);
+
+
+//Add ice line:
+
+        var thisCirc = document.createElementNS(xmlW3, 'circle');
+        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
+        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
+        thisCirc.setAttributeNS(null, 'r', radiusPxIce);
+        thisCirc.setAttributeNS(null, 'stroke', "#0000FF");
+        thisCirc.setAttributeNS(null, 'stroke-width', 2);
+        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
+        thisCirc.setAttributeNS(null, 'fill', "#FFFFFF");
+        thisCirc.setAttributeNS(null, 'fill-opacity', 0);
+        cnvsElevenId.appendChild(thisCirc);
+
+//Add 1 AU line:
+
+        var thisCirc = document.createElementNS(xmlW3, 'circle');
+        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
+        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
+        thisCirc.setAttributeNS(null, 'r', radiusPx1AU);
+        thisCirc.setAttributeNS(null, 'stroke', "#000000");
+        thisCirc.setAttributeNS(null, 'stroke-width', 2);
+        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
+        thisCirc.setAttributeNS(null, 'fill', "#FFFFFF");
+        thisCirc.setAttributeNS(null, 'fill-opacity', 0);
+        cnvsElevenId.appendChild(thisCirc);
+
+//Add orbit of transiting exo-planet:
+
+        var thisCirc = document.createElementNS(xmlW3, 'circle');
+        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
+        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
+        thisCirc.setAttributeNS(null, 'r', radiusPxTrans);
+        thisCirc.setAttributeNS(null, 'stroke', "#990099");
+        thisCirc.setAttributeNS(null, 'stroke-width', 2);
+        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
+        thisCirc.setAttributeNS(null, 'fill', "#FFFFFF");
+        thisCirc.setAttributeNS(null, 'fill-opacity', 0);
+        cnvsElevenId.appendChild(thisCirc);
+
 
 
 // ****************************************
@@ -6791,6 +7299,206 @@ panelX = panelOrigin[0];
 				//JB
     }
 
+//
+//
+//  *****   PLOT NINETEEN / PLOT 19
+//
+//
+
+// Plot nineteen: Exoplanet transit light curves
+//
+    //if ((ifLineOnly === false) && (ifShowRad === true)) {
+    //if ((ifLineOnly === false)) {
+//    //For movie:
+//    if (ifLineOnly === false) {
+
+        var plotRow = 1;
+        var plotCol = 0;
+//
+var ephemTHrs = [];
+ephemTHrs.length = numEpochs;
+for (var i = 0; i < numEpochs; i++){
+   ephemTHrs[i] = ephemT[i] / 3600.0; //s to hours
+}
+
+        var minXData = ephemTHrs[0];
+        var maxXData = ephemTHrs[numEpochs-1];
+        var xAxisName = "Time, t (hrs)";
+
+var yMinMaxUV = minMax(bandFluxTransit2[0]);
+var yMinUV = bandFluxTransit2[0][yMinMaxUV[0]] / bandFluxTransit2[0][0]; //#minimum UV flux during transit
+//console.log("yMinMaxUV " + yMinMaxUV, " yMinUV ", yMinUV);
+var yMinMaxIR = minMax(bandFluxTransit2[numBands-1]);
+var yMinIR = bandFluxTransit2[numBands-1][yMinMaxIR[0]] / bandFluxTransit2[numBands-1][0]; //#minimum IR flux during transit
+var bothMins = [yMinUV, yMinIR];
+var yMinMax = minMax(bothMins); // # minimum of the two
+var minYData = bothMins[yMinMax[0]];
+//Finesse:
+//minYData = 0.9 * minYData;
+
+//var maxYData = 1.0 + (1.0 - minYData);
+var maxYData = 1.0;
+
+//Try renormalizing to 0 untransited flux:
+minYData = minYData - 1.0;
+maxYData = maxYData - 1.0;
+//console.log("minYData " + minYData + " maxYData " + maxYData);
+var textStep = (maxYData-minYData)/10.0;
+
+        var yAxisName = "<span title='Relative surface flux in band'><em>F</em><sub>band</sub>(t)/<br /><em>F</em><sub>band - 1</span>";
+
+var whichBands = [0, 1, 3, 4, 5, 8];
+var numPlotBands = whichBands.length;
+var bandLbls = ["U", "B", "V", "R", "I", "K"];
+var transR = [200,
+              0,
+              0,
+              200,
+              100,
+              150];
+var transG = [0,
+              0,
+              200,
+              0,
+              100,
+              150];
+var transB = [200,
+              200,
+              0,
+              0,
+              0,
+              150];
+
+var normFluxTransit = [];
+normFluxTransit.length = numPlotBands;
+for (var j = 0; j < numPlotBands; j++){
+   normFluxTransit[j] = [];
+   normFluxTransit[j].length = numEpochs;
+   for (var i = 0; i < numEpochs; i++){
+      normFluxTransit[j][i] = 0.0;
+   }
+}
+
+        //var fineness = "ultrafine";
+                                        //JB
+        var panelOrigin = washer(plotRow, plotCol, panelWidth, wDefaultColor, plotNineteenId, cnvsNineteenId);
+                                        //JB
+
+        panelX = panelOrigin[0];
+        panelY = panelOrigin[1];
+
+
+                //console.log(SVGFive); is good, created fine
+                //console.log("Before: minXData, maxXData " + minXData + ", " + maxXData);
+                //console.log("XAxis called from PLOT 5:");
+        var xAxisParams = XAxis(panelX, panelY, xAxisLength,
+                minXData, maxXData, xAxisName, fineness,
+                plotNineteenId, cnvsNineteenId);
+
+        var yAxisParams = YAxis(panelX, panelY,
+                 minYData, maxYData, yAxisName,
+                 fineness, plotNineteenId, cnvsNineteenId);
+
+        var rangeXData19 = xAxisParams[1];
+        var deltaXData19 = xAxisParams[2];
+        var deltaXPxl19 = xAxisParams[3];
+        var rangeYData19 = yAxisParams[1];
+        var deltaYData19 = yAxisParams[2];
+        var deltaYPxl19 = yAxisParams[3];
+        var minXData19 = xAxisParams[6]; //updated value
+        var minYData19 = yAxisParams[6]; //updated value
+        var maxXData19 = xAxisParams[7]; //updated value
+        var maxYData19 = yAxisParams[7]; //updated value
+                //console.log("After : minXData, maxXData " + minXData + ", " + maxXData + " rangeXData " + rangeXData);
+        //
+//
+        // Add legend annotation:
+        titleX = panelX + titleOffsetX;
+        titleY = panelY + titleOffsetY;
+
+        txtPrint("<span style='font-size:normal; color:blue'><a href='https://en.wikipedia.org/wiki/Methods_of_detecting_exoplanets#Transit_photometry' target='_blank'>\n\
+     Planetary transit lightcurves</a></span>",
+                titleOffsetX, titleOffsetY, 300, lineColor, plotNineteenId);
+        txtPrint("<span style='font-size:small'>"
+                + "<span style='color:violet'><em>U</em> </span>"
+                + "<span style='color:blue'><em>B</em> </span>"
+                + "<span style='color:green'><em>V</em> </span>"
+                + "<span style='color:red'><em>R</em> </span>"
+                + "<span style='color:brown'><em>I</em> </span>"
+                + "<span style='color:gray'><em>K</em> </span>",
+                titleOffsetX, titleOffsetY+35, 250, lineColor, plotNineteenId);
+                                        //JB
+                                        //JB
+        roundNum = pPlanetYrs.toFixed(1);
+        txtPrint("<span style='font-size:normal; color:black'>\n\
+     <em>P</em><sub>Orbit</sub></span> " + roundNum + " yrs",
+                titleOffsetX+300, titleOffsetY, 300, lineColor, plotNineteenId);
+
+        var dSizeCnvs = 1.0; //plot point size
+        var dSize0Cnvs = 1.0;
+        var opac = 1.0; //opacity
+
+        var yShiftCnvs, yShiftCCnvs, yShift0Cnvs, yShiftNCnvs;
+
+  for (var iB = 0; iB < numPlotBands; iB++){
+
+      for (var iE = 0; iE < numEpochs; iE++){
+          normFluxTransit[iB][iE] = bandFluxTransit2[whichBands[iB]][iE]/bandFluxTransit2[whichBands[iB]][0];
+          normFluxTransit[iB][iE] = normFluxTransit[iB][iE] - 1.0;
+//Try re-normalizing to 0 flux:
+      }
+
+        var xTickPosCnvs = xAxisLength * (ephemTHrs[0] - minXData19) / rangeXData19; // pixels
+//
+        var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
+        var yTickPosCnvs = yAxisLength * (normFluxTransit[iB][0] - minYData19) / rangeYData19;
+        //console.log("iB " + iB + " normFluxTransit[iB][0] " + normFluxTransit[iB][0]);
+//
+        // vertical position in pixels - data values increase upward:
+        //console.log("yAxisYCnvs " + yAxisYCnvs + " yAxisLength " + yAxisLength + " yTickPosCnvs " + yTickPosCnvs);
+        var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
+        var xShift, yShift;
+
+    //cnvsFiveId.addEventListener("mouseover", function() {
+    cnvsNineteenId.addEventListener("click", function() {
+       //dataCoords(event, plotFiveId);
+       var xyString = dataCoords(event, cnvsNineteenId, xAxisLength, minXData19, rangeXData19, xAxisXCnvs,
+                               yAxisLength, minYData19, rangeYData19, yAxisYCnvs);
+       txtPrint(xyString, titleOffsetX+200, titleOffsetY+320, 150, lineColor, plotNineteenId);
+    });
+
+        for (var i = 1; i < numEpochs; i++) {
+
+            xTickPosCnvs = xAxisLength * (ephemTHrs[i] - minXData19) / rangeXData19;
+            ii = 1.0 * i;
+
+            // horizontal position in pixels - data values increase rightward:
+            xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
+
+            yTickPosCnvs = yAxisLength * (normFluxTransit[iB][i] - minYData19) / rangeYData19;
+            // vertical position in pixels - data values increase upward:
+            yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
+
+//line plot
+            var RGBHex = colHex(transR[iB], transG[iB], transB[iB]);
+            //var RGBHex = colHex(200, 0, 200);
+
+            var thisLine = document.createElementNS(xmlW3, 'line');
+            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
+            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
+            thisLine.setAttributeNS(null, 'y1', lastYShiftCnvs);
+            thisLine.setAttributeNS(null, 'y2', yShiftCnvs);
+            thisLine.setAttributeNS(null, 'stroke', RGBHex);
+            //thisLine.setAttributeNS(null, 'stroke', lineColor);
+            thisLine.setAttributeNS(null, 'stroke-width', 2);
+            cnvsNineteenId.appendChild(thisLine);
+
+            lastXShiftCnvs = xShiftCnvs;
+            lastYShiftCnvs = yShiftCnvs;
+
+        } //iE plot point loop
+
+  } //iB photometric band loop
 
 
 // ****************************************
@@ -7048,6 +7756,39 @@ panelX = panelOrigin[0];
             }
         }
     }
+
+//Exo-planet transit light curves:
+    if (ifPrintTrans == true) {
+
+        var modelBanner = "Model: Teff " + teff + " K, log(g) " + logg + " log cm/s/s, [A/H] " + zScale + ", mass " + massStar + " M_Sun <br />"
+         + " Planet radius " + rPlanet + " R_Earth " + " Orbital radius " + rOrbit + " AU";
+        txtPrint(modelBanner, 10, yOffsetPrint, 500, txtColor, printModelId);
+        txtPrint("Relative flux <em>F</em><sub>Trans</sub>/<em>F</em> in band", 10, yOffsetPrint + 2*lineHeight, 400, txtColor, printModelId);
+        //Column headings:
+
+        var xTab = 130;
+        txtPrint("Time from mid-transit (hrs) ", 10, yOffsetPrint + 3*lineHeight, 400, txtColor, printModelId);
+        //txtPrint("log<sub>10</sub><em>P</em><sub>i</sub>(<em>&#964</em>) (log<sub>10</sub> dynes cm<sup>-2</sup>)",
+        //        200 + xTab, yOffsetPrint + lineHeight, 400, txtColor, printModelId);
+        for (var iB = 0; iB < numPlotBands; iB++) {
+            value = bandLbls[iB];
+            txtPrint(value, 10 + (iB + 1) * xTab, yOffsetPrint + 4 * lineHeight, 400, txtColor, printModelId);
+        }
+
+        for (var iE = 0; iE < numEpochs; iE++) {
+            yTab = yOffsetPrint + vOffset + (iE+2) * lineHeight;
+            value = ephemTHrs[iE];
+            value = value.toPrecision(5);
+            numPrint(value, 10, yTab, txtColor, printModelId);
+            for (var iB = 0; iB < numPlotBands; iB ++) {
+                normFluxTransit[iB][iE] = bandFluxTransit2[whichBands[iB]][iE]/bandFluxTransit2[whichBands[iB]][0];
+                value = normFluxTransit[iB][iE];
+                value = value.toPrecision(10);
+                numPrint(value, 10 + (iB + 1) * xTab, yTab, txtColor, printModelId);
+            }
+        }
+    }
+
 
 
   if (ifPrintJSON == true){

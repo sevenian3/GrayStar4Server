@@ -7,13 +7,9 @@
  * First, reality check raw colours, THEN Run Vega model and subtract off Vega
  * colours for single-point calibration
  */
-var UBVRI = function(lambdaScale, flux, numDeps, tauRos, temp) {
+var UBVRIraw = function(lambdaScale, flux) {
 
     var filters = filterSet();
-
-    var numCols = 7;  //five band combinations in Johnson-Bessell UxBxBVRI: Ux-Bx, B-V, V-R, V-I, R-I, V-K, J-K
-    var colors = [];
-    colors.length = numCols;
 
     var numBands = filters.length;
     var numLambdaFilt;
@@ -21,19 +17,6 @@ var UBVRI = function(lambdaScale, flux, numDeps, tauRos, temp) {
     var bandFlux = [];
     bandFlux.length = numBands;
 
-
-    // Single-point calibration to Vega:
-    // Vega colours computed self-consistntly with GrayFox 1.0 using 
-    // Stellar parameters of Castelli, F.; Kurucz, R. L., 1994, A&A, 281, 817
-    // Teff = 9550 K, log(g) = 3.95, ([Fe/H] = -0.5 - not directly relevent):
-
-    //var vegaColors = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]; //For re-calibrating with raw Vega colours
-    // Aug 2015 - with 14-line linelist:
-    //var vegaColors = [0.289244, -0.400324, 0.222397, -0.288568, -0.510965];
-    //var vegaColors = [0.163003, -0.491341, 0.161940, -0.464265, -0.626204];
-    //With Balmer line linear Stark broadening wings:
-    //vegaColors = [0.321691, -0.248000, 0.061419, -0.463083, -0.524502];
-   var vegaColors = [0.54, -0.66, 0.11, -0.51, -0.62, -3.17, -1.54];//lburns, June 2017
     var deltaLam, newY, product;
 
     for (var ib = 0; ib < numBands; ib++) {
@@ -69,6 +52,29 @@ var UBVRI = function(lambdaScale, flux, numDeps, tauRos, temp) {
         //console.log("Photometry: ib: " + ib + " bandFlux: " + bandFlux[ib], " product " + product + " deltaLam " + deltaLam);
 
     }  //ib loop - bands
+
+    return bandFlux;
+
+}; //UBVRI
+
+var UBVRI = function(bandFlux) {
+
+    var numCols = 7;  //five band combinations in Johnson-Bessell UxBxBVRI: Ux-Bx, B-V, V-R, V-I, R-I, V-K, J-K
+    var colors = [];
+    colors.length = numCols;
+
+    // Single-point calibration to Vega:
+    // Vega colours computed self-consistntly with GrayFox 1.0 using 
+    // Stellar parameters of Castelli, F.; Kurucz, R. L., 1994, A&A, 281, 817
+    // Teff = 9550 K, log(g) = 3.95, ([Fe/H] = -0.5 - not directly relevent):
+
+    //var vegaColors = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]; //For re-calibrating with raw Vega colours
+    // Aug 2015 - with 14-line linelist:
+    //var vegaColors = [0.289244, -0.400324, 0.222397, -0.288568, -0.510965];
+    //var vegaColors = [0.163003, -0.491341, 0.161940, -0.464265, -0.626204];
+    //With Balmer line linear Stark broadening wings:
+    //vegaColors = [0.321691, -0.248000, 0.061419, -0.463083, -0.524502];
+   var vegaColors = [0.54, -0.66, 0.11, -0.51, -0.62, -3.17, -1.54];//lburns, June 2017
 
     var raw;
 
@@ -1115,4 +1121,160 @@ var eqWidthSynth = function(flux, linePoints) { //, fluxCont) {
       return ft;
 
    }; //end method fourier
+
+/*"""
+# Reads in planetary system parameters for a single planet around a single star
+#and computes the impact parameter and time coordinate of snapshots
+# corresponding to the Gauss-Legendre quadrature as the planet transits the star
+#in the stellar atmosphere coordinate system
+
+#Integrated transit solution with stellar atmosphere and radiative tranfer code
+#  :: transit light curve entirely due to specific intensity variation across
+#   projected disk of background star
+#  - ie. No limb darkening coefficient (LDC) parameterization!
+
+Assumptions:
+    o Planet's transit path is a chord (not an arc)
+     :: equal intevals of length along chord --> equal intervals of transit time
+         - okay if r_orbit >> R_star
+    o Eclipsed intensity (I) does not vary as a function of position across the
+       projected disk of the planet
+         - okay if R_planet << R_star
+    o Planet's orbit is circular and centered on centre of star
+    o Planet's intensity is 0
+    o Ingress and egress excluded
+
+    - All light variation will be from background stellar intensity
+        variation across projected stellar disk
+    - Okay if r_planet << R_star - ??
+
+#Input:
+  o radius = radius of star (R_Sun)
+     - NOTE: already fixed by stellar parameters massStar and grav
+  o cosTheta - 2D array [2 x numThetas] - 2nd row is grid of cosTheta values in
+     stellar atmosphere coord system from main program
+  o vTrans - velocity of planet's transit motion projected to surface of star
+
+#Output:
+  o 1D vector of transit times corresponding to theta values transited along transit chord
+
+"""
+*/
+
+var transLight2 = function(radius, cosTheta, vTrans, iFirstTheta, numTransThetas, impct){
+
+    //#Safety first:
+
+    var tiny = 1.0e-49;
+    var logTiny = Math.log(tiny);
+
+    if (impct >= radius){
+        //#There is no eclipse (transit)
+        return;
+    }
+    //#thetaMinRad is also the minimum theta of the eclipse path chord, in RAD
+    var thetaMinRad =  Math.asin(impct/radius);
+    //#cos(theta) *decreases* with increasing theta in Quadrant I:
+    var cosThetaMax = Math.cos(thetaMinRad);
+
+
+    //#Compute array of distances traveled, r, along semi-chord from position of
+    //#minimum impact parameter
+    //#12D array of length number-of-eclipse-thetas
+    //transit = [0.0 for i in range(numTransThetas)]
+    //#test = [0.0 for i in range(numThetas)]
+    var transit = [];
+    transit.length = numTransThetas;
+
+    var thisImpct = 0.0;
+
+    for (var i = 0; i < numTransThetas; i++){
+        //#print("i ", i)
+        var thisTheta = Math.acos(cosTheta[1][i+iFirstTheta]);
+        thisImpct = radius * Math.sin(thisTheta);
+        //#test[i+iFirstTheta] = Math.exp(logRatio)
+        //# impact parameter corresponding to this theta:
+        var thisB = radius * Math.sin(thisTheta);
+        //# linear distance travelled along transit semi-path in solar radii
+        transit[i] = Math.sqrt(thisB**2 - impct**2);
+        transit[i] = transit[i]*rSun; //#RSun to cm
+        //#row 1 is Times at which successive annuli are eclipsed, in s:
+        //#Ephemeris zero point at transit mid-point
+        transit[i] = transit[i]/vTrans;
+        //#print("i ", i, " i+iFirstTheta ", i+iFirstTheta, " transit[1] ", transit[1][i+iFirstTheta])
+    }
+
+    return transit;
+
+};
+//#Returns a vector of reduced fluxes for each angle theta being tannsited by planet
+
+var fluxTrans = function(intens, flx, lambdas, cosTheta,
+          radius,
+             iFirstTheta, numTransThetas, rPlanet){
+    //#print("iFirstTheta ", iFirstTheta, " numTransThetas ", numTransThetas,\
+    //#      " rPlanet ", rPlanet)
+
+
+    var logTiny = -49.0;
+    var tiny = Math.exp(logTiny);
+
+    var numLams = lambdas.length;
+    var numThetas = cosTheta[0].length;
+    var fluxTransSpec = [];
+    fluxTransSpec.length = 2;
+    fluxTransSpec[0] = [];
+    fluxTransSpec[1] = [];
+    fluxTransSpec[0].length = numLams;
+    fluxTransSpec[1].length = numLams;
+    for (var i = 0; i < numLams; i++){
+      fluxTransSpec[0][i] = [];
+      fluxTransSpec[1][i] = [];
+      fluxTransSpec[0][i].length = numTransThetas;
+      fluxTransSpec[1][i].length = numTransThetas;
+      for (var j = 0; j < numTransThetas; j++){
+         fluxTransSpec[0][i][j] = 0.0;
+         fluxTransSpec[1][i][j] = 0.0;
+      }
+    }
+    //#Earth-radii to solar radii:
+    var rPlanet = rPlanet * rEarth / rSun;
+
+    //#dPlanet = 2.0 * rPlanet
+    //#print("dPlanet ", dPlanet)
+
+    //#subtract off flux eclipsed by transiting planet:
+    //#thisImpct = rPlanet  #Default
+    //##Can it really be this simple??:
+    var logOmega = Math.log(Math.PI) + 2.0 * ( Math.log(rPlanet) - Math.log(radius) );
+    //var omega = Math.PI * Math.exp(logOmega);
+    //console.log("logOmega " + logOmega + " omega "+ omega);
+    var helper = 0.0;
+    var logHelper = 0.0;
+
+    //console.log("iFirstTheta " + iFirstTheta + " numThetas " + numThetas + " numLams " + numLams);
+    for (var it = iFirstTheta; it < numThetas; it++){
+
+        for (var il = 0; il < numLams; il++){
+
+            //#Subtracting the very small from the very large - let's be sophisticated about it:
+            logHelper = Math.log(intens[il][it]) + logOmega - flx[1][il];
+            helper = 1.0 - Math.exp(logHelper);
+            //#if (fluxTransSpec[0][il][it-iFirstTheta] > tiny):
+            fluxTransSpec[1][il][it-iFirstTheta] = flx[1][il] + Math.log(helper);
+            //#if (il == 150):
+            //#    print("logHelper ", logHelper, " helper ", helper, " logFluxTransSpec ", logFluxTransSpec)
+            fluxTransSpec[0][il][it-iFirstTheta] = Math.exp(fluxTransSpec[1][il][it-iFirstTheta]);
+            //if (il == 150){
+            //    console.log("fluxTransSpec 2 "+ fluxTransSpec[1][il][it-iFirstTheta])
+            //}
+
+        }
+        //#plt.plot(cosTheta[1][iFirstTheta: iFirstTheta+numTransThetas],\
+        //#         )
+    }
+
+    return fluxTransSpec;
+
+}; //end function fluxTrans
 
