@@ -2521,9 +2521,8 @@ if (ifTransit){
     //console.log(" thetaMinRad "+ thetaMinRad+ " cosThetaMax "+ cosThetaMax);
 
     //#quantities for computing the blocking factor at planetary mid-point contact
-    //#Angle at planet's centre of lens-shaped occultation area:
-    halfHelpAngle = Math.atan( (rPlanetSol/2.0)/radius );
-    midContAngle = ( Math.PI - (2.0*halfHelpAngle) ) / 2.0;
+    //#Angle at planet's centre of lens-like occultation sector area:
+    midContAngle = 2.0 * Math.atan(radius/rPlanetSol);
     //#Area of lens-shaped area occulted at planetary mid-point contact in solar-radii^2
     //# - (2*angle/2*Pi) * Pi*rPlanet^2 = angle*rPlanet^2
     logOmegaLens = Math.log(midContAngle) + 2.0*Math.log(rPlanetSol);
@@ -3502,50 +3501,6 @@ if ((logg >= -0.5) && (logg < 1.5)){
     //} //numSVGNdodes > 0 condition
 
 
-//
-//  function washer() creates and inserts a panel into the HTML doc 
-//   AND erases it by "gray-washing" it upon each re-execution of the script 
-    var washer = function(plotRow, plotCol, thisPanelWidth, wColor, areaId, cnvsId) {
-
-        // Very first thing on each load: gray-wash the canvas!!
-
-// Browser viewport coordinates for upper left corner of panel:
-        panelX = xOffset + plotCol * spacingX; 
-        panelY = yOffsetText + yRangeText +
-             yOffset + plotRow * spacingY;
-        panelXStr = numToPxStrng(panelX);
-        panelYStr = numToPxStrng(panelY);
-        var thisPanelWidthStr = numToPxStrng(thisPanelWidth);
-
-//script the <div> container:
-        areaId.style.position = "absolute";
-        areaId.style.width = thisPanelWidthStr;
-        areaId.style.height = panelHeightStr;
-        areaId.style.marginTop = panelYStr;
-        areaId.style.marginLeft = panelXStr;
-        areaId.style.backgroundColor = wColor;
-//
-//script the <canvas>:
-        cnvsId.style.position = "absolute";
-        cnvsId.style.width = thisPanelWidthStr;
-        cnvsId.style.height = panelHeightStr;
-        //cnvsId.style.marginTop = panelYStr;
-        //cnvsId.style.marginLeft = panelXStr;
-        cnvsId.style.opacity = "1.0";
-        cnvsId.style.backgroundColor = wColor;
-        cnvsId.style.zIndex = 0;
-        //cnvsId.style.border = "1px gray solid";
-        //Wash the canvas:
-        areaId.appendChild(cnvsId);
-
-        var panelOrigin = [panelX, panelY];
-
-        return panelOrigin;
-
-    };
-
-//?? }
-
 
 //
 //
@@ -3688,415 +3643,6 @@ if ((logg >= -0.5) && (logg < 1.5)){
     RGBArr[2] = Math.ceil(255.0 * bbI);
    saveRGB = RGBArr; // For HRD, plot nine
 
-    //
-    //
-    //
-    // ********* XBar()
-    //
-    //
-    //
-//// Draws a horizontal line (for any purpose) at a given DATA y-coordinate (yVal) 
-//and returns the DEVICE y-coordinate (yShift) for further use by calling routine
-// (such as placing an accompanying annotation)
-//
-    var XBar = function(yVal, minYDataIn, maxYDataIn, barWidthCnvs, barHeightCnvs,
-            xFinesse, color, areaId, cnvsId) {
-
-        var yBarPosCnvs = yAxisLength * (yVal - minYDataIn) / (maxYDataIn - minYDataIn);
-        //       xTickPos = xTickPos;
-
-        var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yBarPosCnvs;
-        yShiftCnvs = Math.floor(yShiftCnvs);
-        barWidthCnvs = Math.floor(barWidthCnvs);
-
-// Make the y-tick mark, Teff:
-                                //JB
-// Make the y-tick mark, Teff:
-        var thisLine = document.createElementNS(xmlW3, 'line');
-        thisLine.setAttributeNS(null, 'x1', yAxisXCnvs);
-        thisLine.setAttributeNS(null, 'x2', yAxisXCnvs + barWidthCnvs);
-        thisLine.setAttributeNS(null, 'y1', yShiftCnvs);
-        thisLine.setAttributeNS(null, 'y2', yShiftCnvs);
-        thisLine.setAttributeNS(null, 'stroke', color);
-        thisLine.setAttributeNS(null, 'stroke-width', 2);
-        cnvsId.appendChild(thisLine);
-
-                                //JB
-//
-//
-        return yShiftCnvs;
-    };
-    //
-    //
-    //
-    // ********* YBar()
-    //
-    //
-    //
-
-// Draws a vertical line (for any purpose) at a given DATA x-coordinate (xVal) 
-//and returns the DEVICE x-coordinate (xShift) for further use by calling routine
-// (such as placing an accompanying annotation)
-// CAUTION: input parameter barHeightCnvs gets ADDED to input parameter yFinesse
-// and bar will be drawn DOWNWARD from (yAxisYCnvs + yFinesse)
-    var YBar = function(xVal, minXDataIn, maxXDataIn, thisXAxisLength, barWidthCnvs, barHeightCnvs,
-            yFinesse, color, areaId, cnvsId) {
-
-        var xBarPosCnvs = thisXAxisLength * (xVal - minXDataIn) / (maxXDataIn - minXDataIn);
-        var xShiftCnvs = xAxisXCnvs + xBarPosCnvs;
-        var yBarPosCnvs = yAxisYCnvs + yFinesse; 
-        xShiftCnvs = Math.floor(xShiftCnvs);
-        barHeightCnvs = Math.floor(barHeightCnvs);
-        yBarPosCnvs = Math.floor(yBarPosCnvs);
-
-// Make the x-tick mark, Teff:
-                                        //JB
-        var thisLine = document.createElementNS(xmlW3, 'line');
-        thisLine.setAttributeNS(null, 'x1', xShiftCnvs);
-        thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-        thisLine.setAttributeNS(null, 'y1', yBarPosCnvs);
-        thisLine.setAttributeNS(null, 'y2', yBarPosCnvs + barHeightCnvs);
-        thisLine.setAttributeNS(null, 'stroke', color);
-        thisLine.setAttributeNS(null, 'stroke-width', 2);
-        cnvsId.appendChild(thisLine);
-
-        return xShiftCnvs;
-    };
-
-//return the x position without creating a bar
-    var YBarXVal = function(xVal, minXDataIn, maxXDataIn, barWidthCnvs, barHeightCnvs,yFinesse, color, areaId, cnvsId) {
-                                        //JB
-        var xBarPosCnvs = xAxisLength * (xVal - minXDataIn) / (maxXDataIn - minXDataIn);
-        var xShiftCnvs = xAxisXCnvs + xBarPosCnvs;
-        var yBarPosCnvs = yAxisYCnvs + yFinesse;
-
-// Make the x-tick mark, Teff:
-        return xShiftCnvs;
-    };
-                                        //JB
-
-    //
-    //
-    //
-    //
-    //
-    //  ***** XAxis()
-    //
-    //
-    //
-
-    var XAxis = function(panelX, panelY, thisXAxisLength,
-            minXDataIn, maxXDataIn, xAxisName, fineness,
-            areaId, cnvsId) {
-
-        var axisParams = [];
-        axisParams.length = 8;
-        // Variables to handle normalization and rounding:
-        var numParts = [];
-        numParts.length = 2;
-
-        //axisParams[5] = xLowerYOffset;
-//
-                                //JB
-        var thisLine = document.createElementNS(xmlW3, 'line');
-        thisLine.setAttributeNS(null, 'x1', xAxisXCnvs);
-        thisLine.setAttributeNS(null, 'x2', xAxisXCnvs + thisXAxisLength);
-        thisLine.setAttributeNS(null, 'y1', xAxisYCnvs);
-        thisLine.setAttributeNS(null, 'y2', xAxisYCnvs);
-        thisLine.setAttributeNS(null, 'stroke', lineColor);
-        thisLine.setAttributeNS(null, 'stroke-width', 2);
-        cnvsId.appendChild(thisLine);
-
-//
-        numParts = standForm(minXDataIn);
-        //minXData = mantissa * Math.pow(10.0, numParts[1]);
-        var mantissa0 = numParts[0];
-        var exp0 = numParts[1];
-        //maxXData = mantissa * Math.pow(10.0, numParts[1]);
-        var mantissa1 = maxXDataIn / Math.pow(10.0, exp0);
-        //var rangeXData = maxXData - minXData;
-        var reverse = false; //initialization
-        var rangeXData = mantissa1 - mantissa0;
-        //Catch axes that are supposed to be backwards
-        if (rangeXData < 0.0) {
-            rangeXData = -1.0 * rangeXData;
-            reverse = true;
-        }
-        var deltaXData = 1.0; //default initialization
-        if (rangeXData >= 100000.0) {
-            deltaXData = 20000.0;
-        } else if ((rangeXData >= 20000.0) && (rangeXData < 100000.0)) {
-            deltaXData = 20000.0;
-        } else if ((rangeXData >= 5000.0) && (rangeXData < 20000.0)) {
-            deltaXData = 2000.0;
-        } else if ((rangeXData >= 1000.0) && (rangeXData < 5000.0)) {
-            deltaXData = 200.0;
-        } else if ((rangeXData >= 200.0) && (rangeXData < 1000.0)) {
-            deltaXData = 100.0;
-        } else if ((rangeXData >= 100.0) && (rangeXData < 200.0)) {
-            deltaXData = 25.0;
-        } else if ((rangeXData >= 50.0) && (rangeXData < 100.0)) {
-            deltaXData = 10.0;
-        } else if ((rangeXData >= 20.0) && (rangeXData < 50.0)) {
-            deltaXData = 10.0;
-        } else if ((rangeXData >= 10.0) && (rangeXData < 20.0)) {
-            deltaXData = 5.0;
-        } else if ((rangeXData > 5.0) && (rangeXData <= 10.0)) {
-            deltaXData = 2.0;
-        } else if ((rangeXData > 2.0) && (rangeXData <= 5.0)) {
-            deltaXData = 0.5;
-        } else if ((rangeXData > 1.0) && (rangeXData <= 2.0)) {
-            deltaXData = 0.25;
-        } else if ((rangeXData > 0.5) && (rangeXData <= 1.0)) {
-            deltaXData = 0.2;
-        } else if ((rangeXData > 0.1) && (rangeXData <= 0.5)) {
-            deltaXData = 0.1;
-        } else if ((rangeXData > 0.01) && (rangeXData <= 0.1)) {
-            deltaXData = 0.02;
-        } else if (rangeXData < 0.01){
-            deltaXData = 0.002;
-        }
-
-        if (fineness == "hyperfine"){
-              deltaXData = deltaXData / 10.0;
-             }
-        if (fineness == "fine"){
-             }
-        if (fineness == "coarse"){
-              deltaXData = deltaXData * 2.0;
-             }
-
-        var mantissa0new = mantissa0 - (mantissa0 % deltaXData) - deltaXData;
-        var mantissa1new = mantissa1 - (mantissa1 % deltaXData) + deltaXData;
-        var numerDiff = ((mantissa1new - mantissa0new) / deltaXData).toPrecision(6);
-//        var numXTicks = Math.floor((mantissa1new - mantissa0new) / deltaXData);
-        var numXTicks = Math.floor(numerDiff);
-        if (reverse) {
-            deltaXData = -1.0 * deltaXData;
-            //minXData2 = minXData2 - deltaXData; //sigh - I dunno.
-            numXTicks = (-1 * numXTicks); // + 1; //sigh - I dunno.
-        }
-        numXTicks++;
-        var minXData2, maxXData2, rangeXData2;
-        minXData2 = mantissa0new * Math.pow(10.0, exp0);
-        maxXData2 = mantissa1new * Math.pow(10.0, exp0);
-        rangeXData2 = (mantissa1new - mantissa0new) * Math.pow(10.0, exp0);
-        deltaXData = deltaXData * Math.pow(10.0, exp0);
-        //var deltaXData = rangeXData / (1.0 * numXTicks);
-        //deltaXData = mantissa * Math.pow(10.0, numParts[1]);
-        var deltaXPxl = panelWidth / (numXTicks - 1);
-        var deltaXPxlCnvs = thisXAxisLength / (numXTicks - 1);
-
-        axisParams[1] = rangeXData2;
-        axisParams[2] = deltaXData;
-        axisParams[3] = deltaXPxl;
-        axisParams[6] = minXData2;
-        axisParams[7] = maxXData2;
-        //
-        var ii;
-        for (var i = 0; i < numXTicks; i++) {
-
-            ii = 1.0 * i;
-            var xTickPos = ii * deltaXPxl;
-            var xTickPosCnvs = ii * deltaXPxlCnvs;
-            var xTickVal = minXData2 + (ii * deltaXData);
-            var xTickRound = xTickVal.toPrecision(3); //default
-            //var xTickRound = xTickVal;
-        if (fineness == "hyperfine"){
-            var xTickRound = xTickVal.toPrecision(5);
-              }
-        if (fineness == "fine"){
-            var xTickRound = xTickVal.toPrecision(4);
-              }
-        if (fineness == "coarse"){
-            var xTickRound = xTickVal.toPrecision(3);
-              }
-
-            var xTickValStr = xTickRound.toString(10);
-            // horizontal position in pixels - data values increase rightward:
-            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-            xShiftCnvs = Math.floor(xShiftCnvs);
-// Make the x-tick mark, Teff:
-
-                                //JB
-            var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', xAxisYCnvs + xTickYOffset);
-            thisLine.setAttributeNS(null, 'y2', xAxisYCnvs + xTickYOffset + tickLength);
-            thisLine.setAttributeNS(null, 'stroke', lineColor);
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-            cnvsId.appendChild(thisLine);
-
-
-            //Make the tick label, Teff:
-            txtPrint("<span style='font-size:small'>" + xTickValStr + "</span>",
-                xShiftCnvs, xAxisYCnvs + xValYOffset, 50, lineColor, areaId);
-
-                                //JB
-
-        }  // end x-tickmark loop
-
-
-// Add name of x-axis:
-//Axis label still needs to be html so we can use mark-up
-        xAxisNameX = panelX + xAxisNameOffsetX;
-        xAxisNameY = panelY + xAxisNameOffsetY;
-        txtPrint("<span style='font-size:small'>" + xAxisName + "</span>",
-                xAxisNameOffsetX, xAxisNameOffsetY, 75, lineColor, areaId);
-
-     // cnvsCtx.font="normal normal normal 12pt arial";
-     // cnvsCtx.fillText(xAxisName, xNameXOffsetThisCnvs, xNameYOffsetCnvs);
-        
-        return axisParams;
-
-    };
-
-    //
-    //
-    //
-    //  ***** YAxis()
-    //
-    //
-    //
-
-    var pointsYA = "";
-    var YAxis = function(panelX, panelY,
-            minYDataIn, maxYDataIn, yAxisName,
-            fineness, areaId, cnvsId) {
-
-        var axisParams = [];
-        axisParams.length = 8;
-        // Variables to handle normalization and rounding:
-        var numParts = [];
-        numParts.length = 2;
-
-        //axisParams[5] = xLowerYOffset;
-        // Create the LEFT y-axis element and set its style attributes:
-
-        //axisParams[5] = xLowerYOffset;
-        // Create the LEFT y-axis element and set its style attributes:
-                                //JB
-        var thisLine = document.createElementNS(xmlW3, 'line');
-        thisLine.setAttributeNS(null, 'x1', yAxisXCnvs);
-        thisLine.setAttributeNS(null, 'x2', yAxisXCnvs);
-        thisLine.setAttributeNS(null, 'y1', yAxisYCnvs);
-        thisLine.setAttributeNS(null, 'y2', yAxisYCnvs + yAxisLength);
-        thisLine.setAttributeNS(null, 'stroke', lineColor);
-        thisLine.setAttributeNS(null, 'stroke-width', 2);
-        cnvsId.appendChild(thisLine);
-
-        numParts = standForm(minYDataIn);
-        //minYData = mantissa * Math.pow(10.0, numParts[1]);
-        var mantissa0 = numParts[0];
-        var exp0 = numParts[1];
-        //maxYData = mantissa * Math.pow(10.0, numParts[1]);
-        var mantissa1 = maxYDataIn / Math.pow(10.0, exp0);
-        //var rangeYData = maxYData - minYData;
-        var reverse = false; //initialization
-        var rangeYData = mantissa1 - mantissa0;
-        //Catch axes that are supposed to be backwards
-        if (rangeYData < 0.0) {
-            rangeYData = -1.0 * rangeYData;
-            reverse = true;
-        }
-        var deltaYData = 1.0; //default initialization
-        if (rangeYData >= 100000.0) {
-            deltaYData = 20000.0;
-        } else if ((rangeYData >= 20000.0) && (rangeYData < 100000.0)) {
-            deltaXData = 25000.0;
-        } else if ((rangeYData >= 1000.0) && (rangeYData < 20000.0)) {
-            deltaYData = 5000.0;
-        } else if ((rangeYData >= 250.0) && (rangeYData < 1000.0)) {
-            deltaYData = 200.0;
-        } else if ((rangeYData >= 100.0) && (rangeYData < 250.0)) {
-            deltaYData = 20.0;
-        } else if ((rangeYData >= 50.0) && (rangeYData < 100.0)) {
-            deltaYData = 10.0;
-        } else if ((rangeYData >= 20.0) && (rangeYData < 50.0)) {
-            deltaYData = 5.0;
-        } else if ((rangeYData >= 8.0) && (rangeYData < 20.0)) {
-            deltaYData = 2.0;
-        } else if ((rangeYData > 0.5) && (rangeYData <= 2.0)) {
-            deltaYData = 0.20;
-        } else if ((rangeYData > 0.1) && (rangeYData <= 0.5)) {
-            deltaYData = 0.1;
-        } else if (rangeYData <= 0.1) {
-            deltaYData = 0.02;
-        }
-
-        var mantissa0new = mantissa0 - (mantissa0 % deltaYData);
-        var mantissa1new = mantissa1 - (mantissa1 % deltaYData) + deltaYData;
-        var numerDiff = ((mantissa1new - mantissa0new) / deltaYData).toPrecision(6);
-//        var numYTicks = Math.floor((mantissa1new - mantissa0new) / deltaYData); // + 1;
-        var numYTicks = Math.floor(numerDiff);
-        if (reverse) {
-            deltaYData = -1.0 * deltaYData;
-            //minYData2 = minYData2 - deltaXData; //sigh - I dunno.
-            numYTicks = (-1 * numYTicks); // + 1; //sigh - I dunno.
-        }
-        numYTicks++;
-        deltaYData = deltaYData * Math.pow(10.0, exp0);
-        var minYData2, maxYData2, rangeYData2;
-        minYData2 = mantissa0new * Math.pow(10.0, exp0);
-        maxYData2 = mantissa1new * Math.pow(10.0, exp0);
-        rangeYData2 = (mantissa1new - mantissa0new) * Math.pow(10.0, exp0);
-        //var deltaYData = rangeYData / (1.0 * numYTicks);
-        //deltaYData = mantissa * Math.pow(10.0, numParts[1]);
-        var deltaYPxl = panelHeight / (numYTicks - 1);
-        var deltaYPxlCnvs = yAxisLength / (numYTicks - 1);
-        axisParams[1] = rangeYData2;
-        axisParams[2] = deltaYData;
-        axisParams[3] = deltaYPxl;
-        axisParams[6] = minYData2;
-        axisParams[7] = maxYData2;
-        //
-        var ii;
-        var pointsYt="";
-        for (var i = 0; i < numYTicks; i++) {
-
-            ii = 1.0 * i;
-            var yTickPos = ii * deltaYPxl;
-            var yTickPosCnvs = ii * deltaYPxlCnvs;
-            // Doesn't work - ?? var yTickVal = minYDataRnd + (ii * deltaDataRnd);
-            var yTickVal = minYData2 + (ii * deltaYData);
-            var yTickRound = yTickVal.toPrecision(3);
-            //var yTickRound = yTickVal;
-            var yTickValStr = yTickRound.toString(10);
-            // vertical position in pixels - data values increase upward:
-            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-            yShiftCnvs = Math.floor(yShiftCnvs);
-// Make the y-tick mark, Teff:
-                                           //JB
-          var thisLine = document.createElementNS(xmlW3, 'line');
-           thisLine.setAttributeNS(null, 'x1', yAxisXCnvs + yTickXOffset);
-           thisLine.setAttributeNS(null, 'x2', yAxisXCnvs + yTickXOffset + tickLength);
-           thisLine.setAttributeNS(null, 'y1', yShiftCnvs);
-           thisLine.setAttributeNS(null, 'y2', yShiftCnvs);
-           thisLine.setAttributeNS(null, 'stroke', lineColor);
-           thisLine.setAttributeNS(null, 'stroke-width', 2);
-           cnvsId.appendChild(thisLine);
-
-            //Make the y-tick label:
-         txtPrint("<span style='font-size:small'>" + yTickValStr + "</span>",
-                   yAxisXCnvs + yValXOffset, yShiftCnvs, 50, lineColor, areaId);
-
-        }  // end y-tickmark loop, j
-
-// Add name of LOWER y-axis:
-
-//Axis label still need to be html so we can use mark-up
-        yAxisNameX = panelX + yAxisNameOffsetX;
-        yAxisNameY = panelY + yAxisNameOffsetY;
-        txtPrint("<span style='font-size:x-small'>" + yAxisName + "</span>",
-                yAxisNameOffsetX, yAxisNameOffsetY, 75, lineColor, areaId);
-
-        return axisParams;
-
-    };
-
-    //   var testVal = -1.26832e7;
-//
 
     var xFinesse = 0.0; //default initialization
     var yFinesse = 0.0; //default initialization
@@ -4230,80 +3776,28 @@ if ((logg >= -0.5) && (logg < 1.5)){
        txtPrint(xyString, titleOffsetX+200, titleOffsetY+320, 150, lineColor, plotThirteenId);
     });
 
+        var RGBHexV = [];
+        RGBHexV.length = numSpecSyn;
+        var lambdanm = [];
+        lambdanm.length = numSpecSyn;
 
-        var lambdanm = 1.0e7 * specSynLams2[0];
-        var xTickPosCnvs = thisXAxisLength * (lambdanm - minXData13) / (rangeXData13); // pixels
-        var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-        var yTickPosCnvs = yAxisLength * (specSynFlux[0][0] - minYData13) / rangeYData13;
-        // vertical position in pixels - data values increase upward:
-        var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-        var xShiftCnvs, yShiftCnvs, yShiftFiltCnvs;
-//Gaussian filter:
-        var yTickPosFiltCnvs;
-        var lastYShiftFiltCnvs;
-        if (plotFilt == true){
-          yTickPosFiltCnvs = yAxisLength * ((newFilter[0]) - minYData13) / rangeYData13;
-          lastYShiftFiltCnvs = (yAxisYCnvs + yAxisLength) - yTickPosFiltCnvs;
+//Flux
+        for (var i = 0; i < numSpecSyn; i++){
+           RGBHexV[i] = colHex(0, 0, 0);
+           lambdanm[i] = 1.0e7 * specSynLams2[i];
         }
 
-        var RGBHex = colHex(0, 0, 0);
+     plot(cnvsThirteenId, lambdanm, specSynFlux[0], thisXAxisLength,
+          minXData13, maxXData13, rangeXData13, minYData13, maxYData13, rangeYData13,
+          RGBHexV, '-', dSizeCnvs);
 
-        for (var i = 1; i < numSpecSyn; i++) {
-
-
-            lambdanm = 1.0e7 * specSynLams2[i]; //cm to nm //linear
-            ii = 1.0 * i;
-            xTickPosCnvs = thisXAxisLength * (lambdanm - minXData13) / (rangeXData13); // pixels   //linear
-
-            // horizontal position in pixels - data values increase rightward:
-            xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-            xShiftCnvs = Math.floor(xShiftCnvs);
-
-            yTickPosCnvs = yAxisLength * (specSynFlux[0][i] - minYData13) / rangeYData13;
-            //console.log("i " + i + " 1.0e7 * specSynLams2[i] " + 1.0e7 * specSynLams2[i] + " specSynFlux[0][i] " + specSynFlux[0][i]);
-            // vertical position in pixels - data values increase upward:
-            yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-            yShiftCnvs = Math.floor(yShiftCnvs);
-
-//Gaussian filter:
-        if (plotFilt == true){
-            yTickPosFiltCnvs = yAxisLength * (newFilter[i] - minYData13) / rangeYData13;
-            yShiftFiltCnvs = (yAxisYCnvs + yAxisLength) - yTickPosFiltCnvs;
-            yShiftFiltCnvs = Math.floor(yShiftFiltCnvs);
-        }
-
-            var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', lastYShiftCnvs);
-            thisLine.setAttributeNS(null, 'y2', yShiftCnvs);
-            thisLine.setAttributeNS(null, 'stroke', RGBHex);
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-            cnvsThirteenId.appendChild(thisLine);
-
-            lastXShiftCnvs = xShiftCnvs;
-            lastYShiftCnvs = yShiftCnvs;
-
-
-//Gaussian filter:
-        if (plotFilt == true){
-            yTickPosFiltCnvs = yAxisLength * (newFilter[i] - minYData13) / rangeYData13;
-            yShiftFiltCnvs = (yAxisYCnvs + yAxisLength) - yTickPosFiltCnvs;
-            yShiftFiltCnvs = Math.floor(yShiftFiltCnvs);
-
-            var thisLineFilt = document.createElementNS(xmlW3, 'line');
-            thisLineFilt.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLineFilt.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLineFilt.setAttributeNS(null, 'y1', lastYShiftFiltCnvs);
-            thisLineFilt.setAttributeNS(null, 'y2', yShiftFiltCnvs);
-            thisLineFilt.setAttributeNS(null, 'stroke', RGBHex);
-            thisLineFilt.setAttributeNS(null, 'stroke-width', 2);
-            cnvsThirteenId.appendChild(thisLineFilt);
-            lastYShiftFiltCnvs = yShiftFiltCnvs;
-          }
- 
-        }
-
+//If in range, overplot the narrow-band Gaussian filter used for the narrow-band
+//image (PLOT 12): 
+     if (plotFilt == true){
+        plot(cnvsThirteen, lambdanm, newFilter, thisXAxisLength,
+          minXData13, maxXData13, rangeXData13, minYData13, maxYData13, rangeYData13,
+          RGBHexV, '-', dSizeCnvs);
+     }
 
       //  txtPrint("<span style='font-size:small; color:blue'> <em>v</em><sub>Rot</sub>=" + rotV + " km s<sup>-1</sup>"
       //            + " <em>i</em><sub>Rot</sub>=" + rotI + "<sup>o</sup>"
@@ -5276,107 +4770,57 @@ if (barWidth > 0.5) {
         var b255 = 0; 
         var RGBHex = colHex(r255, r255, r255);
 
-        var ii;
-        //for (var i = 5; i < msNum - 3; i++) {
-        for (var i = 4; i < msNum - 1; i++) {
+        //Populate vectors for general plot routine:
+        var RGBHexV = [];
+        RGBHexV.length = msNum;
+        var logMsTeffs = [];
+        logMsTeffs.length = msNum;
+        for (var i = 0; i < msNum; i++){
+           RGBHexV[i] = RGBHex;
+           logMsTeffs[i] = logTen(msTeffs[i]);
+        }
 
-            ii = 1.0 * i;
-            var xTickPosCnvs = xAxisLength * (logTen(msTeffs[i]) - minXData9) / rangeXData9; // pixels   
-
-            // horizontal position in pixels - data values increase rightward:
-            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-            var yTickPosCnvs = yAxisLength * (msLogLum[i] - minYData9) / rangeYData9;
-        //console.log("logTen(msTeffs[i] " + logTen(msTeffs[i]) + " msLogLum[i] " + msLogLum[i]);
-            // vertical position in pixels - data values increase upward:
-            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-				//JB
-//plot MS stars
-	    var dot = document.createElementNS(xmlW3,'circle');
-	    dot.setAttributeNS(null, 'cx', xShiftCnvs);
-            dot.setAttributeNS(null, 'cy', yShiftCnvs);
-            dot.setAttributeNS(null, 'r', dSizeCnvs);
-            dot.setAttributeNS(null, 'stroke', RGBHex);
-            dot.setAttributeNS(null, 'fill', wDefaultColor);
-            dot.setAttributeNS(null, 'id', "dot"+i);
-	    //dot.setAttributeNS(xmlns,xmlnsLink,xmlnsLink2);
-	    cnvsNineId.appendChild(dot);
-				//JB
-
-} // msNum loop, i
-
+     plot(cnvsNineId, logMsTeffs, msLogLum, xAxisLength,
+          minXData9, maxXData9, rangeXData9, minYData9, maxYData9, rangeYData9,
+          RGBHexV, 'o', dSizeCnvs);
 
 //RGB stars
 
 // RGB color
-        var r255 = 0;
-        var g255 = 0;
-        var b255 = 0; 
         var RGBHex = colHex(r255, r255, r255);
 
-        var ii;
-        //for (var i = 4; i < rgbNum - 2; i++) {
-        for (var i = 3; i < rgbNum - 1; i++) {
+        //Populate vectors for general plot routine:
+        var RGBHexV = [];
+        RGBHexV.length = rgbNum;
+        var logRgbTeffs = [];
+        logRgbTeffs.length = rgbNum;
+        for (var i = 0; i < rgbNum; i++){
+           RGBHexV[i] = RGBHex;
+           logRgbTeffs[i] = logTen(rgbTeffs[i]);
+        }
 
-            ii = 1.0 * i;
-            var xTickPosCnvs = xAxisLength * (logTen(rgbTeffs[i]) - minXData9) / rangeXData9; // pixels   
-
-            // horizontal position in pixels - data values increase rightward:
-            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-            var yTickPosCnvs = yAxisLength * (rgbLogLum[i] - minYData9) / rangeYData9;
-            // vertical position in pixels - data values increase upward:
-            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-
-				//JB
-            var dot = document.createElementNS(xmlW3, 'circle');
-            dot.setAttributeNS(null, 'cx', xShiftCnvs);
-            dot.setAttributeNS(null, 'cy', yShiftCnvs);
-            dot.setAttributeNS(null, 'r', dSizeCnvs);
-            dot.setAttributeNS(null, 'stroke', RGBHex);
-            dot.setAttributeNS(null, 'fill', wDefaultColor);
-            dot.setAttributeNS(null, 'id', "dotTwo"+i);
-            //dot.setAttributeNS(xmlns,xmlnsLink,xmlnsLink2);
-            cnvsNineId.appendChild(dot);
-                                //JB
-
- }  //rgbNum loop, i
-
+     plot(cnvsNineId, logRgbTeffs, rgbLogLum, xAxisLength,
+          minXData9, maxXData9, rangeXData9, minYData9, maxYData9, rangeYData9,
+          RGBHexV, 'o', dSizeCnvs);
 
 // //SGB stars
 // 
 // // RGB color
- var r255 = 0;
- var g255 = 0;
- var b255 = 0; 
  var RGBHex = colHex(r255, r255, r255);
-  
- var ii;
- for (var i = 4; i < sgbNum - 3; i++) {
-  
-  ii = 1.0 * i;
-  var xTickPosCnvs = xAxisLength * (logTen(sgbTeffs[i]) - minXData9) / rangeXData9; // pixels   
-  
-  // horizontal position in pixels - data values increase rightward:
- var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
  
-  var yTickPosCnvs = yAxisLength * (sgbLogLum[i] - minYData9) / rangeYData9;
- // vertical position in pixels - data values increase upward:
-  var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-				
-				//JB
-            var dot = document.createElementNS(xmlW3, 'circle');
-            dot.setAttributeNS(null, 'cx', xShiftCnvs);
-            dot.setAttributeNS(null, 'cy', yShiftCnvs);
-            dot.setAttributeNS(null, 'r', dSizeCnvs);
-            dot.setAttributeNS(null, 'stroke', RGBHex);
-            dot.setAttributeNS(null, 'fill', wDefaultColor);
-            dot.setAttributeNS(null, 'id', "dotThree"+i);
-            //dot.setAttributeNS(xmlns,xmlnsLink,xmlnsLink2);
-            cnvsNineId.appendChild(dot);
+        //Populate vectors for general plot routine:
+        var RGBHexV = [];
+        RGBHexV.length = sgbNum;
+        var logSgbTeffs = [];
+        logSgbTeffs.length = sgbNum;
+        for (var i = 0; i < sgbNum; i++){
+           RGBHexV[i] = RGBHex;
+           logSgbTeffs[i] = logTen(sgbTeffs[i]);
+        }
 
-				//JB
-  } //sgbNum loop, i
+     plot(cnvsNineId, logSgbTeffs, sgbLogLum, xAxisLength,
+          minXData9, maxXData9, rangeXData9, minYData9, maxYData9, rangeYData9,
+          RGBHexV, 'o', dSizeCnvs);
 
     //cnvsNineId.addEventListener("mouseover", function() { 
     cnvsNineId.addEventListener("click", function() {
@@ -5385,7 +4829,6 @@ if (barWidth > 0.5) {
                                yAxisLength, minYData9, rangeYData9, yAxisYCnvs);
        txtPrint(xyString, titleOffsetX+200, titleOffsetY+320, 150, lineColor, plotNineId);
     });
-
 
 
 // Now overplot our star:
@@ -5684,9 +5127,9 @@ I</a></span>", xShift, yShift, 300, lineColor, plotNineId);
         var opac = 1.0; //opacity
         // RGB color
         // PTot:
-        var r255 = 0;
-        var g255 = 0;
-        var b255 = 255; //blue 
+        var r255B = 0;
+        var g255B = 0;
+        var b255B = 255; //blue 
         // PGas:
         var r255G = 0;
         var g255G = 255;
@@ -5695,95 +5138,61 @@ I</a></span>", xShift, yShift, 300, lineColor, plotNineId);
         var r255R = 255;
         var g255R = 0;
         var b255R = 0; //red
+        // Pe:
+        var r255 = 0;
+        var g255 = 0;
+        var b255 = 0; //blue 
 
-//initializations:
-        var ii;
-        var xTickPosCnvs = xAxisLength * (logE * tauRos[1][0] - minXData3) / rangeXData3; // pixels   
-        var yTickPosCnvs = yAxisLength * (logE * pGas[1][0] - minYData3) / rangeYData3; // pixels   
-        var yTickPosGCnvs = yAxisLength * (logE * pGas[1][0] - minYData3) / rangeYData3; // pixels   
-        var yTickPosBCnvs = yAxisLength * (logE * Pe[1][0] - minYData3) / rangeYData3; // pixels   
-        var yTickPosRCnvs = yAxisLength * (logE * pRad[1][0] - minYData3) / rangeYData3; // pixels   
+        var RGBHexV = [];
+        RGBHexV.length = numDeps;
+        var xVec = [];
+        xVec.length = numDeps;
+        var yVec = [];
+        yVec.length = numDeps;
 
-        // horizontal position in pixels - data values increase rightward:
-         var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-         var lastYTickPosCnvs = yAxisLength * (logE * logPTot[0] - minYData3) / rangeYData3;
-         var lastYTickPosGCnvs = yAxisLength * (logE * pGas[1][0] - minYData3) / rangeYData3;
-         var lastYTickPosRCnvs = yAxisLength * (logE * pRad[1][0] - minYData3) / rangeYData3;
-         var lastYTickPosBCnvs = yAxisLength * (logE * Pe[1][0] - minYData3) / rangeYData3;
-         // vertical position in pixels - data values increase upward:
-         var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-         var lastYShiftGCnvs =(yAxisYCnvs + yAxisLength) - yTickPosGCnvs;
-         var lastYShiftRCnvs = (yAxisYCnvs + yAxisLength) - yTickPosRCnvs;
-         var lastYShiftBCnvs = (yAxisYCnvs + yAxisLength) - yTickPosBCnvs;
-
-        // Avoid upper boundary at i=0
-        for (var i = 1; i < numDeps; i++) {
-
-            ii = 1.0 * i;
-            var xTickPosCnvs = xAxisLength * (logE * tauRos[1][i] - minXData3) / rangeXData3; // pixels   
-
-            // horizontal position in pixels - data values increase rightward:
-            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-            var yTickPosCnvs = yAxisLength * (logE * logPTot[i] - minYData3) / rangeYData3;
-	    var yTickPosGCnvs = yAxisLength * (logE * pGas[1][i] - minYData3) / rangeYData3;
-            var yTickPosRCnvs = yAxisLength * (logE * pRad[1][i] - minYData3) / rangeYData3;
-            var yTickPosBCnvs = yAxisLength * (logE * Pe[1][i] - minYData3) / rangeYData3;
-            // vertical position in pixels - data values increase upward:
-            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-            var yShiftGCnvs = (yAxisYCnvs + yAxisLength) - yTickPosGCnvs;
-            var yShiftRCnvs = (yAxisYCnvs + yAxisLength) - yTickPosRCnvs;
-            var yShiftBCnvs = (yAxisYCnvs + yAxisLength) - yTickPosBCnvs;
-
-		
-            		
-            //console.log("lastXShiftCnvs " + lastXShiftCnvs + " lastYShiftCnvs " + lastYShiftGCnvs + " xShiftCnvs " + xShiftCnvs + " yShiftCnvs " + yShiftGCnvs);
-
-            var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', lastYShiftCnvs);
-            thisLine.setAttributeNS(null, 'y2', yShiftCnvs);
-            thisLine.setAttributeNS(null, 'stroke', "#0000FF");
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-            cnvsThreeId.appendChild(thisLine);
-
-            var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', lastYShiftGCnvs);
-            thisLine.setAttributeNS(null, 'y2', yShiftGCnvs);
-            thisLine.setAttributeNS(null, 'stroke', "#00FF00");
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-            cnvsThreeId.appendChild(thisLine);
-
-            var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', lastYShiftRCnvs);
-            thisLine.setAttributeNS(null, 'y2', yShiftRCnvs);
-            thisLine.setAttributeNS(null, 'stroke', "#FF0000");
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-            cnvsThreeId.appendChild(thisLine);
-
-            var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', lastYShiftBCnvs);
-            thisLine.setAttributeNS(null, 'y2', yShiftBCnvs);
-            thisLine.setAttributeNS(null, 'stroke', "#000000");
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-            cnvsThreeId.appendChild(thisLine);
-           
-  
-				//JB
-            lastXShiftCnvs = xShiftCnvs;
-            lastYShiftCnvs = yShiftCnvs;
-            lastYShiftGCnvs = yShiftGCnvs;
-            lastYShiftRCnvs = yShiftRCnvs;
-            lastYShiftBCnvs = yShiftBCnvs;
+//Total Pressure
+        for (var i = 0; i < numDeps; i++){
+           RGBHexV[i] = colHex(r255B, g255B, b255B);
+           xVec[i] = logE * tauRos[1][i];
+           yVec[i] = logE * logPTot[i];
         }
+
+     plot(cnvsThreeId, xVec, yVec, xAxisLength,
+          minXData3, maxXData3, rangeXData3, minYData3, maxYData3, rangeYData3,
+          RGBHexV, '-', dSizeCnvs);
+
+
+//Gas Pressure
+        for (var i = 0; i < numDeps; i++){
+           RGBHexV[i] = colHex(r255G, g255G, b255G);
+           yVec[i] = logE * pGas[1][i];
+        }
+
+     plot(cnvsThreeId, xVec, yVec, xAxisLength,
+          minXData3, maxXData3, rangeXData3, minYData3, maxYData3, rangeYData3,
+          RGBHexV, '-', dSizeCnvs);
+
+//Radiation pressure
+        for (var i = 0; i < numDeps; i++){
+           RGBHexV[i] = colHex(r255R, g255R, b255R);
+           yVec[i] = logE * pRad[1][i];
+        }
+
+     plot(cnvsThreeId, xVec, yVec, xAxisLength,
+          minXData3, maxXData3, rangeXData3, minYData3, maxYData3, rangeYData3,
+          RGBHexV, '-', dSizeCnvs);
+
+
+//Electron pressure
+        for (var i = 0; i < numDeps; i++){
+           RGBHexV[i] = colHex(r255, g255, b255);
+           yVec[i] = logE * Pe[1][i];
+        }
+
+     plot(cnvsThreeId, xVec, yVec, xAxisLength,
+          minXData3, maxXData3, rangeXData3, minYData3, maxYData3, rangeYData3,
+          RGBHexV, '-', dSizeCnvs);
+
 
     //cnvsThreeId.addEventListener("mouseover", function() { 
     cnvsThreeId.addEventListener("click", function() {
@@ -5902,72 +5311,31 @@ I</a></span>", xShift, yShift, 300, lineColor, plotNineId);
         var g255N = 0;
         var b255N = 0; //red
 
-        var xTickPosCnvs = xAxisLength * (180.0 * Math.acos(cosTheta[1][0]) / Math.PI - minXData4) / rangeXData4; // pixels   
-        // horizontal position in pixels - data values increase rightward:
-        var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-        var yTickPosCnvs = yAxisLength * ((tuneBandIntens[0] / tuneBandIntens[0]) - minYData4) / rangeYData4;
-
-        // vertical position in pixels - data values increase upward:
-        var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-
-//
-
-
 //variables required to create an array of colors based on the gaussian filter
 var ilLam0 = lamPoint(numMaster,masterLams,1.0e-7 * diskLambda);
 var lambdanm = masterLams[ilLam0]*1.0e7;
 var minZData = 0.0;
 var maxZData = tuneBandIntens[0]/norm;
 var rangeZData = maxZData - minZData;
-//console.log(diskLambda);
-                              
 
-//
-        for (var i = 1; i < numThetas; i++) {
-
-//other variables required to create an array of colors based
-// on the gaussian filter
-//
-var zLevel = ((tuneBandIntens[i]/norm)-minZData)/rangeZData;
-
-var RGBHex = lambdaToRGB(lambdanm,zLevel);
-//console.log (RGBHex);
-
-
-            xTickPosCnvs = xAxisLength * (180.0 * Math.acos(cosTheta[1][i]) / Math.PI - minXData4) / rangeXData4; // pixels   
-            // horizontal position in pixels - data values increase rightward:
-            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-            yTickPosCnvs = yAxisLength * ((tuneBandIntens[i] / tuneBandIntens[0]) - minYData4) / rangeYData4;
-
-            // vertical position in pixels - data values increase upward:
-            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-
-//Plot points
-			//JB
-            //RGBHex = colHex(0, 0, 0);
-	    var circle = document.createElementNS(xmlW3, 'circle');
-	    circle.setAttributeNS(null, 'cx', xShiftCnvs);
-            circle.setAttributeNS(null, 'cy', yShiftCnvs);
-            circle.setAttributeNS(null, 'r', dSizeCnvs);
-            circle.setAttributeNS(null, 'stroke', RGBHex);
-            circle.setAttributeNS(null, 'fill', RGBHex);
-            cnvsFourId.appendChild(circle);
-			//JB
-//line plot
-			//JB
-	    var line = document.createElementNS(xmlW3, 'line');
-            line.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            line.setAttributeNS(null, 'x2', xShiftCnvs);
-            line.setAttributeNS(null, 'y1', lastYShiftCnvs);
-            line.setAttributeNS(null, 'y2', yShiftCnvs);
-            line.setAttributeNS(null, 'stroke', 'black');
-            line.setAttributeNS(null, 'stroke-width', 2);
-	    cnvsFourId.appendChild(line);
-			//JB
-            lastXShiftCnvs = xShiftCnvs;
-            lastYShiftCnvs = yShiftCnvs;
+        var RGBHexV = [];
+        RGBHexV.length = numThetas;
+        var xVec = [];
+        xVec.length = numThetas;
+        var yVec = [];
+        yVec.length = numThetas;
+        var zLevel = 0.0;
+        for (var i = 0; i < numThetas; i++){
+           zLevel = ((tuneBandIntens[i]/norm)-minZData)/rangeZData;
+           RGBHexV[i] = lambdaToRGB(lambdanm,zLevel);
+           xVec[i] = 180.0 * Math.acos(cosTheta[1][i]) / Math.PI;
+           yVec[i] = tuneBandIntens[i] / tuneBandIntens[0];
         }
+
+     plot(cnvsFourId, xVec, yVec, xAxisLength,
+          minXData4, maxXData4, rangeXData4, minYData4, maxYData4, rangeYData4,
+          RGBHexV, '-o', dSizeCnvs);
+
 
     //cnvsFourId.addEventListener("mouseover", function() { 
     cnvsFourId.addEventListener("click", function() {
@@ -6182,35 +5550,43 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
         var g255N = 120;
         var b255N = 120; //light gray
 
-        // Avoid upper boundary at i=0
+        var RGBHexV = [];
+        RGBHexV.length = numMaster;
+        var logLambdanm = [];
+        logLambdanm.length = numMaster;
+        var yVec = [];
+        yVec.length = numMaster;
 
-//linear x:
-        var yShiftCnvs, yShiftCCnvs, yShift0Cnvs, yShiftNCnvs;
-        //var logLambdanm = 7.0 + logTen(masterLams[0]);  //logarithmic
-        var lambdanm = 1.0e7 * masterLams[0];
-        var xTickPosCnvs = xAxisLength * (lambdanm - minXData5) / rangeXData5; // pixels
-//Logarithmic x:
-        var logLambdanm = 7.0 + logTen(masterLams[0]);  //logarithmic
-        var xTickPosCnvs = xAxisLength * (logLambdanm - minXData5) / rangeXData5; // pixels
-//
-        var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-//linear y:
-        var yTickPosCnvs = yAxisLength * ((masterFlux[0][0] / norm) - minYData5) / rangeYData5;
-        //var yTickPosCCnvs = yAxisLength * ((contFlux3[0] / norm) - minYData) / rangeYData;
-        var yTickPos0Cnvs = yAxisLength * ((masterIntens[0][0] / norm) - minYData5) / rangeYData5;
-        var yTickPosNCnvs = yAxisLength * ((masterIntens[0][numThetas - 2] / norm) - minYData5) / rangeYData5;
-//Logarithmic y:
-        var yTickPosCnvs = yAxisLength * ((logE*masterFlux[1][0]) - minYData5) / rangeYData5;
-        //var yTickPosCCnvs = yAxisLength * ((contFlux3[0] / norm) - minYData) / rangeYData;
-        var yTickPos0Cnvs = yAxisLength * ((logE*masterIntens[1][0]) - minYData5) / rangeYData5;
-        var yTickPosNCnvs = yAxisLength * ((logE*masterIntens[1][numThetas - 2]) - minYData5) / rangeYData5;
-//
-        // vertical position in pixels - data values increase upward:
-        var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-        //var lastYShiftCCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCCnvs;
-        var lastYShift0Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos0Cnvs;
-        var lastYShiftNCnvs = (yAxisYCnvs + yAxisLength) - yTickPosNCnvs;
-        var xShift, yShift;
+//Flux
+        for (var i = 0; i < numMaster; i++){
+           RGBHexV[i] = colHex(r255, g255, b255);
+           logLambdanm[i] = 7.0 + logTen(masterLams[i]);
+           yVec[i] = logE*masterFlux[1][i];
+        }
+
+     plot(cnvsFiveId, logLambdanm, yVec, xAxisLength,
+          minXData5, maxXData5, rangeXData5, minYData5, maxYData5, rangeYData5,
+          RGBHexV, '-', dSizeCnvs);
+
+//Disk centre intensity:
+        for (var i = 0; i < numMaster; i++){
+           RGBHexV[i] = colHex(r2550, g2550, b2550);
+           yVec[i] = logE*Math.log(masterIntens[i][0]);
+        }
+
+     plot(cnvsFiveId, logLambdanm, yVec, xAxisLength,
+          minXData5, maxXData5, rangeXData5, minYData5, maxYData5, rangeYData5,
+          RGBHexV, '-', dSizeCnvs);
+
+//Disk limb intensity:
+        for (var i = 0; i < numMaster; i++){
+           RGBHexV[i] = colHex(r255N, g255N, b255N);
+           yVec[i] = logE*Math.log(masterIntens[i][numThetas - 2]);
+        }
+
+     plot(cnvsFiveId, logLambdanm, yVec, xAxisLength,
+          minXData5, maxXData5, rangeXData5, minYData5, maxYData5, rangeYData5,
+          RGBHexV, '-', dSizeCnvs);
 
     //cnvsFiveId.addEventListener("mouseover", function() { 
     cnvsFiveId.addEventListener("click", function() {
@@ -6219,77 +5595,6 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
                                yAxisLength, minYData5, rangeYData5, yAxisYCnvs);
        txtPrint(xyString, titleOffsetX+200, titleOffsetY+320, 150, lineColor, plotFiveId);
     });
-
-
-        for (var i = 1; i < numMaster; i++) {
-
-            //lambdanm = masterLams[i] * 1.0e7; //cm to nm //linear
-            //xTickPosCnvs = xAxisLength * (lambdanm - minXData5) / rangeXData5; // pixels   //linear
-            logLambdanm = 7.0 + logTen(masterLams[i]);  //logarithmic
-            xTickPosCnvs = xAxisLength * (logLambdanm - minXData5) / rangeXData5; // pixels   //logarithmic
-            ii = 1.0 * i;
-
-            // horizontal position in pixels - data values increase rightward:
-            xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-//linear y:
-            yTickPosCnvs = yAxisLength * ((masterFlux[0][i] / norm) - minYData5) / rangeYData5;
-            //yTickPosCCnvs = yAxisLength * ((contFlux3[i] / norm) - minYData) / rangeYData;
-            yTickPos0Cnvs = yAxisLength * ((masterIntens[i][0] / norm) - minYData5) / rangeYData5;
-            yTickPosNCnvs = yAxisLength * ((masterIntens[i][numThetas - 2] / norm) - minYData5) / rangeYData5;
-//logarithmic y:
-            yTickPosCnvs = yAxisLength * ((logE*masterFlux[1][i]) - minYData5) / rangeYData5;
-            //yTickPosCCnvs = yAxisLength * ((contFlux3[i] / norm) - minYData) / rangeYData;
-            yTickPos0Cnvs = yAxisLength * ((logE*Math.log(masterIntens[i][0])) - minYData5) / rangeYData5;
-            yTickPosNCnvs = yAxisLength * ((logE*Math.log(masterIntens[i][numThetas - 2])) - minYData5) / rangeYData5;
-            // vertical position in pixels - data values increase upward:
-            yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-            //yShiftCCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCCnvs;
-            yShift0Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos0Cnvs;
-            yShiftNCnvs = (yAxisYCnvs + yAxisLength) - yTickPosNCnvs;
-
-//line plot
-            var RGBHex = colHex(r255, g255, b255);
-
-            var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', lastYShiftCnvs);
-            thisLine.setAttributeNS(null, 'y2', yShiftCnvs);
-            thisLine.setAttributeNS(null, 'stroke', RGBHex);
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-            cnvsFiveId.appendChild(thisLine);
-
-            var RGBHex = colHex(r2550, g2550, b2550);
-
-            var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', lastYShift0Cnvs);
-            thisLine.setAttributeNS(null, 'y2', yShift0Cnvs);
-            thisLine.setAttributeNS(null, 'stroke', RGBHex);
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-            cnvsFiveId.appendChild(thisLine);
-
-            var RGBHex = colHex(r255N, g255N, b255N);
-
-            var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', lastYShiftNCnvs);
-            thisLine.setAttributeNS(null, 'y2', yShiftNCnvs);
-            thisLine.setAttributeNS(null, 'stroke', RGBHex);
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-
-
-            lastXShiftCnvs = xShiftCnvs;
-            lastYShiftCnvs = yShiftCnvs;
-            //lastYShiftCCnvs = yShiftCCnvs;
-            lastYShift0Cnvs = yShift0Cnvs;
-            lastYShiftNCnvs = yShiftNCnvs;
-
-        }
-
 
         //monochromatic disk lambda
            yFinesse = 0.0;
@@ -6393,44 +5698,18 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
         var g255 = 0;
         var b255 = 255; //blue
 
-        var ii;
-        var xTickPosCnvs = xAxisLength * (logE * tauRos[1][0] - minXData2) / rangeXData2; // pixels   
-
-        // horizontal position in pixels - data values increase rightward:
-        var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-        var yTickPosCnvs = yAxisLength * (temp[0][0] - minYData2) / rangeYData2;
-        // vertical position in pixels - data values increase upward:
-        var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-
-
-       for (var i = 0; i < numDeps; i++) {
-              
-
-            ii = 1.0 * i;
-            var xTickPosCnvs = xAxisLength * (logE * tauRos[1][i] - minXData2) / rangeXData2; // pixels   
-
-            // horizontal position in pixels - data values increase rightward:
-            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-            var yTickPosCnvs = yAxisLength * (temp[0][i] - minYData2) / rangeYData2;
-            // vertical position in pixels - data values increase upward:
-            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-
-
-           var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', lastYShiftCnvs);
-            thisLine.setAttributeNS(null, 'y2', yShiftCnvs);
-            thisLine.setAttributeNS(null, 'stroke', lineColor);
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-            cnvsTwoId.appendChild(thisLine);
-
-            lastXShiftCnvs = xShiftCnvs;
-            lastYShiftCnvs = yShiftCnvs;
-
+        var RGBHexV = [];
+        RGBHexV.length = numDeps;
+        var xVec = [];
+        xVec.length = numDeps;
+        for (var i = 0; i < numDeps; i++){
+           RGBHexV[i] = colHex(0, 0, 0);
+           xVec[i] = logE * tauRos[1][i];
         }
+
+     plot(cnvsTwoId, xVec, temp[0], xAxisLength,
+          minXData2, maxXData2, rangeXData2, minYData2, maxYData2, rangeYData2,
+          RGBHexV, '-', dSizeCnvs);
 
     cnvsTwoId.addEventListener("click", function() {
        //dataCoords(event, plotTwoId);
@@ -6451,52 +5730,32 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
         //now done earlier var bvr = bandIntens[2][0] + bandIntens[3][0] + bandIntens[4][0];
         //now down above: var rgbVega = [183.0 / 255.0, 160.0 / 255.0, 255.0 / 255.0];
     //console.log("PLOT TWO OUTSIDE: xAxisLength " + xAxisLength + " minXData " + minXData2 + " rangeXData " + rangeXData2 + " xAxisXCnvs " + xAxisXCnvs);
-        for (var i = numThetas - 1; i >= 0; i--) {
 
-            ii = 1.0 * i;
-            //     iCosThetaI = limbTheta1 - ii * limbDelta;
-            //     iIntMaxI = interpol(iCosTheta, iIntMax, iCosThetaI);
-
-            //numPrint(i, 50, 100 + i * 20, zeroInt, zeroInt, zeroInt, masterId);
+        var RGBHexV = [];
+        RGBHexV.length = numThetas;
+        var xVec = [];
+        xVec.length = numThetas;
+        var yVec = [];
+        yVec.length = numThetas;
+        var dpthIndx = 0;
+        for (var i = 0; i < numThetas; i++){
+            rrI = bandIntens[4][i] / bvr0 * rNormVega;
+            r255 = Math.ceil(255.0 * rrI / renormI);
+            ggI = bandIntens[3][i] / bvr0 * vNormVega;
+            g255 = Math.ceil(255.0 * ggI / renormI);
+            bbI = bandIntens[2][i] / bvr0 * bNormVega;
+            b255 = Math.ceil(255.0 * bbI / renormI);
+            RGBHexV[i] = colHex(r255, g255, b255);
             // LTE Eddington-Barbier limb darkening: I(Tau=0, cos(theta)=t) = B(T(Tau=t))
-            var cosFctr = cosTheta[1][i];
-            //  var cosFctr = iCosThetaI;
-            //numPrint(cosFctr, 100, 100+i*20, zeroInt, zeroInt, zeroInt, masterId);
-            var dpthIndx = tauPoint(numDeps, tauRos, cosFctr);
-            //numPrint(dpthIndx, 100, 100+i*20, zeroInt, zeroInt, zeroInt, masterId);
-
-            rrI = bandIntens[4][i] / bvr0 * rNormVega; 
-            r255 = Math.ceil(255.0 * rrI / renormI); 
-            ggI = bandIntens[3][i] / bvr0 * vNormVega; 
-            g255 = Math.ceil(255.0 * ggI / renormI); 
-            bbI = bandIntens[2][i] / bvr0 * bNormVega; 
-            b255 = Math.ceil(255.0 * bbI / renormI); 
-
-            var xTickPosCnvs = xAxisLength * (logE * tauRos[1][dpthIndx] - minXData2) / rangeXData2; // pixels   
-
-            // horizontal position in pixels - data values increase rightward:
-            //var xShift = xOffset + xTickPos;
-            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;// + 200;
-            ////stringify and add unit:
-            //        var xShiftStr = numToPxStrng(xShift);
-
-            //var yTickPos = yRange * (temp[0][dpthIndx] - minYData) / rangeYData;
-            var yTickPosCnvs = yAxisLength * (temp[0][dpthIndx] - minYData2) / rangeYData2;
-            // vertical position in pixels - data values increase upward:
-            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-
-            var RGBHex = colHex(r255, g255, b255);
-
-            var thisCirc = document.createElementNS(xmlW3, 'circle');
-            thisCirc.setAttributeNS(null, 'cx', xShiftCnvs);
-            thisCirc.setAttributeNS(null, 'cy', yShiftCnvs);
-            thisCirc.setAttributeNS(null, 'r', dSizeCnvs);
-            thisCirc.setAttributeNS(null, 'stroke', RGBHex);
-            thisCirc.setAttributeNS(null, 'fill', RGBHex);
-            thisCirc.setAttributeNS(null, 'stroke-width', 2);
-            cnvsTwoId.appendChild(thisCirc);
-
+            dpthIndx = tauPoint(numDeps, tauRos, cosTheta[1][i]);
+            xVec[i] = logE * tauRos[1][dpthIndx];
+            yVec[i] = temp[0][dpthIndx];
         }
+
+        plot(cnvsTwoId, xVec, yVec, xAxisLength,
+          minXData2, maxXData2, rangeXData2, minYData2, maxYData2, rangeYData2,
+          RGBHexV, 'o', dSizeCnvs);
+
 
 // legend using dot of last color in loop directly above:
 
@@ -6623,43 +5882,6 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
         lzRdsPx = Math.round(lzRdsPx);
 
 
-/*        if (radiusPx1AU >= (radiusPxIce + 3)){
-           radii = [radiusPx1AU+1, radiusPx1AU, radiusPxIce + 3, radiusPxIce, radiusPxSteam, radiusPxSteam - 3, radiusPx];
-           colors = ["#000000", wDiskColor, "#0000FF", "#00FF88", "#FF0000", wDiskColor, starRGBHex];
-           //console.log("If branch 1");
-           //console.log("radii " + radii);
-        }
-        if ( (radiusPx1AU >= radiusPxIce) && (radiusPx1AU < (radiusPxIce + 3)) ){
-           radii = [radiusPxIce + 3, radiusPx1AU, radiusPx1AU-1, radiusPxIce, radiusPxSteam, radiusPxSteam - 3, radiusPx];
-           colors = ["#0000FF", "#000000", "#0000FF", "#00FF88", "#FF0000", wDiskColor, starRGBHex];
-           //console.log("If branch 2");
-           //console.log("radii " + radii);
-        }
-        if ( (radiusPx1AU >= radiusPxSteam) && (radiusPx1AU < radiusPxIce) ){
-           radii = [radiusPxIce + 3, radiusPxIce, radiusPx1AU+1, radiusPx1AU, radiusPxSteam, radiusPxSteam - 3, radiusPx];
-           colors = ["#0000FF", "#00FF88", "#000000", "#00FF88", "#FF0000", wDiskColor, starRGBHex];
-           //console.log("If branch 3");
-           //console.log("radii " + radii);
-        }
-        if ( (radiusPx1AU >= (radiusPxSteam - 3)) && (radiusPx1AU < radiusPxSteam) ){
-           radii = [radiusPxIce + 3, radiusPxIce, radiusPxSteam, radiusPx1AU+1, radiusPx1AU, radiusPxSteam - 3, radiusPx];
-           colors = ["#0000FF", "#00FF88", "#FF0000", "#000000", "#FF0000", wDiskColor, starRGBHex];
-           //console.log("If branch 4");
-           //console.log("radii " + radii);
-        }
-        if ( (radiusPx1AU >= radiusPx) && (radiusPx1AU < (radiusPxSteam - 3)) ){
-           radii = [radiusPxIce + 3, radiusPxIce, radiusPxSteam, radiusPxSteam - 3, radiusPx1AU, radiusPx1AU-1,  radiusPx];
-           colors = ["#0000FF", "#00FF88", "#FF0000", wDiskColor, "#000000", wDiskColor, starRGBHex];
-           //console.log("If branch 5");
-           //console.log("radii " + radii);
-        }
-        if (radiusPx1AU <= radiusPx){
-           radii = [radiusPxIce + 3, radiusPxIce, radiusPxSteam, radiusPxSteam - 3, radiusPx, radiusPx1AU, radiusPx1AU-1];
-           colors = ["#0000FF", "#00FF88", "#FF0000", wDiskColor, starRGBHex, "#000000", starRGBHex];
-           //console.log("If branch 6");
-           //console.log("radii " + radii);
-        }*/
-
      //console.log("radii " + radii)
         //
         //var titleYPos = xLowerYOffset - yRange + 40;
@@ -6701,116 +5923,38 @@ var RGBHex = lambdaToRGB(lambdanm,zLevel);
 
         //  Loop over radial zones - largest to smallest
    //console.log("cx " + xCenterCnvs + " cy " + yCenterCnvs);
-/*        for (var i = 0; i < radii.length; i++) { // for (var i = parseFloat(radii.length); i > 2; i--) {
-       //console.log(i, radii[i])
-            var radiusStr = numToPxStrng(radii[i]);
-            // Adjust position to center star:
-            // Radius is really the *diameter* of the symbol
-
-// Adjust position to center star:
-// Radius is really the *diameter* of the symbol
-            var yCenterCnvs = panelHeight / 2; 
-            var xCenterCnvs = panelWidth / 2; 
-				
-				//JB
-	
-                //console.log("i " + i + " radii " + radii[i] + " colors " + colors[i]);
-	
-		var thisCirc = document.createElementNS(xmlW3, 'circle');
-		//cric.setAttribute('id',"circ"+i);
-		thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
-                thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
-		thisCirc.setAttributeNS(null, 'r', radii[i]);
-                thisCirc.setAttributeNS(null, 'stroke', colors[i]);
-                thisCirc.setAttributeNS(null, 'stroke-width', 2);
-		thisCirc.setAttributeNS(null, 'fill', colors[i]);
-		cnvsElevenId.appendChild(thisCirc);
-				
-//console.log(radii[i]-33);
-				//JB
-				
-        }  //i loop (thetas)
-*/
 
 //Add host star:
 
-        var thisCirc = document.createElementNS(xmlW3, 'circle');
-        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
-        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
-        thisCirc.setAttributeNS(null, 'r', radiusPx);
-        thisCirc.setAttributeNS(null, 'stroke', starRGBHex);
-        thisCirc.setAttributeNS(null, 'stroke-width', 2);
-        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
-        thisCirc.setAttributeNS(null, 'fill', starRGBHex);
-        thisCirc.setAttributeNS(null, 'fill-opacity', 1);
-        cnvsElevenId.appendChild(thisCirc);
+        makeCirc(cnvsElevenId, xCenterCnvs, yCenterCnvs, radiusPx,
+                 starRGBHex, 2, 1, starRGBHex, 1);
 
 //Add life zone:
 
-        var thisCirc = document.createElementNS(xmlW3, 'circle');
-        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
-        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
-        thisCirc.setAttributeNS(null, 'r', lzRdsPx);
-        thisCirc.setAttributeNS(null, 'stroke', "#00FF88");
-        thisCirc.setAttributeNS(null, 'stroke-width', lzWdthPx);
-        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
-        thisCirc.setAttributeNS(null, 'fill', "#FFFFFF");
-        thisCirc.setAttributeNS(null, 'fill-opacity', 0);
-        cnvsElevenId.appendChild(thisCirc);
+        makeCirc(cnvsElevenId, xCenterCnvs, yCenterCnvs, lzRdsPx,
+                 "#00FF88", lzWdthPx, 1, "#FFFFFF", 0);
 
 //Add steam line:
 
-        var thisCirc = document.createElementNS(xmlW3, 'circle');
-        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
-        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
-        thisCirc.setAttributeNS(null, 'r', radiusPxSteam);
-        thisCirc.setAttributeNS(null, 'stroke', "#FF0000");
-        thisCirc.setAttributeNS(null, 'stroke-width', 2);
-        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
-        thisCirc.setAttributeNS(null, 'fill', "#FFFFFF");
-        thisCirc.setAttributeNS(null, 'fill-opacity', 0);
-        cnvsElevenId.appendChild(thisCirc);
+        makeCirc(cnvsElevenId, xCenterCnvs, yCenterCnvs, radiusPxSteam,
+                 "#FF0000", 2, 1, "#FFFFFF", 0);
 
 
 //Add ice line:
 
-        var thisCirc = document.createElementNS(xmlW3, 'circle');
-        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
-        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
-        thisCirc.setAttributeNS(null, 'r', radiusPxIce);
-        thisCirc.setAttributeNS(null, 'stroke', "#0000FF");
-        thisCirc.setAttributeNS(null, 'stroke-width', 2);
-        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
-        thisCirc.setAttributeNS(null, 'fill', "#FFFFFF");
-        thisCirc.setAttributeNS(null, 'fill-opacity', 0);
-        cnvsElevenId.appendChild(thisCirc);
+        makeCirc(cnvsElevenId, xCenterCnvs, yCenterCnvs, radiusPxIce,
+                 "#0000FF", 2, 1, "#FFFFFF", 0);
+
 
 //Add 1 AU line:
 
-        var thisCirc = document.createElementNS(xmlW3, 'circle');
-        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
-        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
-        thisCirc.setAttributeNS(null, 'r', radiusPx1AU);
-        thisCirc.setAttributeNS(null, 'stroke', "#000000");
-        thisCirc.setAttributeNS(null, 'stroke-width', 2);
-        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
-        thisCirc.setAttributeNS(null, 'fill', "#FFFFFF");
-        thisCirc.setAttributeNS(null, 'fill-opacity', 0);
-        cnvsElevenId.appendChild(thisCirc);
+        makeCirc(cnvsElevenId, xCenterCnvs, yCenterCnvs, radiusPx1AU,
+                 "#000000", 2, 1, "#FFFFFF", 0);
 
 //Add orbit of transiting exo-planet:
 
-        var thisCirc = document.createElementNS(xmlW3, 'circle');
-        thisCirc.setAttributeNS(null, 'cx', xCenterCnvs);
-        thisCirc.setAttributeNS(null, 'cy', yCenterCnvs);
-        thisCirc.setAttributeNS(null, 'r', radiusPxTrans);
-        thisCirc.setAttributeNS(null, 'stroke', "#990099");
-        thisCirc.setAttributeNS(null, 'stroke-width', 2);
-        thisCirc.setAttributeNS(null, 'stroke-opacity', 1);
-        thisCirc.setAttributeNS(null, 'fill', "#FFFFFF");
-        thisCirc.setAttributeNS(null, 'fill-opacity', 0);
-        cnvsElevenId.appendChild(thisCirc);
-
+        makeCirc(cnvsElevenId, xCenterCnvs, yCenterCnvs, radiusPxTrans,
+                 "#990099", 2, 1, "#FFFFFF", 0);
 
 
 // ****************************************
@@ -6888,64 +6032,22 @@ panelX = panelOrigin[0];
         //var dSizeG = 2.0;
         var dSizeCnvs = 1.0;
         var opac = 1.0; //opacity
-        // RGB color
-        // PTot:
-        var r255 = 0;
-        var g255 = 0;
-        var b255 = 255; //blue 
-        // PGas:
-        var r255G = 0;
-        var g255G = 255;
-        var b255G = 100; //green
-        // PRad:
-        var r255R = 255;
-        var g255R = 0;
-        var b255R = 0; //red
 
-       var it360 = lamPoint(numLams, lambdaScale, 1.0e-7*360.0);
-       var it500 = lamPoint(numLams, lambdaScale, 1.0e-7*500.0);
-//Good odea, but spectrum currently doesn't go out this far:
-       //var it1600 = lamPoint(numLams, lambdaScale, 1.0e-7*1642.0);
-       var it1000 = lamPoint(numLams, lambdaScale, 1.0e-7*1000.0);
-
-       var ii;
-       var xTickPosCnvs = xAxisLength * (logE * tauRos[1][0] - minXData14) / rangeXData14; // pixels   
-       // horizontal position in pixels - data values increase rightward:
-       var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-       // vertical position in pixels - data values increase upward:
-       var yTickPosCnvs = yAxisLength * (logE * kappaRos[1][0] - minYData14) / rangeYData14;
-       var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-
-
-        for (var i = 1; i < numDeps; i++) {
-
-            ii = 1.0 * i;
-            var xTickPosCnvs = xAxisLength * (logE * tauRos[1][i] - minXData14) / rangeXData14; // pixels   
-
-            // horizontal position in pixels - data values increase rightward:
-            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-            // vertical position in pixels - data values increase upward:
-            var yTickPosCnvs = yAxisLength * (logE * kappaRos[1][i] - minYData14) / rangeYData14;
-            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-
- //console.log("i " + i + " lastXShiftCnvs " + lastXShiftCnvs);
-
-//log kappa_Ros
-//line plot
-				//JB
-	    var line = document.createElementNS(xmlW3, 'line');
-            line.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            line.setAttributeNS(null, 'x2', xShiftCnvs);
-            line.setAttributeNS(null, 'y1', lastYShiftCnvs);
-            line.setAttributeNS(null, 'y2', yShiftCnvs);
-	    line.setAttributeNS(null, 'stroke', lineColor);
-	    line.setAttributeNS(null, 'stroke-width', 2);
-	    cnvsFourteenId.appendChild(line);
-				//JB
-            lastXShiftCnvs = xShiftCnvs;
-            lastYShiftCnvs = yShiftCnvs;
+        var RGBHexV = [];
+        RGBHexV.length = numDeps;
+        var xVec = [];
+        xVec.length = numDeps;
+        var yVec = [];
+        yVec.length = numDeps;
+        for (var i = 0; i < numDeps; i++){
+           RGBHexV[i] = lineColor;
+           xVec[i] = logE * tauRos[1][i];
+           yVec[i] = logE * kappaRos[1][i];
         }
+
+     plot(cnvsFourteenId, xVec, yVec, xAxisLength,
+          minXData14, maxXData14, rangeXData14, minYData14, maxYData14, rangeYData14,
+          RGBHexV, '-', dSizeCnvs);
 
 
     //cnvsFourteenId.addEventListener("mouseover", function() { 
@@ -7070,52 +6172,15 @@ panelX = panelOrigin[0];
         var g255N = 0;
         var b255N = 0; //red
 
-
-        var xTickPosCnvs = xAxisLength * (ft[0][0] - minXData15) / rangeXData15; // pixels   
-        // horizontal position in pixels - data values increase rightward:
-        var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-//logarithmic        var yTickPosCnvs = yAxisLength * (logE*Math.log(ft[1][0]) - minYData) / rangeYData; //logarithmic
-       var yTickPosCnvs = yAxisLength * (ft[1][0] - minYData15) / rangeYData15;
-       //var yTickPos2Cnvs = yAxisLength * (ft[2][0] - minYData) / rangeYData;
-
-        // vertical position in pixels - data values increase upward:
-        var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-        //var lastYShift2Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos2Cnvs;
-//
-
-        for (var i = 1; i < numK; i++) {
-
-  //console.log("i " + i + " ft[0] " + ft[0][i] + " ft[1] " + ft[1][i]);
-            xTickPosCnvs = xAxisLength * (ft[0][i] - minXData15) / rangeXData15; // pixels   
-            // horizontal position in pixels - data values increase rightward:
-            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-//logarithmic            yTickPosCnvs = yAxisLength * (logE*Math.log(ft[1][i]) - minYData) / rangeYData; //logarithmic
-            yTickPosCnvs = yAxisLength * (ft[1][i] - minYData15) / rangeYData15;
-           // yTickPos2Cnvs = yAxisLength * (ft[2][i] - minYData) / rangeYData;
-
-            // vertical position in pixels - data values increase upward:
-            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-           // var yShift2Cnvs = (yAxisYCnvs + yAxisLength) - yTickPos2Cnvs;
-
-			//JB
-            RGBHex = colHex(0, 0, 0);
-
- 	    var line = document.createElementNS(xmlW3, 'line');
-            line.setAttributeNS(null, 'x1', lastXShiftCnvs); 
-            line.setAttributeNS(null, 'x2', xShiftCnvs); 
-            line.setAttributeNS(null, 'y1', lastYShiftCnvs); 
-            line.setAttributeNS(null, 'y2', yShiftCnvs); 
-	    line.setAttributeNS(null, 'stroke',  RGBHex);
-	    line.setAttributeNS(null, 'stroke-width', 2);
-	    cnvsFifteenId.appendChild(line);
-	//
-
-            lastXShiftCnvs = xShiftCnvs;
-            lastYShiftCnvs = yShiftCnvs;
-           // lastYShift2Cnvs = yShift2Cnvs;
+        var RGBHexV = [];
+        RGBHexV.length = numK;
+        for (var i = 0; i < numK; i++){
+           RGBHexV[i] = lineColor;
         }
 
+     plot(cnvsFifteenId, ft[0], ft[1], xAxisLength,
+          minXData15, maxXData15, rangeXData15, minYData15, maxYData15, rangeYData15,
+          RGBHexV, '-', dSizeCnvs);
 
     //cnvsSeventeenId.addEventListener("mouseover", function() { 
     cnvsFifteenId.addEventListener("click", function() {
@@ -7229,48 +6294,22 @@ panelX = panelOrigin[0];
         var g255R = 0;
         var b255R = 0; //red
 
-//initializations:
-        var ii;
-        var xTickPosCnvs = xAxisLength * (logE*logTauRosGas[0] - minXData16) / rangeXData16; // pixels   
-        var yTickPosCnvs = yAxisLength * (log10P[0] - minYData16) / rangeYData16; // pixels   
-
-        // horizontal position in pixels - data values increase rightward:
-         var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-         var lastYTickPosCnvs = yAxisLength * (log10P[0] - minYData16) / rangeYData16;
-         // vertical position in pixels - data values increase upward:
-         var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-
-        // Avoid upper boundary at i=0
-        for (var i = 1; i < numGasDepths; i++) {
-
-            ii = 1.0 * i;
-            var xTickPosCnvs = xAxisLength * (logE*logTauRosGas[i] - minXData16) / rangeXData16; // pixels   
-
-            // horizontal position in pixels - data values increase rightward:
-            var xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-            var yTickPosCnvs = yAxisLength * (logE * log10P[i] - minYData16) / rangeYData16;
-            // vertical position in pixels - data values increase upward:
-            var yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-
-		
-            		
-            //console.log("lastXShiftCnvs " + lastXShiftCnvs + " lastYShiftCnvs " + lastYShiftGCnvs + " xShiftCnvs " + xShiftCnvs + " yShiftCnvs " + yShiftGCnvs);
-
-            var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', lastYShiftCnvs);
-            thisLine.setAttributeNS(null, 'y2', yShiftCnvs);
-            thisLine.setAttributeNS(null, 'stroke', "#0000FF");
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-            cnvsSixteenId.appendChild(thisLine);
-
-				//JB
-            lastXShiftCnvs = xShiftCnvs;
-            lastYShiftCnvs = yShiftCnvs;
+        var RGBHexV = [];
+        RGBHexV.length = numGasDepths;
+        var xVec = [];
+        xVec.length = numGasDepths;
+        var yVec = [];
+        yVec.length = numGasDepths;
+        for (var i = 0; i < numGasDepths; i++){
+           RGBHexV[i] = lineColor;
+           xVec[i] = logE*logTauRosGas[i];
+           yVec[i] = logE*log10P[i];
         }
+
+     plot(cnvsSixteenId, xVec, yVec, xAxisLength,
+          minXData16, maxXData16, rangeXData16, minYData16, maxYData16, rangeYData16,
+          RGBHexV, '-', dSizeCnvs);
+
 
     //cnvsThreeId.addEventListener("mouseover", function() { 
     cnvsSixteenId.addEventListener("click", function() {
@@ -7438,26 +6477,24 @@ for (var j = 0; j < numPlotBands; j++){
         var dSize0Cnvs = 1.0;
         var opac = 1.0; //opacity
 
-        var yShiftCnvs, yShiftCCnvs, yShift0Cnvs, yShiftNCnvs;
+        var RGBHexV = [];
+        RGBHexV.length = numEpochs;
 
   for (var iB = 0; iB < numPlotBands; iB++){
 
       for (var iE = 0; iE < numEpochs; iE++){
           normFluxTransit[iB][iE] = bandFluxTransit2[whichBands[iB]][iE]/bandFluxTransit2[whichBands[iB]][0];
-          normFluxTransit[iB][iE] = normFluxTransit[iB][iE] - 1.0;
 //Try re-normalizing to 0 flux:
+          normFluxTransit[iB][iE] = normFluxTransit[iB][iE] - 1.0;
+        //color:
+          RGBHexV[iE] = colHex(transR[iB], transG[iB], transB[iB]);
       }
 
-        var xTickPosCnvs = xAxisLength * (ephemTHrs[0] - minXData19) / rangeXData19; // pixels
-//
-        var lastXShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-        var yTickPosCnvs = yAxisLength * (normFluxTransit[iB][0] - minYData19) / rangeYData19;
-        //console.log("iB " + iB + " normFluxTransit[iB][0] " + normFluxTransit[iB][0]);
-//
-        // vertical position in pixels - data values increase upward:
-        //console.log("yAxisYCnvs " + yAxisYCnvs + " yAxisLength " + yAxisLength + " yTickPosCnvs " + yTickPosCnvs);
-        var lastYShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-        var xShift, yShift;
+     plot(cnvsNineteenId, ephemTHrs, normFluxTransit[iB], xAxisLength,
+          minXData19, maxXData19, rangeXData19, minYData19, maxYData19, rangeYData19,
+          RGBHexV, '-', dSizeCnvs);
+
+  } //iB photometric band loop
 
     //cnvsFiveId.addEventListener("mouseover", function() {
     cnvsNineteenId.addEventListener("click", function() {
@@ -7466,39 +6503,6 @@ for (var j = 0; j < numPlotBands; j++){
                                yAxisLength, minYData19, rangeYData19, yAxisYCnvs);
        txtPrint(xyString, titleOffsetX+200, titleOffsetY+320, 150, lineColor, plotNineteenId);
     });
-
-        for (var i = 1; i < numEpochs; i++) {
-
-            xTickPosCnvs = xAxisLength * (ephemTHrs[i] - minXData19) / rangeXData19;
-            ii = 1.0 * i;
-
-            // horizontal position in pixels - data values increase rightward:
-            xShiftCnvs = xAxisXCnvs + xTickPosCnvs;
-
-            yTickPosCnvs = yAxisLength * (normFluxTransit[iB][i] - minYData19) / rangeYData19;
-            // vertical position in pixels - data values increase upward:
-            yShiftCnvs = (yAxisYCnvs + yAxisLength) - yTickPosCnvs;
-
-//line plot
-            var RGBHex = colHex(transR[iB], transG[iB], transB[iB]);
-            //var RGBHex = colHex(200, 0, 200);
-
-            var thisLine = document.createElementNS(xmlW3, 'line');
-            thisLine.setAttributeNS(null, 'x1', lastXShiftCnvs);
-            thisLine.setAttributeNS(null, 'x2', xShiftCnvs);
-            thisLine.setAttributeNS(null, 'y1', lastYShiftCnvs);
-            thisLine.setAttributeNS(null, 'y2', yShiftCnvs);
-            thisLine.setAttributeNS(null, 'stroke', RGBHex);
-            //thisLine.setAttributeNS(null, 'stroke', lineColor);
-            thisLine.setAttributeNS(null, 'stroke-width', 2);
-            cnvsNineteenId.appendChild(thisLine);
-
-            lastXShiftCnvs = xShiftCnvs;
-            lastYShiftCnvs = yShiftCnvs;
-
-        } //iE plot point loop
-
-  } //iB photometric band loop
 
 
 // ****************************************
